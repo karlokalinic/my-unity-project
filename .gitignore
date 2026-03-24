@@ -1,0 +1,36 @@
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# IDE and local tooling
+.vs/
+.idea/
+.vscode/
+.dotnet/
+.dotnet-home/
+
+# Unity generated project files
+*.csproj
+*.sln
+*.slnx
+*.user
+*.pidb
+*.booproj
+
+# Extra local source control/tooling files
+.plastic/
+ignore.conf
+
+# Local backups
+Backups/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
