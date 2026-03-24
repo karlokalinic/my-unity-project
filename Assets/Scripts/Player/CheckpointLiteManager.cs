@@ -16,13 +16,13 @@ public class CheckpointLiteManager : MonoBehaviour
     [SerializeField] private string defaultCheckpointMessage = "Checkpoint updated.";
     [SerializeField] private string respawnMessage = "You return to the last checkpoint.";
 
-    private PlayerInventory inventory;
+    private InventorySystem inventory;
     private CharacterController characterController;
     private PlayerMover playerMover;
     private Vector3 checkpointPosition;
     private Quaternion checkpointRotation;
     private bool hasCheckpoint;
-    private List<PlayerInventory.InventoryEntry> checkpointInventorySnapshot = new List<PlayerInventory.InventoryEntry>();
+    private List<InventoryEntry> checkpointInventorySnapshot = new List<InventoryEntry>();
 
     public bool RetainInventoryOnRespawn
     {
@@ -30,7 +30,7 @@ public class CheckpointLiteManager : MonoBehaviour
         set => retainInventoryOnRespawn = value;
     }
 
-    public void Configure(PlayerInventory configuredInventory, CharacterController configuredController, PlayerMover configuredMover)
+    public void Configure(InventorySystem configuredInventory, CharacterController configuredController, PlayerMover configuredMover)
     {
         if (configuredInventory != null)
         {
@@ -118,7 +118,7 @@ public class CheckpointLiteManager : MonoBehaviour
     {
         if (inventory == null)
         {
-            inventory = GetComponent<PlayerInventory>();
+            inventory = GetComponent<InventorySystem>();
         }
 
         if (characterController == null)

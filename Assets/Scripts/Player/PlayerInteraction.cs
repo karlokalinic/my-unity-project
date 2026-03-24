@@ -6,7 +6,7 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private Camera viewCamera;
     [SerializeField] private HolstinCameraRig cameraRig;
     [SerializeField] private InspectItemViewer inspectViewer;
-    [SerializeField] private PlayerInventory inventory;
+    [SerializeField] private InventorySystem inventory;
     [SerializeField] private InteractionPromptUI promptUI;
     [SerializeField] private Transform pickupAnchor;
     [SerializeField] private PlayerReachController reachController;
@@ -18,19 +18,12 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private float minimumFacingDot = -0.2f;
     [SerializeField] private float interactionReachDuration = 0.26f;
 
-    [Header("Combat")]
-    [SerializeField] private float fireDistance = 100f;
-    [SerializeField] private LayerMask fireMask = ~0;
-    [SerializeField] private float fireCooldown = 0.16f;
-    [SerializeField] private float rigidbodyImpactForce = 8f;
-
     [Header("Fail-Safes")]
     [SerializeField] private bool autoExitInspectOnMovementIntent = true;
     [SerializeField] private bool busyStateFailsafe = true;
     [SerializeField] private float busyFailsafeSeconds = 2.5f;
 
     private readonly Collider[] overlapResults = new Collider[48];
-    private float nextFireTime;
     private float busyEnteredTime;
     private InteractableBase currentInteractable;
     private InspectableItem currentInspectable;
@@ -39,9 +32,8 @@ public class PlayerInteraction : MonoBehaviour
     private Coroutine interactionRoutine;
     private InteractionScanner interactionScanner;
     private InteractionExecutor interactionExecutor;
-    private CombatController combatController;
 
-    public PlayerInventory Inventory => inventory;
+    public InventorySystem Inventory => inventory;
     public bool IsBusy => isBusy || transientBusy;
 
     public void Configure(Camera cam, HolstinCameraRig rig, InspectItemViewer viewer)
@@ -51,7 +43,7 @@ public class PlayerInteraction : MonoBehaviour
         inspectViewer = viewer;
     }
 
-    public void ConfigureRuntimeReferences(PlayerInventory configuredInventory, InteractionPromptUI configuredPromptUI, Transform configuredPickupAnchor = null)
+    public void ConfigureRuntimeReferences(InventorySystem configuredInventory, InteractionPromptUI configuredPromptUI, Transform configuredPickupAnchor = null)
     {
         if (configuredInventory != null)
         {
@@ -115,7 +107,7 @@ public class PlayerInteraction : MonoBehaviour
 
         if (inventory == null)
         {
-            inventory = GetComponent<PlayerInventory>();
+            inventory = GetComponent<InventorySystem>();
         }
 
         if (promptUI == null)
@@ -135,7 +127,6 @@ public class PlayerInteraction : MonoBehaviour
 
         interactionScanner = new InteractionScanner(overlapResults);
         interactionExecutor = new InteractionExecutor();
-        combatController = new CombatController();
     }
 
     private void Update()
@@ -175,7 +166,7 @@ public class PlayerInteraction : MonoBehaviour
         if (cameraRig.IsInFirstPerson)
         {
             promptUI?.HidePrompt();
-            combatController.HandleCombat(viewCamera, fireDistance, fireMask, fireCooldown, rigidbodyImpactForce, ref nextFireTime);
+            // Real-time combat is handled by RealTimeCombat component
             return;
         }
 

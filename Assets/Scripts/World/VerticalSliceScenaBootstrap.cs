@@ -137,6 +137,10 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         ReparentByName("HolstinSceneContext", coreRoot);
         ReparentByName("InteractionPromptUI", uiRoot);
         ReparentByName("DialoguePanelUI", uiRoot);
+        ReparentByName("HealthStaminaHUD", uiRoot);
+        ReparentByName("InventoryPanelUI", uiRoot);
+        ReparentByName("TurnBasedCombatUI", uiRoot);
+        ReparentByName("ShopWindowUI", uiRoot);
 
         ReparentByName("SceneGround", worldRoot);
         ReparentByName("Template_Exterior_FogCourtyard", worldRoot);
@@ -229,10 +233,10 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             playerMover.transform.SetParent(coreRoot, true);
         }
 
-        PlayerInventory inventory = playerMover.GetComponent<PlayerInventory>();
+        InventorySystem inventory = playerMover.GetComponent<InventorySystem>();
         if (inventory == null)
         {
-            inventory = playerMover.gameObject.AddComponent<PlayerInventory>();
+            inventory = playerMover.gameObject.AddComponent<InventorySystem>();
         }
 
         PlayerInteraction interaction = playerMover.GetComponent<PlayerInteraction>();
@@ -275,6 +279,20 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
 
         sceneContext.Configure(cameraRig, promptUI, inspectViewer, playerMover, dialoguePanel);
         sceneContext.ResolveMissingReferences();
+
+        // Runtime UI singletons
+        EnsureRuntimeUISingleton<HealthStaminaHUD>("HealthStaminaHUD");
+        EnsureRuntimeUISingleton<InventoryPanelUI>("InventoryPanelUI");
+        EnsureRuntimeUISingleton<TurnBasedCombatUI>("TurnBasedCombatUI");
+        EnsureRuntimeUISingleton<ShopWindowUI>("ShopWindowUI");
+    }
+
+    private void EnsureRuntimeUISingleton<T>(string objectName) where T : MonoBehaviour
+    {
+        if (FindAnyObjectByType<T>() != null) return;
+        GameObject go = new GameObject(objectName);
+        go.AddComponent<T>();
+        if (uiRoot != null) go.transform.SetParent(uiRoot, false);
     }
 
     private void EnsureNarrativeInteractionChain()
@@ -308,17 +326,33 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             EnsureHumanoidActorSystems(playerMover.gameObject, true);
         }
 
+        // Legacy key-giver NPCs
         NPCKeyGiverInteractable[] dialogueNpcs = FindObjectsByType<NPCKeyGiverInteractable>(FindObjectsInactive.Exclude);
         for (int i = 0; i < dialogueNpcs.Length; i++)
         {
             NPCKeyGiverInteractable npc = dialogueNpcs[i];
-            if (npc == null)
-            {
-                continue;
-            }
-
+            if (npc == null) continue;
             EnsureHumanoidActorSystems(npc.gameObject, false);
             EnsureNpcDialogueCameraAnchor(npc.gameObject);
+        }
+
+        // RPG skill-check NPCs
+        SkillCheckNpcInteractable[] skillNpcs = FindObjectsByType<SkillCheckNpcInteractable>(FindObjectsInactive.Exclude);
+        for (int i = 0; i < skillNpcs.Length; i++)
+        {
+            SkillCheckNpcInteractable npc = skillNpcs[i];
+            if (npc == null) continue;
+            EnsureHumanoidActorSystems(npc.gameObject, false);
+            EnsureNpcDialogueCameraAnchor(npc.gameObject);
+        }
+
+        // Shop merchant NPCs
+        ShopInteractable[] shopNpcs = FindObjectsByType<ShopInteractable>(FindObjectsInactive.Exclude);
+        for (int i = 0; i < shopNpcs.Length; i++)
+        {
+            ShopInteractable npc = shopNpcs[i];
+            if (npc == null) continue;
+            EnsureHumanoidActorSystems(npc.gameObject, false);
         }
     }
 
@@ -520,8 +554,8 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
     private void EnsureMidpointNpc(Transform parent, Vector3 interiorOrigin)
     {
         GameObject npc = EnsurePrimitiveObject(PrimitiveType.Capsule, "VS_CaretakerNPC", parent, interiorOrigin + new Vector3(-4f, 1f, 0.7f), new Vector3(0.8f, 1f, 0.8f));
-        NPCPlaceholder placeholder = npc.GetComponent<NPCPlaceholder>();
-        if (placeholder == null) placeholder = npc.AddComponent<NPCPlaceholder>();
+        NpcIdentity placeholder = npc.GetComponent<NpcIdentity>();
+        if (placeholder == null) placeholder = npc.AddComponent<NpcIdentity>();
         PlayerMover player = FindAnyObjectByType<PlayerMover>();
         placeholder.Configure("Caretaker", "Keeps exits open and explanations short.", player != null ? player.transform : null);
         NPCKeyGiverInteractable keyGiver = npc.GetComponent<NPCKeyGiverInteractable>();
@@ -836,8 +870,8 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         string repeatConversation)
     {
         GameObject npc = EnsurePrimitiveObject(PrimitiveType.Capsule, name, parent, worldPosition, new Vector3(0.8f, 1f, 0.8f));
-        NPCPlaceholder placeholder = npc.GetComponent<NPCPlaceholder>();
-        if (placeholder == null) placeholder = npc.AddComponent<NPCPlaceholder>();
+        NpcIdentity placeholder = npc.GetComponent<NpcIdentity>();
+        if (placeholder == null) placeholder = npc.AddComponent<NpcIdentity>();
         PlayerMover player = FindAnyObjectByType<PlayerMover>();
         placeholder.Configure(npcName, role, player != null ? player.transform : null);
 
@@ -880,9 +914,16 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             points[i] = point.transform;
         }
 
-        SimpleEnemyAgent simpleEnemy = enemy.GetComponent<SimpleEnemyAgent>();
-        if (simpleEnemy == null) simpleEnemy = enemy.AddComponent<SimpleEnemyAgent>();
-        simpleEnemy.SetPatrolPoints(points);
+        CharacterStats enemyStats = enemy.GetComponent<CharacterStats>();
+        if (enemyStats == null) enemyStats = enemy.AddComponent<CharacterStats>();
+
+        Damageable enemyDamageable = enemy.GetComponent<Damageable>();
+        if (enemyDamageable == null) enemyDamageable = enemy.AddComponent<Damageable>();
+        enemyDamageable.Configure(50f, false, true);
+
+        EnemyController enemyController = enemy.GetComponent<EnemyController>();
+        if (enemyController == null) enemyController = enemy.AddComponent<EnemyController>();
+        enemyController.SetPatrolPoints(points);
     }
 
     private static void EnsureCheckpointZone(Transform parent, string name, Vector3 worldPosition, Vector3 size, string message)

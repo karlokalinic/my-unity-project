@@ -81,5 +81,15 @@ public static partial class HolstinLevelDesignTemplates
 
         CreateNPC(root.transform, origin + new Vector3( 4.1f,0f,1.4f), "Landlady",      "Collects rent, inventories supplies, and edits her memory to remain employable.");
         CreateNPC(root.transform, origin + new Vector3(-2f, 3.2f,0.4f),"Convalescent",  "Talks in feverish fragments about the tunnel shrine under the house.");
+
+        // RPG skill-check NPC in the dormitory
+        CreateSkillCheckNPC(root.transform, origin + new Vector3(-4.2f, 3.2f, -0.5f),
+            "Dormitory Elder",
+            "Knows too much and says too little unless convinced.",
+            "The elder watches you from a corner bed, arms folded.",
+            "rhetoric", 10,
+            "You remind me of someone who survived. Take the back stairway code.",
+            "I have nothing to say to strangers with nothing to trade.",
+            "stairway_code", 20, "townsfolk", 3);
     }
 }

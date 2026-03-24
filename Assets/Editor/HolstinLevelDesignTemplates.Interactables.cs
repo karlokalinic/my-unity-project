@@ -16,14 +16,14 @@ public static partial class HolstinLevelDesignTemplates
         string description,
         string infectionMilestone = "")
     {
-        CreatePrimitive(PrimitiveType.Cube, rootName + "_Pedestal", pos + new Vector3(0f, 0.35f, 0f), new Vector3(0.7f, 0.7f, 0.7f), parent, floorMaterial);
         GameObject keyRoot = new GameObject(rootName.Replace(" ", ""));
         keyRoot.transform.SetParent(parent);
         keyRoot.transform.position = pos + new Vector3(0f, 0.82f, 0f);
-        CreatePrimitive(PrimitiveType.Cube, "Stem", keyRoot.transform.position + new Vector3(0.12f, 0f, 0f), new Vector3(0.28f, 0.04f, 0.05f), keyRoot.transform, metalMaterial, false);
-        GameObject bow = CreatePrimitive(PrimitiveType.Cylinder, "Bow", keyRoot.transform.position + new Vector3(-0.1f, 0f, 0f), new Vector3(0.12f, 0.015f, 0.12f), keyRoot.transform, metalMaterial, false);
-        bow.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-        CreatePrimitive(PrimitiveType.Cube, "Tooth", keyRoot.transform.position + new Vector3(0.23f, -0.03f, 0f), new Vector3(0.05f, 0.08f, 0.05f), keyRoot.transform, metalMaterial, false);
+
+        // Placeholder for visual model -- swap with store asset later
+        AssetPlaceholder ph = keyRoot.AddComponent<AssetPlaceholder>();
+        ph.Configure(AssetPlaceholder.PlaceholderCategory.Prop, "key_item", new Vector3(0.3f, 0.1f, 0.15f));
+
         BoxCollider col = keyRoot.AddComponent<BoxCollider>();
         col.size = new Vector3(0.5f, 0.18f, 0.22f);
 
@@ -79,9 +79,8 @@ public static partial class HolstinLevelDesignTemplates
     {
         Material mat = npcMaterial ?? GetMaterial(ref npcMaterial, "NPC", new Color(0.55f, 0.58f, 0.62f));
         GameObject npc = CreatePrimitive(PrimitiveType.Capsule, npcName.Replace(" ", ""), pos + new Vector3(0f, 1f, 0f), new Vector3(0.8f, 1f, 0.8f), parent, mat, false);
-        NPCPlaceholder placeholder = npc.AddComponent<NPCPlaceholder>();
-        placeholder.Configure(npcName, narrativeRole, FindPlayer()?.transform);
-
+        NpcIdentity identity = npc.AddComponent<NpcIdentity>();
+        identity.Configure(npcName, narrativeRole, FindPlayer()?.transform);
         NPCKeyGiverInteractable giver = npc.AddComponent<NPCKeyGiverInteractable>();
         SerializedObject so = new SerializedObject(giver);
         so.FindProperty("npcName").stringValue = npcName;
@@ -111,8 +110,14 @@ public static partial class HolstinLevelDesignTemplates
         string missingItemMessage = null,
         string successMilestone = "console_service_unlock")
     {
-        GameObject console = CreatePrimitive(PrimitiveType.Cube, consoleName.Replace(" ", ""), pos + new Vector3(0f, 0.9f, 0f), new Vector3(1.1f, 1.8f, 0.9f), parent, metalMaterial, false);
-        CreatePrimitive(PrimitiveType.Cube, "Screen", pos + new Vector3(0f, 1.35f, 0.46f), new Vector3(0.72f, 0.34f, 0.08f), console.transform, accentMaterial, false);
+        GameObject console = new GameObject(consoleName.Replace(" ", ""));
+        console.transform.SetParent(parent);
+        console.transform.position = pos + new Vector3(0f, 0.9f, 0f);
+
+        AssetPlaceholder ph = console.AddComponent<AssetPlaceholder>();
+        ph.Configure(AssetPlaceholder.PlaceholderCategory.Prop, "console_terminal", new Vector3(1.1f, 1.8f, 0.9f));
+        BoxCollider consoleCol = console.AddComponent<BoxCollider>();
+        consoleCol.size = new Vector3(1.1f, 1.8f, 0.9f);
 
         ItemConsumeInteractable consume = console.AddComponent<ItemConsumeInteractable>();
         SerializedObject so = new SerializedObject(consume);

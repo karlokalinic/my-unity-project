@@ -45,12 +45,12 @@ public class PickupInteractable : InteractableBase
         infectionMilestoneOnPickup = infectionMilestone;
     }
 
-    public override string GetPrompt(PlayerInteraction interactor, PlayerInventory inventory)
+    public override string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
         return $"[{InputReader.InteractKeyLabel}] Pick up {itemDisplayName}";
     }
 
-    public override void Interact(PlayerInteraction interactor, PlayerInventory inventory)
+    public override void Interact(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (interactor == null || inventory == null || isPickingUp)
         {
@@ -61,7 +61,7 @@ public class PickupInteractable : InteractableBase
         StartCoroutine(PickupRoutine(interactor, inventory));
     }
 
-    private IEnumerator PickupRoutine(PlayerInteraction interactor, PlayerInventory inventory)
+    private IEnumerator PickupRoutine(PlayerInteraction interactor, InventorySystem inventory)
     {
         isPickingUp = true;
         interactor.SetBusy(true);

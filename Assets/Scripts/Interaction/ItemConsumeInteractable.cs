@@ -61,7 +61,7 @@ public class ItemConsumeInteractable : InteractableBase
         infectionMilestoneOnSuccess = milestoneId;
     }
 
-    public override string GetPrompt(PlayerInteraction interactor, PlayerInventory inventory)
+    public override string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (hasBeenUsed && usableOnlyOnce)
         {
@@ -71,7 +71,7 @@ public class ItemConsumeInteractable : InteractableBase
         return $"[{InputReader.InteractKeyLabel}] Use {requiredItemDisplayName}";
     }
 
-    public override bool IsAvailable(PlayerInteraction interactor, PlayerInventory inventory)
+    public override bool IsAvailable(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (!base.IsAvailable(interactor, inventory))
         {
@@ -81,7 +81,7 @@ public class ItemConsumeInteractable : InteractableBase
         return !usableOnlyOnce || !hasBeenUsed;
     }
 
-    public override void Interact(PlayerInteraction interactor, PlayerInventory inventory)
+    public override void Interact(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (interactor == null || inventory == null)
         {

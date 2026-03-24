@@ -42,7 +42,7 @@ public class NPCKeyGiverInteractable : InteractableBase
         EnsureDialogueDefaults();
     }
 
-    public override string GetPrompt(PlayerInteraction interactor, PlayerInventory inventory)
+    public override string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (grantOnlyOnce && rewardGranted)
         {
@@ -57,7 +57,7 @@ public class NPCKeyGiverInteractable : InteractableBase
         return 5;
     }
 
-    public override void Interact(PlayerInteraction interactor, PlayerInventory inventory)
+    public override void Interact(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (interactor == null || inventory == null)
         {
@@ -108,7 +108,7 @@ public class NPCKeyGiverInteractable : InteractableBase
     private void HandleSelection(
         DialogueSelectionResult selection,
         PlayerInteraction interactor,
-        PlayerInventory inventory,
+        InventorySystem inventory,
         DialogueNodeData node)
     {
         DialogueChoiceData choice = selection.Choice;
@@ -140,7 +140,7 @@ public class NPCKeyGiverInteractable : InteractableBase
         ForceRefreshPrompt(interactor, inventory);
     }
 
-    private void TryGrantReward(PlayerInteraction interactor, PlayerInventory inventory, bool skipRewardMilestone = false)
+    private void TryGrantReward(PlayerInteraction interactor, InventorySystem inventory, bool skipRewardMilestone = false)
     {
         if (grantOnlyOnce && rewardGranted)
         {

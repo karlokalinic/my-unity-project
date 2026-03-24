@@ -43,10 +43,17 @@ public static partial class HolstinLevelDesignTemplates
 
         PlayerMover mover       = EnsureComponent<PlayerMover>(player);
         PlayerInteraction inter = EnsureComponent<PlayerInteraction>(player);
-        if (player.GetComponent<PlayerInventory>() == null)
-        {
-            player.AddComponent<PlayerInventory>();
-        }
+
+        // --- New RPG systems ---
+        EnsureComponent<CharacterStats>(player);
+        EnsureComponent<InventorySystem>(player);
+        EnsureComponent<SkillSystem>(player);
+        EnsureComponent<ReputationSystem>(player);
+        EnsureComponent<CurrencyWallet>(player);
+        EnsureComponent<Damageable>(player);
+        EnsureComponent<RealTimeCombat>(player);
+        EnsureComponent<ExperienceSystem>(player);
+        EnsureComponent<ChoiceHistoryTracker>(player);
 
         Transform headAnchor = player.transform.Find("HeadAnchor");
         if (headAnchor == null) { headAnchor = new GameObject("HeadAnchor").transform; headAnchor.SetParent(player.transform); }
@@ -102,6 +109,35 @@ public static partial class HolstinLevelDesignTemplates
 
         context.Configure(rig, promptUI, viewer, mover, dialoguePanel);
         context.ResolveMissingReferences();
+
+        // --- Scene-level gameplay singletons ---
+        if (Object.FindAnyObjectByType<DifficultyManager>() == null)
+        {
+            GameObject diffGO = new GameObject("DifficultyManager");
+            diffGO.AddComponent<DifficultyManager>();
+            if (sceneGameplayRoot != null) diffGO.transform.SetParent(sceneGameplayRoot, true);
+        }
+
+        if (Object.FindAnyObjectByType<TurnBasedCombatManager>() == null)
+        {
+            GameObject tbmGO = new GameObject("TurnBasedCombatManager");
+            tbmGO.AddComponent<TurnBasedCombatManager>();
+            if (sceneGameplayRoot != null) tbmGO.transform.SetParent(sceneGameplayRoot, true);
+        }
+
+        // --- Runtime UI singletons ---
+        EnsureRuntimeUI<HealthStaminaHUD>("HealthStaminaHUD");
+        EnsureRuntimeUI<InventoryPanelUI>("InventoryPanelUI");
+        EnsureRuntimeUI<TurnBasedCombatUI>("TurnBasedCombatUI");
+        EnsureRuntimeUI<ShopWindowUI>("ShopWindowUI");
+    }
+
+    private static void EnsureRuntimeUI<T>(string objectName) where T : MonoBehaviour
+    {
+        if (Object.FindAnyObjectByType<T>() != null) return;
+        GameObject go = new GameObject(objectName);
+        go.AddComponent<T>();
+        if (sceneUiRoot != null) go.transform.SetParent(sceneUiRoot, false);
     }
 
     private static InteractionPromptUI EnsureInteractionPromptUI()

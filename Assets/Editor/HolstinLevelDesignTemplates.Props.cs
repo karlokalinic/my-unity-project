@@ -1,13 +1,17 @@
 
 // ============================================================
 // FILE: HolstinLevelDesignTemplates.Props.cs
-// Furniture, props, structural elements
+// Structural elements remain primitives (beams, stairs, roofs).
+// Furniture and decorative props are now AssetPlaceholder markers
+// ready for store-asset replacement.
 // ============================================================
 using UnityEditor;
 using UnityEngine;
 
 public static partial class HolstinLevelDesignTemplates
 {
+    // ----- Structural (keep as primitives -- these define layout) -----
+
     private static void CreateBeamLine(Transform parent, Vector3 start, int count, float spacing)
     {
         for (int i = 0; i < count; i++)
@@ -35,82 +39,100 @@ public static partial class HolstinLevelDesignTemplates
         }
     }
 
+    private static void CreateColumn(Transform parent, Vector3 pos, string name)
+        => CreatePrimitive(PrimitiveType.Cylinder, name, pos + new Vector3(0f, 1.5f, 0f), new Vector3(0.4f, 1.5f, 0.4f), parent, wallMaterial);
+
+    private static void CreateWaterChannel(Transform parent, Vector3 pos, Vector3 scale, string name)
+    {
+        GameObject water = CreatePrimitive(PrimitiveType.Cube, name, pos, scale, parent, accentMaterial);
+        Collider c = water.GetComponent<Collider>();
+        if (c != null) c.isTrigger = true;
+    }
+
+    // ----- Furniture (AssetPlaceholder -- swap with store models) -----
+
     private static void CreateTable(Transform parent, Vector3 pos, Vector3 topScale, string name)
     {
-        GameObject root = new GameObject(name);
-        root.transform.SetParent(parent);
-        CreatePrimitive(PrimitiveType.Cube, "Top", pos + new Vector3(0f, 0.82f, 0f), topScale, root.transform, woodMaterial);
-        float x = topScale.x * 0.4f, z = topScale.z * 0.4f;
-        CreatePrimitive(PrimitiveType.Cube, "Leg_A", pos + new Vector3(-x, 0.4f, -z), new Vector3(0.15f, 0.8f, 0.15f), root.transform, darkMaterial);
-        CreatePrimitive(PrimitiveType.Cube, "Leg_B", pos + new Vector3( x, 0.4f, -z), new Vector3(0.15f, 0.8f, 0.15f), root.transform, darkMaterial);
-        CreatePrimitive(PrimitiveType.Cube, "Leg_C", pos + new Vector3(-x, 0.4f,  z), new Vector3(0.15f, 0.8f, 0.15f), root.transform, darkMaterial);
-        CreatePrimitive(PrimitiveType.Cube, "Leg_D", pos + new Vector3( x, 0.4f,  z), new Vector3(0.15f, 0.8f, 0.15f), root.transform, darkMaterial);
+        CreateAssetPlaceholder(parent, pos, name,
+            AssetPlaceholder.PlaceholderCategory.Furniture, "table",
+            new Vector3(topScale.x, 0.85f, topScale.z));
     }
 
     private static void CreateDesk(Transform parent, Vector3 pos, string name)
     {
-        CreateTable(parent, pos, new Vector3(1.6f, 0.14f, 0.75f), name);
-        CreatePrimitive(PrimitiveType.Cube, name + "Drawer", pos + new Vector3(0.45f, 0.58f, 0f), new Vector3(0.45f, 0.45f, 0.62f), parent, woodMaterial);
+        CreateAssetPlaceholder(parent, pos, name,
+            AssetPlaceholder.PlaceholderCategory.Furniture, "desk",
+            new Vector3(1.6f, 0.85f, 0.75f));
     }
 
     private static void CreateBench(Transform parent, Vector3 pos, float length, string name)
     {
-        GameObject root = new GameObject(name);
-        root.transform.SetParent(parent);
-        CreatePrimitive(PrimitiveType.Cube, "Seat",  pos + new Vector3(0f, 0.45f, 0f), new Vector3(length, 0.12f, 0.45f), root.transform, woodMaterial);
-        CreatePrimitive(PrimitiveType.Cube, "Leg_A", pos + new Vector3(-length * 0.35f, 0.22f, 0f), new Vector3(0.14f, 0.44f, 0.14f), root.transform, darkMaterial);
-        CreatePrimitive(PrimitiveType.Cube, "Leg_B", pos + new Vector3( length * 0.35f, 0.22f, 0f), new Vector3(0.14f, 0.44f, 0.14f), root.transform, darkMaterial);
+        CreateAssetPlaceholder(parent, pos, name,
+            AssetPlaceholder.PlaceholderCategory.Furniture, "bench",
+            new Vector3(length, 0.5f, 0.45f));
     }
 
     private static void CreateShelf(Transform parent, Vector3 pos, int levels, string name)
     {
-        GameObject root = new GameObject(name);
-        root.transform.SetParent(parent);
-        CreatePrimitive(PrimitiveType.Cube, "Side_L", pos + new Vector3(-0.55f, 1f, 0f), new Vector3(0.1f, 2f, 0.45f), root.transform, darkMaterial);
-        CreatePrimitive(PrimitiveType.Cube, "Side_R", pos + new Vector3( 0.55f, 1f, 0f), new Vector3(0.1f, 2f, 0.45f), root.transform, darkMaterial);
-        for (int i = 0; i < levels; i++)
-            CreatePrimitive(PrimitiveType.Cube, $"Shelf_{i}", pos + new Vector3(0f, 0.25f + i * 0.75f, 0f), new Vector3(1.2f, 0.08f, 0.45f), root.transform, woodMaterial);
+        CreateAssetPlaceholder(parent, pos, name,
+            AssetPlaceholder.PlaceholderCategory.Furniture, "shelf",
+            new Vector3(1.2f, 0.25f + levels * 0.75f, 0.45f));
     }
 
     private static void CreateBed(Transform parent, Vector3 pos, string name)
     {
-        GameObject root = new GameObject(name);
-        root.transform.SetParent(parent);
-        CreatePrimitive(PrimitiveType.Cube, "Frame",     pos + new Vector3(0f, 0.25f, 0f),   new Vector3(1.2f, 0.28f, 2.3f), root.transform, darkMaterial);
-        CreatePrimitive(PrimitiveType.Cube, "Mattress",  pos + new Vector3(0f, 0.48f, 0f),   new Vector3(1.05f, 0.18f, 2f),  root.transform, wallMaterial);
-        CreatePrimitive(PrimitiveType.Cube, "Headboard", pos + new Vector3(0f, 0.82f, 1.05f),new Vector3(1.2f, 0.8f,  0.1f), root.transform, woodMaterial);
+        CreateAssetPlaceholder(parent, pos, name,
+            AssetPlaceholder.PlaceholderCategory.Furniture, "bed",
+            new Vector3(1.2f, 0.65f, 2.3f));
     }
 
     private static void CreateBarrel(Transform parent, Vector3 pos, string name)
     {
-        GameObject b = CreatePrimitive(PrimitiveType.Cylinder, name, pos + new Vector3(0f, 0.45f, 0f), new Vector3(0.48f, 0.45f, 0.48f), parent, woodMaterial);
-        CreatePrimitive(PrimitiveType.Cylinder, name + "BandTop",    pos + new Vector3(0f, 0.72f, 0f), new Vector3(0.5f, 0.02f, 0.5f), parent, metalMaterial);
-        CreatePrimitive(PrimitiveType.Cylinder, name + "BandBottom", pos + new Vector3(0f, 0.20f, 0f), new Vector3(0.5f, 0.02f, 0.5f), parent, metalMaterial);
-        b.transform.localScale = new Vector3(0.45f, 0.45f, 0.45f);
+        CreateAssetPlaceholder(parent, pos, name,
+            AssetPlaceholder.PlaceholderCategory.Container, "barrel",
+            new Vector3(0.5f, 0.9f, 0.5f));
     }
 
     private static void CreateCrateCluster(Transform parent, Vector3 center, int count, string rootName)
     {
-        GameObject root = new GameObject(rootName);
-        root.transform.SetParent(parent);
-        for (int i = 0; i < count; i++)
-        {
-            float x = (i % 3) * 0.75f, z = (i / 3) * 0.75f, y = i >= 3 ? 0.58f : 0.28f;
-            CreatePrimitive(PrimitiveType.Cube, $"Crate_{i}", center + new Vector3(x, y, z), new Vector3(0.62f, 0.56f, 0.62f), root.transform, woodMaterial);
-        }
+        CreateAssetPlaceholder(parent, center, rootName,
+            AssetPlaceholder.PlaceholderCategory.Container, "crate_cluster",
+            new Vector3(count * 0.5f, 0.6f, Mathf.CeilToInt(count / 3f) * 0.5f));
     }
+
+    private static void CreateWell(Transform parent, Vector3 pos, string name)
+    {
+        CreateAssetPlaceholder(parent, pos, name,
+            AssetPlaceholder.PlaceholderCategory.Prop, "well",
+            new Vector3(1.4f, 2.6f, 1.4f));
+    }
+
+    private static void CreateCart(Transform parent, Vector3 pos, string name)
+    {
+        CreateAssetPlaceholder(parent, pos, name,
+            AssetPlaceholder.PlaceholderCategory.Prop, "cart",
+            new Vector3(2.2f, 1.2f, 1.3f));
+    }
+
+    // ----- Lighting props (keep functional -- lights are gameplay) -----
 
     private static void CreateLantern(Transform parent, Vector3 pos, string name, Color lightColor)
     {
         GameObject root = new GameObject(name);
         root.transform.SetParent(parent);
         root.transform.position = pos;
-        CreatePrimitive(PrimitiveType.Cylinder, "Frame", pos, new Vector3(0.12f, 0.2f, 0.12f), root.transform, metalMaterial, false);
-        GameObject globe = CreatePrimitive(PrimitiveType.Sphere, "Glow", pos + new Vector3(0f, -0.08f, 0f), new Vector3(0.18f, 0.18f, 0.18f), root.transform, accentMaterial, false);
-        Renderer gr = globe.GetComponent<Renderer>();
-        if (gr != null) gr.sharedMaterial = GetEmissiveMaterial(name + "_Emissive", lightColor * 0.8f);
+
+        // Placeholder for visual mesh
+        AssetPlaceholder ph = root.AddComponent<AssetPlaceholder>();
+        ph.Configure(AssetPlaceholder.PlaceholderCategory.Light, "lantern", new Vector3(0.2f, 0.4f, 0.2f));
+
+        // Functional light (this stays regardless of model)
         Light lc = root.AddComponent<Light>();
-        lc.type = LightType.Point; lc.range = 8f; lc.intensity = 5f; lc.color = lightColor; lc.shadows = LightShadows.None;
+        lc.type = LightType.Point;
+        lc.range = 8f;
+        lc.intensity = 5f;
+        lc.color = lightColor;
+        lc.shadows = LightShadows.None;
 
         TutorialAmbientMotion motion = root.AddComponent<TutorialAmbientMotion>();
         SerializedObject so = new SerializedObject(motion);
@@ -127,31 +149,24 @@ public static partial class HolstinLevelDesignTemplates
     {
         GameObject root = new GameObject(name);
         root.transform.SetParent(parent);
-        CreatePrimitive(PrimitiveType.Cylinder, "Pole",     pos + new Vector3(0f,    1.5f, 0f), new Vector3(0.12f, 1.5f, 0.12f), root.transform, metalMaterial);
-        CreatePrimitive(PrimitiveType.Cube,     "Crossbar", pos + new Vector3(0.45f, 3.1f, 0f), new Vector3(0.9f,  0.08f, 0.08f), root.transform, metalMaterial);
-        CreateLantern(root.transform, pos + new Vector3(0.85f, 2.95f, 0f), "LampHead", new Color(1f, 0.72f, 0.42f));
+        root.transform.position = pos;
+
+        AssetPlaceholder ph = root.AddComponent<AssetPlaceholder>();
+        ph.Configure(AssetPlaceholder.PlaceholderCategory.Light, "lamp_post", new Vector3(0.4f, 3.2f, 0.4f));
+
+        // Functional light at top
+        GameObject lightHolder = new GameObject("LampHead");
+        lightHolder.transform.SetParent(root.transform);
+        lightHolder.transform.position = pos + new Vector3(0f, 3f, 0f);
+        Light lc = lightHolder.AddComponent<Light>();
+        lc.type = LightType.Point;
+        lc.range = 8f;
+        lc.intensity = 5f;
+        lc.color = new Color(1f, 0.72f, 0.42f);
+        lc.shadows = LightShadows.None;
     }
 
-    private static void CreateWell(Transform parent, Vector3 pos, string name)
-    {
-        GameObject root = new GameObject(name);
-        root.transform.SetParent(parent);
-        CreatePrimitive(PrimitiveType.Cylinder, "StoneRing",  pos + new Vector3(0f, 0.40f, 0f), new Vector3(1.4f, 0.4f,  1.4f), root.transform, floorMaterial);
-        CreatePrimitive(PrimitiveType.Cylinder, "InnerWater", pos + new Vector3(0f, 0.15f, 0f), new Vector3(0.9f, 0.1f,  0.9f), root.transform, accentMaterial);
-        CreatePrimitive(PrimitiveType.Cube,     "Beam_A",     pos + new Vector3(-0.95f, 1.5f, 0f), new Vector3(0.16f, 2.2f, 0.16f), root.transform, woodMaterial);
-        CreatePrimitive(PrimitiveType.Cube,     "Beam_B",     pos + new Vector3( 0.95f, 1.5f, 0f), new Vector3(0.16f, 2.2f, 0.16f), root.transform, woodMaterial);
-        CreatePrimitive(PrimitiveType.Cube,     "Crossbar",   pos + new Vector3(0f, 2.45f, 0f),    new Vector3(2.1f,  0.16f, 0.16f), root.transform, woodMaterial);
-    }
-
-    private static void CreateCart(Transform parent, Vector3 pos, string name)
-    {
-        GameObject root = new GameObject(name);
-        root.transform.SetParent(parent);
-        CreatePrimitive(PrimitiveType.Cube,     "Body",    pos + new Vector3(0f,   0.70f, 0f),  new Vector3(2.2f,  0.7f,  1.3f), root.transform, woodMaterial);
-        CreatePrimitive(PrimitiveType.Cube,     "Handle",  pos + new Vector3(1.8f, 0.75f, 0f),  new Vector3(1.4f,  0.1f,  0.1f), root.transform, woodMaterial);
-        CreatePrimitive(PrimitiveType.Cylinder, "Wheel_A", pos + new Vector3(-0.8f, 0.35f,  0.8f), new Vector3(0.38f, 0.12f, 0.38f), root.transform, darkMaterial);
-        CreatePrimitive(PrimitiveType.Cylinder, "Wheel_B", pos + new Vector3(-0.8f, 0.35f, -0.8f), new Vector3(0.38f, 0.12f, 0.38f), root.transform, darkMaterial);
-    }
+    // ----- Structural fencing/gates (layout elements, keep as primitives) -----
 
     private static void CreateFenceLine(Transform parent, Vector3 start, int count, float spacing, Quaternion rot, string rootName)
     {
@@ -180,28 +195,21 @@ public static partial class HolstinLevelDesignTemplates
         CreatePrimitive(PrimitiveType.Cube, "Door_B",   pos + new Vector3(0f, 1.3f,  0.6f), new Vector3(0.14f, 2.6f, 1.1f),  root.transform, woodMaterial);
     }
 
-    private static void CreateColumn(Transform parent, Vector3 pos, string name)
-        => CreatePrimitive(PrimitiveType.Cylinder, name, pos + new Vector3(0f, 1.5f, 0f), new Vector3(0.4f, 1.5f, 0.4f), parent, wallMaterial);
-
-    private static void CreateWaterChannel(Transform parent, Vector3 pos, Vector3 scale, string name)
-    {
-        GameObject water = CreatePrimitive(PrimitiveType.Cube, name, pos, scale, parent, accentMaterial);
-        Collider c = water.GetComponent<Collider>();
-        if (c != null) c.isTrigger = true;
-    }
-
     private static void CreatePortal(Transform parent, Vector3 pos, string name)
     {
         GameObject root = new GameObject(name);
         root.transform.SetParent(parent);
         root.transform.position = pos;
-        CreatePrimitive(PrimitiveType.Cylinder, "Frame", pos, new Vector3(1.6f, 0.2f, 1.6f), root.transform, darkMaterial);
-        GameObject p = CreatePrimitive(PrimitiveType.Sphere, "Core", pos, new Vector3(1.7f, 2.1f, 0.35f), root.transform, accentMaterial, false);
-        p.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-        Renderer pr = p.GetComponent<Renderer>();
-        if (pr != null) pr.sharedMaterial = GetEmissiveMaterial(name + "_Portal", new Color(0.45f, 0.7f, 1f));
+
+        AssetPlaceholder ph = root.AddComponent<AssetPlaceholder>();
+        ph.Configure(AssetPlaceholder.PlaceholderCategory.Prop, "portal", new Vector3(1.7f, 2.2f, 0.4f));
+
         Light lc = root.AddComponent<Light>();
-        lc.type = LightType.Point; lc.range = 10f; lc.intensity = 6f; lc.color = new Color(0.45f, 0.7f, 1f); lc.shadows = LightShadows.None;
+        lc.type = LightType.Point;
+        lc.range = 10f;
+        lc.intensity = 6f;
+        lc.color = new Color(0.45f, 0.7f, 1f);
+        lc.shadows = LightShadows.None;
 
         TutorialAmbientMotion motion = root.AddComponent<TutorialAmbientMotion>();
         SerializedObject so = new SerializedObject(motion);

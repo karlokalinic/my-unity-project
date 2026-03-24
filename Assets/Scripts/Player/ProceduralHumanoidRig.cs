@@ -25,12 +25,20 @@ public class ProceduralHumanoidRig : MonoBehaviour
         public Vector3 localPosition;
         public Vector3 localScale;
         public float mass;
+        public float lowAngularXLimit;
+        public float highAngularXLimit;
+        public float angularYLimit;
+        public float angularZLimit;
+        public float springForce;
+        public float damperForce;
     }
 
     [Header("Build")]
     [SerializeField] private bool buildOnAwake = true;
     [SerializeField] private bool hideSourceRenderers = true;
     [SerializeField] private bool setRagdollLayerToIgnoreRaycast = true;
+    [Tooltip("Physics layer index used for ragdoll bones. Set Physics collision matrix to disable self-collision on this layer.")]
+    [SerializeField] private int ragdollLayer = 10;
 
     [Header("Roots")]
     [SerializeField] private Transform physicalRoot;
@@ -203,7 +211,7 @@ public class ProceduralHumanoidRig : MonoBehaviour
 
         if (setRagdollLayerToIgnoreRaycast)
         {
-            existing.gameObject.layer = 2;
+            existing.gameObject.layer = ragdollLayer;
         }
 
         Collider colliderComponent = existing.GetComponent<Collider>();
@@ -292,16 +300,19 @@ public class ProceduralHumanoidRig : MonoBehaviour
         joint.angularYMotion = ConfigurableJointMotion.Limited;
         joint.angularZMotion = ConfigurableJointMotion.Limited;
 
-        SoftJointLimit limit = new SoftJointLimit { limit = 38f };
-        joint.lowAngularXLimit = limit;
-        joint.highAngularXLimit = limit;
-        joint.angularYLimit = limit;
-        joint.angularZLimit = limit;
+        SoftJointLimit lowXLimit = new SoftJointLimit { limit = definition.lowAngularXLimit };
+        SoftJointLimit highXLimit = new SoftJointLimit { limit = definition.highAngularXLimit };
+        SoftJointLimit yLimit = new SoftJointLimit { limit = definition.angularYLimit };
+        SoftJointLimit zLimit = new SoftJointLimit { limit = definition.angularZLimit };
+        joint.lowAngularXLimit = lowXLimit;
+        joint.highAngularXLimit = highXLimit;
+        joint.angularYLimit = yLimit;
+        joint.angularZLimit = zLimit;
         joint.rotationDriveMode = RotationDriveMode.Slerp;
         joint.slerpDrive = new JointDrive
         {
-            positionSpring = 380f,
-            positionDamper = 45f,
+            positionSpring = definition.springForce > 0f ? definition.springForce : 380f,
+            positionDamper = definition.damperForce > 0f ? definition.damperForce : 45f,
             maximumForce = 1_000_000f
         };
 
@@ -355,28 +366,34 @@ public class ProceduralHumanoidRig : MonoBehaviour
 
     private static List<BoneDefinition> GetBoneDefinitions()
     {
+        // Per-bone angular limits (degrees) and spring/damper profiles for realistic ragdoll.
+        // lowAngularX / highAngularX = pitch range, angularY = twist, angularZ = side bend.
         return new List<BoneDefinition>
         {
-            new BoneDefinition { boneName = "Hips", parentBoneName = "", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, 1f, 0f), localScale = new Vector3(0.28f, 0.18f, 0.2f), mass = 1.25f },
-            new BoneDefinition { boneName = "Spine", parentBoneName = "Hips", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, 0.24f, 0f), localScale = new Vector3(0.26f, 0.2f, 0.18f), mass = 0.8f },
-            new BoneDefinition { boneName = "Chest", parentBoneName = "Spine", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, 0.24f, 0f), localScale = new Vector3(0.35f, 0.24f, 0.2f), mass = 0.95f },
-            new BoneDefinition { boneName = "Head", parentBoneName = "Chest", primitiveType = PrimitiveType.Sphere, localPosition = new Vector3(0f, 0.29f, 0f), localScale = new Vector3(0.18f, 0.18f, 0.18f), mass = 0.45f },
+            new BoneDefinition { boneName = "Hips", parentBoneName = "", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, 1f, 0f), localScale = new Vector3(0.28f, 0.18f, 0.2f), mass = 1.25f, lowAngularXLimit = 0f, highAngularXLimit = 0f, angularYLimit = 0f, angularZLimit = 0f, springForce = 0f, damperForce = 0f },
 
-            new BoneDefinition { boneName = "LeftUpperArm", parentBoneName = "Chest", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(-0.24f, 0.12f, 0f), localScale = new Vector3(0.11f, 0.24f, 0.11f), mass = 0.45f },
-            new BoneDefinition { boneName = "LeftLowerArm", parentBoneName = "LeftUpperArm", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(-0.22f, 0f, 0f), localScale = new Vector3(0.09f, 0.23f, 0.09f), mass = 0.35f },
-            new BoneDefinition { boneName = "LeftHand", parentBoneName = "LeftLowerArm", primitiveType = PrimitiveType.Sphere, localPosition = new Vector3(-0.18f, 0f, 0f), localScale = new Vector3(0.11f, 0.11f, 0.11f), mass = 0.2f },
+            // Spine: limited bend
+            new BoneDefinition { boneName = "Spine", parentBoneName = "Hips", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, 0.24f, 0f), localScale = new Vector3(0.26f, 0.2f, 0.18f), mass = 0.8f, lowAngularXLimit = -20f, highAngularXLimit = 30f, angularYLimit = 15f, angularZLimit = 12f, springForce = 500f, damperForce = 55f },
+            new BoneDefinition { boneName = "Chest", parentBoneName = "Spine", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, 0.24f, 0f), localScale = new Vector3(0.35f, 0.24f, 0.2f), mass = 0.95f, lowAngularXLimit = -15f, highAngularXLimit = 25f, angularYLimit = 18f, angularZLimit = 10f, springForce = 480f, damperForce = 50f },
+            new BoneDefinition { boneName = "Head", parentBoneName = "Chest", primitiveType = PrimitiveType.Sphere, localPosition = new Vector3(0f, 0.29f, 0f), localScale = new Vector3(0.18f, 0.18f, 0.18f), mass = 0.45f, lowAngularXLimit = -40f, highAngularXLimit = 55f, angularYLimit = 60f, angularZLimit = 25f, springForce = 350f, damperForce = 40f },
 
-            new BoneDefinition { boneName = "RightUpperArm", parentBoneName = "Chest", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0.24f, 0.12f, 0f), localScale = new Vector3(0.11f, 0.24f, 0.11f), mass = 0.45f },
-            new BoneDefinition { boneName = "RightLowerArm", parentBoneName = "RightUpperArm", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0.22f, 0f, 0f), localScale = new Vector3(0.09f, 0.23f, 0.09f), mass = 0.35f },
-            new BoneDefinition { boneName = "RightHand", parentBoneName = "RightLowerArm", primitiveType = PrimitiveType.Sphere, localPosition = new Vector3(0.18f, 0f, 0f), localScale = new Vector3(0.11f, 0.11f, 0.11f), mass = 0.2f },
+            // Arms: wide range for upper, constrained elbow (hinge-like)
+            new BoneDefinition { boneName = "LeftUpperArm", parentBoneName = "Chest", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(-0.24f, 0.12f, 0f), localScale = new Vector3(0.11f, 0.24f, 0.11f), mass = 0.45f, lowAngularXLimit = -80f, highAngularXLimit = 80f, angularYLimit = 70f, angularZLimit = 45f, springForce = 300f, damperForce = 35f },
+            new BoneDefinition { boneName = "LeftLowerArm", parentBoneName = "LeftUpperArm", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(-0.22f, 0f, 0f), localScale = new Vector3(0.09f, 0.23f, 0.09f), mass = 0.35f, lowAngularXLimit = -5f, highAngularXLimit = 140f, angularYLimit = 8f, angularZLimit = 8f, springForce = 280f, damperForce = 30f },
+            new BoneDefinition { boneName = "LeftHand", parentBoneName = "LeftLowerArm", primitiveType = PrimitiveType.Sphere, localPosition = new Vector3(-0.18f, 0f, 0f), localScale = new Vector3(0.11f, 0.11f, 0.11f), mass = 0.2f, lowAngularXLimit = -50f, highAngularXLimit = 50f, angularYLimit = 20f, angularZLimit = 25f, springForce = 200f, damperForce = 25f },
 
-            new BoneDefinition { boneName = "LeftUpperLeg", parentBoneName = "Hips", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(-0.1f, -0.26f, 0f), localScale = new Vector3(0.12f, 0.27f, 0.12f), mass = 0.8f },
-            new BoneDefinition { boneName = "LeftLowerLeg", parentBoneName = "LeftUpperLeg", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0f, -0.31f, 0f), localScale = new Vector3(0.11f, 0.27f, 0.11f), mass = 0.65f },
-            new BoneDefinition { boneName = "LeftFoot", parentBoneName = "LeftLowerLeg", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, -0.28f, 0.08f), localScale = new Vector3(0.13f, 0.07f, 0.24f), mass = 0.35f },
+            new BoneDefinition { boneName = "RightUpperArm", parentBoneName = "Chest", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0.24f, 0.12f, 0f), localScale = new Vector3(0.11f, 0.24f, 0.11f), mass = 0.45f, lowAngularXLimit = -80f, highAngularXLimit = 80f, angularYLimit = 70f, angularZLimit = 45f, springForce = 300f, damperForce = 35f },
+            new BoneDefinition { boneName = "RightLowerArm", parentBoneName = "RightUpperArm", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0.22f, 0f, 0f), localScale = new Vector3(0.09f, 0.23f, 0.09f), mass = 0.35f, lowAngularXLimit = -5f, highAngularXLimit = 140f, angularYLimit = 8f, angularZLimit = 8f, springForce = 280f, damperForce = 30f },
+            new BoneDefinition { boneName = "RightHand", parentBoneName = "RightLowerArm", primitiveType = PrimitiveType.Sphere, localPosition = new Vector3(0.18f, 0f, 0f), localScale = new Vector3(0.11f, 0.11f, 0.11f), mass = 0.2f, lowAngularXLimit = -50f, highAngularXLimit = 50f, angularYLimit = 20f, angularZLimit = 25f, springForce = 200f, damperForce = 25f },
 
-            new BoneDefinition { boneName = "RightUpperLeg", parentBoneName = "Hips", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0.1f, -0.26f, 0f), localScale = new Vector3(0.12f, 0.27f, 0.12f), mass = 0.8f },
-            new BoneDefinition { boneName = "RightLowerLeg", parentBoneName = "RightUpperLeg", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0f, -0.31f, 0f), localScale = new Vector3(0.11f, 0.27f, 0.11f), mass = 0.65f },
-            new BoneDefinition { boneName = "RightFoot", parentBoneName = "RightLowerLeg", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, -0.28f, 0.08f), localScale = new Vector3(0.13f, 0.07f, 0.24f), mass = 0.35f }
+            // Legs: constrained knees (hinge), reasonable hip range
+            new BoneDefinition { boneName = "LeftUpperLeg", parentBoneName = "Hips", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(-0.1f, -0.26f, 0f), localScale = new Vector3(0.12f, 0.27f, 0.12f), mass = 0.8f, lowAngularXLimit = -80f, highAngularXLimit = 30f, angularYLimit = 25f, angularZLimit = 20f, springForce = 450f, damperForce = 50f },
+            new BoneDefinition { boneName = "LeftLowerLeg", parentBoneName = "LeftUpperLeg", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0f, -0.31f, 0f), localScale = new Vector3(0.11f, 0.27f, 0.11f), mass = 0.65f, lowAngularXLimit = -140f, highAngularXLimit = 5f, angularYLimit = 6f, angularZLimit = 6f, springForce = 420f, damperForce = 45f },
+            new BoneDefinition { boneName = "LeftFoot", parentBoneName = "LeftLowerLeg", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, -0.28f, 0.08f), localScale = new Vector3(0.13f, 0.07f, 0.24f), mass = 0.35f, lowAngularXLimit = -30f, highAngularXLimit = 45f, angularYLimit = 12f, angularZLimit = 15f, springForce = 250f, damperForce = 30f },
+
+            new BoneDefinition { boneName = "RightUpperLeg", parentBoneName = "Hips", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0.1f, -0.26f, 0f), localScale = new Vector3(0.12f, 0.27f, 0.12f), mass = 0.8f, lowAngularXLimit = -80f, highAngularXLimit = 30f, angularYLimit = 25f, angularZLimit = 20f, springForce = 450f, damperForce = 50f },
+            new BoneDefinition { boneName = "RightLowerLeg", parentBoneName = "RightUpperLeg", primitiveType = PrimitiveType.Capsule, localPosition = new Vector3(0f, -0.31f, 0f), localScale = new Vector3(0.11f, 0.27f, 0.11f), mass = 0.65f, lowAngularXLimit = -140f, highAngularXLimit = 5f, angularYLimit = 6f, angularZLimit = 6f, springForce = 420f, damperForce = 45f },
+            new BoneDefinition { boneName = "RightFoot", parentBoneName = "RightLowerLeg", primitiveType = PrimitiveType.Cube, localPosition = new Vector3(0f, -0.28f, 0.08f), localScale = new Vector3(0.13f, 0.07f, 0.24f), mass = 0.35f, lowAngularXLimit = -30f, highAngularXLimit = 45f, angularYLimit = 12f, angularZLimit = 15f, springForce = 250f, damperForce = 30f }
         };
     }
 }

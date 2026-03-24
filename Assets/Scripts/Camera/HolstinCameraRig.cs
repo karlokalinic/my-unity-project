@@ -30,6 +30,10 @@ public class HolstinCameraRig : MonoBehaviour
     [SerializeField] private LayerMask obstructionMask = ~0;
     [SerializeField] private float obstructionRadius = 0.18f;
     [SerializeField] private float obstructionPadding = 0.2f;
+    [SerializeField] private float obstructionMinDistance = 2f;
+    [SerializeField] private float obstructionSmoothSpeed = 6f;
+    [Tooltip("Disable obstruction push in isometric mode — use wall fading instead.")]
+    [SerializeField] private bool disableObstructionInIsometric = true;
 
     [Header("Dialogue Cinematic")]
     [SerializeField] private float defaultDialogueBlendSeconds = 0.45f;
@@ -46,6 +50,7 @@ public class HolstinCameraRig : MonoBehaviour
     private float dialogueBlendTarget;
     private float dialogueBlendSpeed = 1f;
     private float dialogueShotFov;
+    private float currentObstructionDistance;
 
     public bool IsInFirstPerson => aimBlend > 0.6f;
     public bool IsInDialogueShot => dialogueBlend > 0.05f || dialogueBlendTarget > 0.05f;
@@ -190,8 +195,10 @@ public class HolstinCameraRig : MonoBehaviour
 
         Vector3 isoOffset = Quaternion.Euler(0f, currentYaw, 0f) * new Vector3(0f, isoHeight, -isoDistance);
         Vector3 isoIdealPosition = focusPoint + isoOffset;
-        Vector3 isoSafePosition = ResolveObstruction(focusPoint, isoIdealPosition);
-        Quaternion isoRotation = Quaternion.LookRotation((focusPoint - isoSafePosition).normalized, Vector3.up);
+        Vector3 isoSafePosition = (disableObstructionInIsometric && aimBlend < 0.5f)
+            ? isoIdealPosition
+            : ResolveObstruction(focusPoint, isoIdealPosition);
+        Quaternion isoRotation = Quaternion.LookRotation((focusPoint - isoIdealPosition).normalized, Vector3.up);
 
         Vector3 fpPosition = firstPersonAnchor != null ? firstPersonAnchor.position : focusPoint;
         Quaternion fpRotation = Quaternion.Euler(lookPitch, lookYaw, 0f);
@@ -233,19 +240,29 @@ public class HolstinCameraRig : MonoBehaviour
     private Vector3 ResolveObstruction(Vector3 focusPoint, Vector3 desiredPosition)
     {
         Vector3 direction = desiredPosition - focusPoint;
-        float distance = direction.magnitude;
-        if (distance <= 0.001f)
+        float fullDistance = direction.magnitude;
+        if (fullDistance <= 0.001f)
         {
             return desiredPosition;
         }
 
-        direction /= distance;
+        direction /= fullDistance;
+        float targetDistance = fullDistance;
 
-        if (Physics.SphereCast(focusPoint, obstructionRadius, direction, out RaycastHit hit, distance, obstructionMask, QueryTriggerInteraction.Ignore))
+        if (Physics.SphereCast(focusPoint, obstructionRadius, direction, out RaycastHit hit, fullDistance, obstructionMask, QueryTriggerInteraction.Ignore))
         {
-            return hit.point - direction * obstructionPadding;
+            float hitDistance = Mathf.Max(hit.distance - obstructionPadding, obstructionMinDistance);
+            targetDistance = hitDistance;
         }
 
-        return desiredPosition;
+        currentObstructionDistance = Mathf.Lerp(currentObstructionDistance, targetDistance,
+            1f - Mathf.Exp(-obstructionSmoothSpeed * Time.deltaTime));
+
+        if (Mathf.Abs(currentObstructionDistance - fullDistance) < 0.01f)
+        {
+            currentObstructionDistance = fullDistance;
+        }
+
+        return focusPoint + direction * currentObstructionDistance;
     }
 }

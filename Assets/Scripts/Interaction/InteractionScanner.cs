@@ -13,7 +13,7 @@ public class InteractionScanner
         Transform playerTransform,
         Camera viewCamera,
         PlayerInteraction interactor,
-        PlayerInventory inventory,
+        InventorySystem inventory,
         float interactRadius,
         LayerMask interactionMask,
         float minimumFacingDot,

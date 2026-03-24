@@ -295,6 +295,53 @@ public static partial class HolstinLevelDesignTemplates
         => CreatePrimitive(PrimitiveType.Cube, name, pos, scale, parent, mat);
 
     // ----------------------------------------------------------------
+    // Asset placeholder helper
+    // ----------------------------------------------------------------
+
+    /// <summary>
+    /// Creates a lightweight placeholder GameObject with an AssetPlaceholder component.
+    /// Use this for furniture, props, and decorations that will be replaced with store assets.
+    /// A small cube gizmo shows the footprint in-editor.
+    /// </summary>
+    private static GameObject CreateAssetPlaceholder(
+        Transform parent,
+        Vector3 pos,
+        string name,
+        AssetPlaceholder.PlaceholderCategory category,
+        string assetTag,
+        Vector3 boundsSize)
+    {
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(parent);
+        go.transform.position = pos;
+
+        AssetPlaceholder placeholder = go.AddComponent<AssetPlaceholder>();
+        placeholder.Configure(category, assetTag, boundsSize);
+
+        // Tiny visual marker so it's visible in scene view
+        GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        marker.name = "PlaceholderMarker";
+        marker.transform.SetParent(go.transform, false);
+        marker.transform.localPosition = Vector3.up * boundsSize.y * 0.5f;
+        marker.transform.localScale = boundsSize * 0.15f;
+        Renderer r = marker.GetComponent<Renderer>();
+        if (r != null) r.sharedMaterial = accentMaterial;
+        Collider c = marker.GetComponent<Collider>();
+        if (c != null) Object.DestroyImmediate(c);
+
+        // Add a box collider on the root matching the bounds for gameplay
+        BoxCollider box = go.AddComponent<BoxCollider>();
+        box.center = Vector3.up * boundsSize.y * 0.5f;
+        box.size = boundsSize;
+
+        GameObjectUtility.SetStaticEditorFlags(go,
+            StaticEditorFlags.BatchingStatic |
+            StaticEditorFlags.OccludeeStatic);
+
+        return go;
+    }
+
+    // ----------------------------------------------------------------
     // Material helpers
     // ----------------------------------------------------------------
 

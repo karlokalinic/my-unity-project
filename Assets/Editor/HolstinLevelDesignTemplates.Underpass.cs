@@ -72,5 +72,19 @@ public static partial class HolstinLevelDesignTemplates
         CreateNPC(root.transform, origin + new Vector3(-9.5f,0f,1.1f), "Tunnel Hermit", "The gate opens for grief, not for courage.");
         CreateEnemyPatrol(root.transform, origin + new Vector3(6.2f,0f,-0.6f), "Tunnel Stalker",
             new Vector3[] { origin+new Vector3(5f,0f,2.2f), origin+new Vector3(8.6f,0f,2f), origin+new Vector3(8.4f,0f,-2.1f), origin+new Vector3(5.3f,0f,-2.2f) });
+
+        // Boss encounter in the portal room
+        CreateBossEnemy(root.transform, origin + new Vector3(16.5f, 0f, 1f),
+            "Rift Warden", 200f, 22, "underworld", -15);
+
+        // Skill-check NPC guarding collapsed storage
+        CreateSkillCheckNPC(root.transform, origin + new Vector3(9.8f, 0f, -6.5f),
+            "Collapsed Scavenger",
+            "Hoards salvage and suspicion in equal measure.",
+            "The scavenger eyes you from behind a barricade of crates.",
+            "lockpicking", 14,
+            "You've got steady hands. Take what you need from the pile.",
+            "Touch my haul and I'll bury you under the next collapse.",
+            "scavenger_stash", 20, "underworld", 3);
     }
 }

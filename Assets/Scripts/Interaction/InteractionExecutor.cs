@@ -7,7 +7,7 @@ public class InteractionExecutor
         float interactDistance,
         LayerMask interactionMask,
         PlayerInteraction interactor,
-        PlayerInventory inventory,
+        InventorySystem inventory,
         InteractableBase currentInteractable,
         InspectableItem currentInspectable,
         InspectItemViewer inspectViewer)

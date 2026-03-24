@@ -125,7 +125,7 @@ public class PlayerInventory : MonoBehaviour
                 itemId = source.itemId,
                 displayName = source.displayName,
                 count = source.count
-            });
+            });x
         }
 
         return items;

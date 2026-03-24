@@ -68,7 +68,7 @@ public class DoorInteractable : InteractableBase
         isLocked = startsLocked;
     }
 
-    public override string GetPrompt(PlayerInteraction interactor, PlayerInventory inventory)
+    public override string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (isLocked)
         {
@@ -83,7 +83,7 @@ public class DoorInteractable : InteractableBase
         return isOpen ? $"[{InputReader.InteractKeyLabel}] Close door" : $"[{InputReader.InteractKeyLabel}] Open door";
     }
 
-    public override void Interact(PlayerInteraction interactor, PlayerInventory inventory)
+    public override void Interact(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (isAnimating || movingPart == null || interactor == null)
         {

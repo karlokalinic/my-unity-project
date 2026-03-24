@@ -14,12 +14,12 @@ public abstract class InteractableBase : MonoBehaviour
     public bool RequireLineOfSight => requireLineOfSight;
     public bool HasBeenConsumed => hasBeenConsumed;
 
-    public virtual string GetPrompt(PlayerInteraction interactor, PlayerInventory inventory)
+    public virtual string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
         return $"[{InputReader.InteractKeyLabel}] {interactionLabel} {subjectLabel}";
     }
 
-    public virtual bool IsAvailable(PlayerInteraction interactor, PlayerInventory inventory)
+    public virtual bool IsAvailable(PlayerInteraction interactor, InventorySystem inventory)
     {
         return enabled && gameObject.activeInHierarchy && !hasBeenConsumed;
     }
@@ -47,7 +47,7 @@ public abstract class InteractableBase : MonoBehaviour
         return true;
     }
 
-    public abstract void Interact(PlayerInteraction interactor, PlayerInventory inventory);
+    public abstract void Interact(PlayerInteraction interactor, InventorySystem inventory);
 
     protected void MarkConsumedIfNeeded()
     {
@@ -60,7 +60,7 @@ public abstract class InteractableBase : MonoBehaviour
         enabled = false;
     }
 
-    public virtual void ForceRefreshPrompt(PlayerInteraction interactor, PlayerInventory inventory)
+    public virtual void ForceRefreshPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
         if (interactor != null)
         {

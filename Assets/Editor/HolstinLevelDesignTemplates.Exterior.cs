@@ -59,6 +59,20 @@ public static partial class HolstinLevelDesignTemplates
         CreateNPC(root.transform, origin + new Vector3(12.4f,0f,-0.5f), "Checkpoint Guard", "Papers. Then passage. No papers, no argument.");
         CreateNPC(root.transform, origin + new Vector3( 4.7f,0f, 9.8f), "Needle Seller",    "Trades bandages, rumors, and occasionally bad advice.");
 
+        // RPG-flavored NPCs
+        CreateShopMerchant(root.transform, origin + new Vector3(-3.8f, 0f, 9.2f),
+            "District Peddler",
+            "Sells provisions at inflated prices and pretends not to notice.",
+            "merchants");
+        CreateSkillCheckNPC(root.transform, origin + new Vector3(10.8f, 0f, -3.6f),
+            "Gate Clerk",
+            "Stamps papers when persuaded, burns them when not.",
+            "The clerk flips through a stack of blank permits.",
+            "persuasion", 12,
+            "Fine. One permit, pre-dated. Don't come back.",
+            "Permits are earned, not begged for.",
+            "gate_permit", 30, "townsfolk", 5);
+
         CreateEnemyPatrol(root.transform, origin + new Vector3(-7f,  0f, 0.6f), "Street Prowler",
             new Vector3[] { origin+new Vector3(-9f,0f,-1f), origin+new Vector3(-2f,0f,1.4f), origin+new Vector3(2f,0f,-2.2f) });
         CreateEnemyPatrol(root.transform, origin + new Vector3( 8.5f,0f, 5.5f), "Courtyard Prowler",
