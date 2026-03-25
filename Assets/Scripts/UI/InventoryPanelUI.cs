@@ -1,15 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Runtime inventory panel. Toggle with Tab key. Shows slots, equipment, and item details.
+/// Runtime inventory panel. Toggle with I key. Shows slots, equipment, and item details.
 /// </summary>
 public class InventoryPanelUI : MonoBehaviour
 {
     [SerializeField] private InventorySystem inventory;
-    [SerializeField] private KeyCode toggleKey = KeyCode.Tab;
+    [SerializeField] private Key toggleKey = Key.I;
 
     private Canvas canvas;
     private RectTransform panel;
@@ -37,7 +38,18 @@ public class InventoryPanelUI : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(toggleKey)) Toggle();
+        if (TogglePressed()) Toggle();
+    }
+
+    private bool TogglePressed()
+    {
+        if (toggleKey == Key.None) return false;
+
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null) return false;
+
+        var keyControl = keyboard[toggleKey];
+        return keyControl != null && keyControl.wasPressedThisFrame;
     }
 
     public void Toggle()

@@ -21,7 +21,7 @@ public class HolstinCameraRig : MonoBehaviour
     [SerializeField] private bool holdRightMouseForAim = true;
     [SerializeField] private float aimBlendSpeed = 12f;
     [SerializeField] private float firstPersonFov = 72f;
-    [SerializeField] private float mouseSensitivity = 0.12f;
+    [SerializeField] private float mouseSensitivity = 0.07f;
     [SerializeField] private float minPitch = -75f;
     [SerializeField] private float maxPitch = 80f;
     [SerializeField] private bool rotateTargetWithAim = true;
@@ -142,22 +142,25 @@ public class HolstinCameraRig : MonoBehaviour
             return;
         }
 
-        if (InputReader.RotateLeftPressed())
-        {
-            SetIsometricYaw(targetYaw - 90f);
-        }
-
-        if (InputReader.RotateRightPressed())
-        {
-            SetIsometricYaw(targetYaw + 90f);
-        }
-
         if (!holdRightMouseForAim && InputReader.AimTogglePressed())
         {
             aimLatched = !aimLatched;
         }
 
         bool wantsAim = holdRightMouseForAim ? InputReader.AimHeld() : aimLatched;
+        if (!wantsAim)
+        {
+            if (InputReader.RotateLeftPressed())
+            {
+                SetIsometricYaw(targetYaw - 90f);
+            }
+
+            if (InputReader.RotateRightPressed())
+            {
+                SetIsometricYaw(targetYaw + 90f);
+            }
+        }
+
         float targetBlend = wantsAim ? 1f : 0f;
         aimBlend = Mathf.MoveTowards(aimBlend, targetBlend, aimBlendSpeed * Time.deltaTime);
     }

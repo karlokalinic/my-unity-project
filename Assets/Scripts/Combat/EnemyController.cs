@@ -8,6 +8,7 @@ using UnityEngine.AI;
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Damageable))]
+[RequireComponent(typeof(DeathRagdollController))]
 public class EnemyController : MonoBehaviour
 {
     [Header("AI Behavior")]
@@ -40,6 +41,24 @@ public class EnemyController : MonoBehaviour
 
     private void Awake()
     {
+        ProceduralHumanoidRig rig = GetComponent<ProceduralHumanoidRig>();
+        if (rig == null)
+        {
+            rig = gameObject.AddComponent<ProceduralHumanoidRig>();
+        }
+        rig.ConfigureRendererVisibility(false, false);
+        rig.EnsureBuilt();
+
+        if (GetComponent<ActiveRagdollMotor>() == null)
+        {
+            gameObject.AddComponent<ActiveRagdollMotor>();
+        }
+
+        if (GetComponent<DeathRagdollController>() == null)
+        {
+            gameObject.AddComponent<DeathRagdollController>();
+        }
+
         agent = GetComponent<NavMeshAgent>();
         damageable = GetComponent<Damageable>();
 
@@ -50,11 +69,11 @@ public class EnemyController : MonoBehaviour
         if (DifficultyManager.Instance != null)
         {
             float hpMult = DifficultyManager.Instance.EnemyHealthMultiplier;
-            if (damageable != null && hpMult != 1f)
-            {
-                float scaledHp = damageable.HealthNormalized > 0f ? 50f * hpMult : 50f;
-                damageable.Configure(scaledHp, damageable.IsBoss, true);
-            }
+        if (damageable != null && hpMult != 1f)
+        {
+            float scaledHp = damageable.HealthNormalized > 0f ? 50f * hpMult : 50f;
+            damageable.Configure(scaledHp, damageable.IsBoss, false);
+        }
         }
 
         if (damageable != null)

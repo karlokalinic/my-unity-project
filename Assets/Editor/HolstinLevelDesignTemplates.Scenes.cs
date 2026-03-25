@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using System.Collections.Generic;
 
 public static partial class HolstinLevelDesignTemplates
 {
@@ -39,6 +40,12 @@ public static partial class HolstinLevelDesignTemplates
     {
         ResetMaterialCache();
         EnsureSceneRootGroups();
+        DestroyAllByName(
+            "Template_Interior_BoardingHouse",
+            "Template_Exterior_FogCourtyard",
+            "Template_Underpass_Catacombs",
+            "HouseToUnderpassSteps",
+            "Template_Interactable_Sandbox");
         EnsureCoreRig(new Vector3(0f,1.2f,-8f));
         EnsureDirectionalLight();
         CreateBoardingHouseInterior(new Vector3(0f,0f,0f));
@@ -304,6 +311,27 @@ public static partial class HolstinLevelDesignTemplates
         CreateWall(parent, origin + new Vector3(0f, 1.6f, -3.9f), new Vector3(0.35f, 3.2f, 2.1f), wallMaterial, label + "_South");
         CreateWall(parent, origin + new Vector3(0f, 1.6f, 3.9f), new Vector3(0.35f, 3.2f, 2.1f), wallMaterial, label + "_North");
         CreateWall(parent, origin + new Vector3(0f, 2.8f, 0f), new Vector3(0.35f, 0.8f, 2.4f), wallMaterial, label + "_Lintel");
+    }
+
+    private static void DestroyAllByName(params string[] names)
+    {
+        if (names == null || names.Length == 0)
+        {
+            return;
+        }
+
+        HashSet<string> lookup = new HashSet<string>(names);
+        Transform[] allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = allTransforms.Length - 1; i >= 0; i--)
+        {
+            Transform transformComponent = allTransforms[i];
+            if (transformComponent == null || !lookup.Contains(transformComponent.name))
+            {
+                continue;
+            }
+
+            Object.DestroyImmediate(transformComponent.gameObject);
+        }
     }
 
     private static void CreateCheckpoint(Transform parent, string name, Vector3 pos, Vector3 size, string message)

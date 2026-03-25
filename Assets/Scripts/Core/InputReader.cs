@@ -1,8 +1,5 @@
 using UnityEngine;
-
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-#endif
 
 public static class InputReader
 {
@@ -20,7 +17,6 @@ public static class InputReader
 
     public static Vector2 GetMoveVector()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         Vector2 move = Vector2.zero;
         Keyboard keyboard = Keyboard.current;
         if (keyboard != null)
@@ -42,14 +38,10 @@ public static class InputReader
         }
 
         return Vector2.ClampMagnitude(move, 1f);
-#else
-        return new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-#endif
     }
 
     public static Vector2 GetLookDelta()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         Vector2 delta = Vector2.zero;
         if (Mouse.current != null)
         {
@@ -61,112 +53,80 @@ public static class InputReader
         }
 
         return delta;
-#else
-        return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
-#endif
     }
 
     public static bool SprintHeld()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed) ||
                (Gamepad.current != null && Gamepad.current.leftStickButton.isPressed);
-#else
-        return Input.GetKey(KeyCode.LeftShift);
-#endif
     }
 
     public static bool RotateLeftPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame) ||
                (Gamepad.current != null && Gamepad.current.leftShoulder.wasPressedThisFrame);
-#else
-        return Input.GetKeyDown(KeyCode.Q);
-#endif
     }
 
     public static bool RotateRightPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame) ||
                (Gamepad.current != null && Gamepad.current.rightShoulder.wasPressedThisFrame);
-#else
-        return Input.GetKeyDown(KeyCode.R);
-#endif
     }
 
     public static bool AimHeld()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Mouse.current != null && Mouse.current.rightButton.isPressed) ||
                (Gamepad.current != null && Gamepad.current.leftTrigger.ReadValue() > 0.35f);
-#else
-        return Input.GetMouseButton(1);
-#endif
     }
 
     public static bool AimTogglePressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
-#else
-        return Input.GetMouseButtonDown(1);
-#endif
     }
 
     public static bool FireHeld()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Mouse.current != null && Mouse.current.leftButton.isPressed) ||
                (Gamepad.current != null && Gamepad.current.rightTrigger.ReadValue() > 0.35f);
-#else
-        return Input.GetMouseButton(0);
-#endif
+    }
+
+    public static bool FirePressed()
+    {
+        return (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) ||
+               (Gamepad.current != null && Gamepad.current.rightTrigger.wasPressedThisFrame);
     }
 
     public static bool InspectRotateHeld()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return Mouse.current != null && Mouse.current.leftButton.isPressed;
-#else
-        return Input.GetMouseButton(0);
-#endif
+    }
+
+    public static bool ReloadPressed()
+    {
+        return (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame) ||
+               (Gamepad.current != null && Gamepad.current.buttonWest.wasPressedThisFrame);
     }
 
     public static bool InteractPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Keyboard.current != null && (Keyboard.current.eKey.wasPressedThisFrame || Keyboard.current.fKey.wasPressedThisFrame)) ||
                (Gamepad.current != null && Gamepad.current.buttonSouth.wasPressedThisFrame);
-#else
-        return Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.F);
-#endif
     }
 
     public static bool CancelPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Keyboard.current != null && (Keyboard.current.escapeKey.wasPressedThisFrame || Keyboard.current.tabKey.wasPressedThisFrame)) ||
                (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame);
-#else
-        return Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Tab);
-#endif
     }
 
     public static bool DialogueSubmitPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Keyboard.current != null && (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.numpadEnterKey.wasPressedThisFrame || Keyboard.current.eKey.wasPressedThisFrame)) ||
                (Gamepad.current != null && (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.buttonNorth.wasPressedThisFrame));
-#else
-        return Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.E);
-#endif
     }
 
     public static Vector2 GetDialogueNavigateVector()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         Vector2 navigate = Vector2.zero;
 
         Keyboard keyboard = Keyboard.current;
@@ -218,17 +178,8 @@ public static class InputReader
         }
 
         return navigate;
-#else
-        Vector2 navigate = Vector2.zero;
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) navigate.y += 1f;
-        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) navigate.y -= 1f;
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) navigate.x -= 1f;
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) navigate.x += 1f;
-        return navigate;
-#endif
     }
 
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
     private static bool ReadStickEdge(ref bool latch, float value, float threshold)
     {
         bool nowActive = value > threshold;
@@ -236,5 +187,4 @@ public static class InputReader
         latch = nowActive;
         return triggered;
     }
-#endif
 }

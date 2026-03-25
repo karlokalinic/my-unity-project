@@ -21,7 +21,13 @@ public class DifficultyManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+
+        // DontDestroyOnLoad works only on scene roots. If this component was placed on a child,
+        // skip persistence instead of throwing a runtime warning.
+        if (transform.parent == null)
+        {
+            DontDestroyOnLoad(gameObject);
+        }
     }
 
     private void OnDestroy()

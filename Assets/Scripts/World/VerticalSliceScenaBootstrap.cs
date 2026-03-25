@@ -21,6 +21,7 @@ using UnityEditor.SceneManagement;
 public class VerticalSliceScenaBootstrap : MonoBehaviour
 {
     [SerializeField] private string targetSceneName = "Scena";
+    [SerializeField] private string secondaryTargetSceneName = "INTERAKCIJA";
     [SerializeField] private bool autoApplyInPlayMode = true;
     [SerializeField] private bool autoApplyInEditMode = true;
     [SerializeField] private bool logOperations;
@@ -32,6 +33,13 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
     [SerializeField] private Transform debugRoot;
     [SerializeField] private Transform uiRoot;
     [SerializeField] private InfectionDirector infectionDirector;
+
+    [Header("Template Layout")]
+    [SerializeField] private bool enforceTemplateSeparation = true;
+    [SerializeField] private float minTemplateSeparation = 18f;
+    [SerializeField] private Vector3 exteriorTemplateOrigin = new Vector3(-18f, 0f, -6f);
+    [SerializeField] private Vector3 interiorTemplateOrigin = new Vector3(14f, 0f, -2f);
+    [SerializeField] private Vector3 underpassTemplateOrigin = new Vector3(12f, -5.5f, 10f);
 
     private bool queuedEditorApply;
 
@@ -83,11 +91,16 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
 
         EnsureRootGroups();
         ReparentSceneAnchors();
+        EnsureTemplateSeparationLayout();
         EnsureCoreSystems();
         EnsureNarrativeInteractionChain();
         EnsureCinematicVolumes();
         EnsureInfectionSystem();
         EnsureCharacterPresentationSystems();
+
+#if UNITY_EDITOR
+        RemoveMissingScriptsInActiveScene();
+#endif
 
         if (logOperations)
         {
@@ -110,12 +123,19 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(targetSceneName))
+        if (string.IsNullOrWhiteSpace(targetSceneName) && string.IsNullOrWhiteSpace(secondaryTargetSceneName))
         {
             return true;
         }
 
-        return string.Equals(scene.name, targetSceneName, StringComparison.OrdinalIgnoreCase);
+        return SceneNameMatches(scene.name, targetSceneName) ||
+               SceneNameMatches(scene.name, secondaryTargetSceneName);
+    }
+
+    private static bool SceneNameMatches(string sceneName, string targetName)
+    {
+        return !string.IsNullOrWhiteSpace(targetName) &&
+               string.Equals(sceneName, targetName, StringComparison.OrdinalIgnoreCase);
     }
 
     private void EnsureRootGroups()
@@ -150,6 +170,63 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
 
         ReparentByName("Directional Light", lightingRoot);
         ReparentByName("VS_CinematicVolumes", lightingRoot);
+    }
+
+    private void EnsureTemplateSeparationLayout()
+    {
+        if (!enforceTemplateSeparation)
+        {
+            return;
+        }
+
+        GameObject exterior = FindSceneObject("Template_Exterior_FogCourtyard");
+        GameObject interior = FindSceneObject("Template_Interior_BoardingHouse");
+        GameObject underpass = FindSceneObject("Template_Underpass_Catacombs");
+
+        if (exterior != null && exterior.transform.position.sqrMagnitude < 0.01f)
+        {
+            exterior.transform.position = exteriorTemplateOrigin;
+        }
+
+        if (interior != null && interior.transform.position.sqrMagnitude < 0.01f)
+        {
+            interior.transform.position = interiorTemplateOrigin;
+        }
+
+        if (underpass != null && underpass.transform.position.sqrMagnitude < 0.01f)
+        {
+            underpass.transform.position = underpassTemplateOrigin;
+        }
+
+        EnsurePairSeparation(exterior, interior, interiorTemplateOrigin - exteriorTemplateOrigin);
+        EnsurePairSeparation(interior, underpass, underpassTemplateOrigin - interiorTemplateOrigin);
+        EnsurePairSeparation(exterior, underpass, underpassTemplateOrigin - exteriorTemplateOrigin);
+    }
+
+    private void EnsurePairSeparation(GameObject first, GameObject second, Vector3 preferredDirection)
+    {
+        if (first == null || second == null)
+        {
+            return;
+        }
+
+        Vector3 delta = second.transform.position - first.transform.position;
+        Vector3 planarDelta = new Vector3(delta.x, 0f, delta.z);
+        float distance = planarDelta.magnitude;
+        if (distance >= minTemplateSeparation)
+        {
+            return;
+        }
+
+        Vector3 planarPreferred = new Vector3(preferredDirection.x, 0f, preferredDirection.z);
+        if (planarPreferred.sqrMagnitude < 0.001f)
+        {
+            planarPreferred = Vector3.right;
+        }
+
+        Vector3 direction = distance > 0.001f ? planarDelta.normalized : planarPreferred.normalized;
+        Vector3 target = first.transform.position + direction * minTemplateSeparation;
+        second.transform.position = new Vector3(target.x, second.transform.position.y, target.z);
     }
 
     private void EnsureCoreSystems()
@@ -275,6 +352,33 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         }
         checkpointManager.Configure(inventory, playerMover.GetComponent<CharacterController>(), playerMover);
 
+        if (playerMover.GetComponent<RealTimeCombat>() == null)
+        {
+            playerMover.gameObject.AddComponent<RealTimeCombat>();
+        }
+
+        StarterLoadout starterLoadout = playerMover.GetComponent<StarterLoadout>();
+        if (starterLoadout == null)
+        {
+            starterLoadout = playerMover.gameObject.AddComponent<StarterLoadout>();
+        }
+#if UNITY_EDITOR
+        ItemDefinition pistol = FindItemAssetById("wpn_pistol");
+        ItemDefinition rifle = FindItemAssetById("wpn_rifle");
+        ItemDefinition shotgun = FindItemAssetById("wpn_shotgun");
+        ItemDefinition knife = FindItemAssetById("wpn_knife");
+
+        starterLoadout.Configure(
+            pistol != null ? pistol : knife,
+            new[] { pistol, rifle, shotgun, knife },
+            new[]
+            {
+                ("ammo_pistol", 60),
+                ("ammo_rifle", 32),
+                ("ammo_shell", 20)
+            });
+#endif
+
         EnsureHumanoidActorSystems(playerMover.gameObject, true);
 
         sceneContext.Configure(cameraRig, promptUI, inspectViewer, playerMover, dialoguePanel);
@@ -285,6 +389,8 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         EnsureRuntimeUISingleton<InventoryPanelUI>("InventoryPanelUI");
         EnsureRuntimeUISingleton<TurnBasedCombatUI>("TurnBasedCombatUI");
         EnsureRuntimeUISingleton<ShopWindowUI>("ShopWindowUI");
+        EnsureRuntimeUISingleton<CombatReticleUI>("CombatReticleUI");
+        EnsureRuntimeUISingleton<VerticalSliceObjectiveUI>("VerticalSliceObjectiveUI");
     }
 
     private void EnsureRuntimeUISingleton<T>(string objectName) where T : MonoBehaviour
@@ -315,6 +421,7 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         EnsureMidpointNpc(loopRoot, interiorOrigin);
         EnsureUnderpassConsole(loopRoot, underpassOrigin);
         EnsureCheckpointZones(loopRoot, exteriorOrigin, interiorOrigin, underpassOrigin);
+        EnsureCombatEncounters(loopRoot, exteriorOrigin, underpassOrigin);
         EnsureReachAnchorsForInteractables();
     }
 
@@ -354,6 +461,15 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             if (npc == null) continue;
             EnsureHumanoidActorSystems(npc.gameObject, false);
         }
+
+        // Combat enemies
+        EnemyController[] enemies = FindObjectsByType<EnemyController>(FindObjectsInactive.Exclude);
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            EnemyController enemy = enemies[i];
+            if (enemy == null) continue;
+            EnsureHumanoidActorSystems(enemy.gameObject, false);
+        }
     }
 
     private static void EnsureHumanoidActorSystems(GameObject actorRoot, bool playerControlled)
@@ -368,11 +484,17 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         {
             rig = actorRoot.AddComponent<ProceduralHumanoidRig>();
         }
+        rig.ConfigureRendererVisibility(false, false);
         rig.EnsureBuilt();
 
         if (actorRoot.GetComponent<ActiveRagdollMotor>() == null)
         {
             actorRoot.AddComponent<ActiveRagdollMotor>();
+        }
+
+        if (actorRoot.GetComponent<DeathRagdollController>() == null)
+        {
+            actorRoot.AddComponent<DeathRagdollController>();
         }
 
         if (playerControlled)
@@ -616,6 +738,33 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             underpassOrigin + new Vector3(2.2f, 1f, -1f),
             new Vector3(3.5f, 2f, 3.5f),
             "Checkpoint set: Underpass.");
+    }
+
+    private void EnsureCombatEncounters(Transform parent, Vector3 exteriorOrigin, Vector3 underpassOrigin)
+    {
+        EnsureTutorialEnemy(
+            parent,
+            "VS_ExteriorProwler",
+            exteriorOrigin + new Vector3(8.3f, 1f, -1.6f),
+            new[]
+            {
+                exteriorOrigin + new Vector3(6.1f, 0f, -3.7f),
+                exteriorOrigin + new Vector3(9.8f, 0f, -3.2f),
+                exteriorOrigin + new Vector3(9.4f, 0f, 0.6f),
+                exteriorOrigin + new Vector3(6.2f, 0f, 1.1f)
+            });
+
+        EnsureTutorialEnemy(
+            parent,
+            "VS_UnderpassStalker",
+            underpassOrigin + new Vector3(5f, 1f, 2.2f),
+            new[]
+            {
+                underpassOrigin + new Vector3(3.4f, 0f, 0.2f),
+                underpassOrigin + new Vector3(6.8f, 0f, 0.4f),
+                underpassOrigin + new Vector3(6.6f, 0f, 3.4f),
+                underpassOrigin + new Vector3(3.5f, 0f, 3.7f)
+            });
     }
 
     private void EnsureLegacyInteractableSandboxExpansion(Vector3 sandboxOrigin)
@@ -905,6 +1054,10 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         agent.speed = 3.25f;
         agent.angularSpeed = 720f;
         agent.acceleration = 18f;
+        if (!NavMesh.SamplePosition(enemy.transform.position, out _, 2.5f, NavMesh.AllAreas))
+        {
+            agent.enabled = false;
+        }
 
         Transform[] points = new Transform[patrolPoints.Length];
         for (int i = 0; i < patrolPoints.Length; i++)
@@ -919,11 +1072,13 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
 
         Damageable enemyDamageable = enemy.GetComponent<Damageable>();
         if (enemyDamageable == null) enemyDamageable = enemy.AddComponent<Damageable>();
-        enemyDamageable.Configure(50f, false, true);
+        enemyDamageable.Configure(50f, false, false);
 
         EnemyController enemyController = enemy.GetComponent<EnemyController>();
         if (enemyController == null) enemyController = enemy.AddComponent<EnemyController>();
         enemyController.SetPatrolPoints(points);
+
+        EnsureHumanoidActorSystems(enemy, false);
     }
 
     private static void EnsureCheckpointZone(Transform parent, string name, Vector3 worldPosition, Vector3 size, string message)
@@ -1014,6 +1169,66 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         }
         return result.ToArray();
     }
+
+#if UNITY_EDITOR
+    private static void RemoveMissingScriptsInActiveScene()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        if (!scene.IsValid())
+        {
+            return;
+        }
+
+        GameObject[] roots = scene.GetRootGameObjects();
+        int removedCount = 0;
+        for (int i = 0; i < roots.Length; i++)
+        {
+            removedCount += RemoveMissingScriptsRecursive(roots[i].transform);
+        }
+
+        if (removedCount > 0)
+        {
+            Debug.Log($"Removed {removedCount} missing script component(s) from scene '{scene.name}'.");
+        }
+    }
+
+    private static int RemoveMissingScriptsRecursive(Transform root)
+    {
+        if (root == null)
+        {
+            return 0;
+        }
+
+        int removed = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(root.gameObject);
+        for (int i = 0; i < root.childCount; i++)
+        {
+            removed += RemoveMissingScriptsRecursive(root.GetChild(i));
+        }
+
+        return removed;
+    }
+
+    private static ItemDefinition FindItemAssetById(string itemId)
+    {
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return null;
+        }
+
+        string[] guids = AssetDatabase.FindAssets("t:ItemDefinition", new[] { "Assets/Data/Items" });
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            ItemDefinition item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+            if (item != null && string.Equals(item.itemId, itemId, StringComparison.OrdinalIgnoreCase))
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+#endif
 
     private static GameObject EnsureRootObject(string name)
     {

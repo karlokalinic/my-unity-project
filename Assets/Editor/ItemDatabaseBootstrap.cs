@@ -53,6 +53,30 @@ public static class ItemDatabaseBootstrap
         Debug.Log($"[ItemDatabaseBootstrap] Generated starter items in {BasePath}");
     }
 
+    [MenuItem("Tools/Holstin/Apply Weapon Presets To Existing Items")]
+    public static void ApplyWeaponPresetsToExistingItems()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:ItemDefinition", new[] { BasePath });
+        int changed = 0;
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            ItemDefinition item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+            if (item == null || item.category != ItemDefinition.ItemCategory.Weapon)
+            {
+                continue;
+            }
+
+            ApplyWeaponPreset(item);
+            EditorUtility.SetDirty(item);
+            changed++;
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log($"[ItemDatabaseBootstrap] Applied weapon presets to {changed} item(s).");
+    }
+
     private static void CreateWeapon(string id, string name, ItemDefinition.WeaponType wType, float dmg, float rate, float range, string ammoId, int buy, int sell)
     {
         var item = CreateBase(id, name, ItemDefinition.ItemCategory.Weapon, false);
@@ -65,7 +89,55 @@ public static class ItemDatabaseBootstrap
         item.sellPrice = sell;
         item.stackable = false;
         item.maxStack = 1;
+        ApplyWeaponPreset(item);
         Save(item, id);
+    }
+
+    private static void ApplyWeaponPreset(ItemDefinition item)
+    {
+        switch (item.weaponType)
+        {
+            case ItemDefinition.WeaponType.Pistol:
+                item.automaticFire = false;
+                item.magazineSize = 12;
+                item.reloadSeconds = 1.25f;
+                item.projectilesPerShot = 1;
+                item.spreadAngle = 1.2f;
+                break;
+
+            case ItemDefinition.WeaponType.Rifle:
+                item.automaticFire = true;
+                item.magazineSize = 24;
+                item.reloadSeconds = 1.7f;
+                item.projectilesPerShot = 1;
+                item.spreadAngle = 0.8f;
+                break;
+
+            case ItemDefinition.WeaponType.Shotgun:
+                item.automaticFire = false;
+                item.magazineSize = 6;
+                item.reloadSeconds = 2.2f;
+                item.projectilesPerShot = 7;
+                item.spreadAngle = 4.5f;
+                break;
+
+            case ItemDefinition.WeaponType.Melee:
+                item.automaticFire = true;
+                item.magazineSize = 1;
+                item.reloadSeconds = 0.05f;
+                item.projectilesPerShot = 1;
+                item.spreadAngle = 0f;
+                item.requiredAmmoId = string.Empty;
+                break;
+
+            default:
+                item.automaticFire = true;
+                item.magazineSize = 8;
+                item.reloadSeconds = 1.2f;
+                item.projectilesPerShot = 1;
+                item.spreadAngle = 1f;
+                break;
+        }
     }
 
     private static void CreateAmmo(string id, string name, int buy, int sell, int maxStack)

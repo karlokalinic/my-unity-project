@@ -35,7 +35,8 @@ public class ProceduralHumanoidRig : MonoBehaviour
 
     [Header("Build")]
     [SerializeField] private bool buildOnAwake = true;
-    [SerializeField] private bool hideSourceRenderers = true;
+    [SerializeField] private bool hideSourceRenderers = false;
+    [SerializeField] private bool showRagdollRenderersInLife = false;
     [SerializeField] private bool setRagdollLayerToIgnoreRaycast = true;
     [Tooltip("Physics layer index used for ragdoll bones. Set Physics collision matrix to disable self-collision on this layer.")]
     [SerializeField] private int ragdollLayer = 10;
@@ -54,12 +55,38 @@ public class ProceduralHumanoidRig : MonoBehaviour
     public Transform PhysicalRoot => physicalRoot;
     public Transform TargetRoot => targetRoot;
     public BoneBinding[] Bindings => bindings;
+    public bool HideSourceRenderers => hideSourceRenderers;
+    public bool ShowRagdollRenderersInLife => showRagdollRenderersInLife;
 
     public void EnsureBuilt()
     {
         ResolveRoots();
         BuildOrResolveBindings();
-        HideSourceRenderersIfNeeded();
+        ApplyRendererVisibility();
+    }
+
+    public void ConfigureRendererVisibility(bool hideOriginalRenderers, bool showRagdollWhenAlive)
+    {
+        hideSourceRenderers = hideOriginalRenderers;
+        showRagdollRenderersInLife = showRagdollWhenAlive;
+        ApplyRendererVisibility();
+    }
+
+    public void SetRagdollRenderersVisible(bool visible)
+    {
+        if (physicalRoot == null)
+        {
+            return;
+        }
+
+        Renderer[] ragdollRenderers = physicalRoot.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < ragdollRenderers.Length; i++)
+        {
+            if (ragdollRenderers[i] != null)
+            {
+                ragdollRenderers[i].enabled = visible;
+            }
+        }
     }
 
     public bool TryGetBinding(string boneName, out BoneBinding binding)
@@ -90,6 +117,10 @@ public class ProceduralHumanoidRig : MonoBehaviour
 
     private void Awake()
     {
+        // Keep actors readable in greybox builds: show source mesh while alive, hide debug ragdoll bones.
+        hideSourceRenderers = false;
+        showRagdollRenderersInLife = false;
+
         if (buildOnAwake)
         {
             EnsureBuilt();
@@ -105,6 +136,7 @@ public class ProceduralHumanoidRig : MonoBehaviour
 
         ResolveRoots();
         BuildOrResolveBindings();
+        ApplyRendererVisibility();
     }
 
     private void ResolveRoots()
@@ -319,14 +351,29 @@ public class ProceduralHumanoidRig : MonoBehaviour
         return joint;
     }
 
-    private void HideSourceRenderersIfNeeded()
+    private void ApplyRendererVisibility()
     {
-        if (!hideSourceRenderers)
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        bool hasSourceRenderer = false;
+
+        for (int i = 0; i < renderers.Length; i++)
         {
-            return;
+            Renderer rendererComponent = renderers[i];
+            if (rendererComponent == null)
+            {
+                continue;
+            }
+
+            bool isRagdollRenderer = physicalRoot != null && rendererComponent.transform.IsChildOf(physicalRoot);
+            if (!isRagdollRenderer)
+            {
+                hasSourceRenderer = true;
+                break;
+            }
         }
 
-        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        bool showRagdollInLife = showRagdollRenderersInLife || hideSourceRenderers || !hasSourceRenderer;
+
         for (int i = 0; i < renderers.Length; i++)
         {
             Renderer rendererComponent = renderers[i];
@@ -337,10 +384,11 @@ public class ProceduralHumanoidRig : MonoBehaviour
 
             if (physicalRoot != null && rendererComponent.transform.IsChildOf(physicalRoot))
             {
+                rendererComponent.enabled = showRagdollInLife;
                 continue;
             }
 
-            rendererComponent.enabled = false;
+            rendererComponent.enabled = !hideSourceRenderers;
         }
     }
 
