@@ -34,3 +34,9 @@ Backups/
 # OS artifacts
 .DS_Store
 Thumbs.db
+
+# Unreal/UE asset dump guard for this Unity repository
+/Content/
+/Config/
+*.uasset
+*.umap
