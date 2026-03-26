@@ -17,6 +17,7 @@ public static partial class HolstinLevelDesignTemplates
         EnsureDirectionalLight();
         CreateBoardingHouseInterior(Vector3.zero);
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         FinalizeScene("Interior template added.");
     }
 

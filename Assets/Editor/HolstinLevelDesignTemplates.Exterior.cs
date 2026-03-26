@@ -17,6 +17,7 @@ public static partial class HolstinLevelDesignTemplates
         EnsureDirectionalLight();
         CreateFogCourtyardExterior(Vector3.zero);
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         FinalizeScene("Exterior template added.");
     }
 

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [DisallowMultipleComponent]
 public class ProceduralHumanoidRig : MonoBehaviour
@@ -51,6 +54,9 @@ public class ProceduralHumanoidRig : MonoBehaviour
     [SerializeField] private BoneBinding[] bindings = Array.Empty<BoneBinding>();
 
     private readonly Dictionary<string, BoneBinding> bindingsByName = new Dictionary<string, BoneBinding>(StringComparer.OrdinalIgnoreCase);
+#if UNITY_EDITOR
+    private bool validateBuildQueued;
+#endif
 
     public Transform PhysicalRoot => physicalRoot;
     public Transform TargetRoot => targetRoot;
@@ -117,10 +123,6 @@ public class ProceduralHumanoidRig : MonoBehaviour
 
     private void Awake()
     {
-        // Keep actors readable in greybox builds: show source mesh while alive, hide debug ragdoll bones.
-        hideSourceRenderers = false;
-        showRagdollRenderersInLife = false;
-
         if (buildOnAwake)
         {
             EnsureBuilt();
@@ -134,10 +136,61 @@ public class ProceduralHumanoidRig : MonoBehaviour
             return;
         }
 
+#if UNITY_EDITOR
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        // Never rebuild rig while Unity imports prefab assets in background workers.
+        if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
+        {
+            return;
+        }
+
+        if (!gameObject.scene.IsValid() || string.IsNullOrWhiteSpace(gameObject.scene.path))
+        {
+            return;
+        }
+
+        if (validateBuildQueued)
+        {
+            return;
+        }
+
+        validateBuildQueued = true;
+        EditorApplication.delayCall += RunDeferredValidate;
+#else
+        ResolveRoots();
+        BuildOrResolveBindings();
+        ApplyRendererVisibility();
+#endif
+    }
+
+#if UNITY_EDITOR
+    private void RunDeferredValidate()
+    {
+        validateBuildQueued = false;
+        if (this == null || Application.isPlaying)
+        {
+            return;
+        }
+
+        if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
+        {
+            return;
+        }
+
+        if (!gameObject.scene.IsValid() || string.IsNullOrWhiteSpace(gameObject.scene.path))
+        {
+            return;
+        }
+
         ResolveRoots();
         BuildOrResolveBindings();
         ApplyRendererVisibility();
     }
+#endif
 
     private void ResolveRoots()
     {

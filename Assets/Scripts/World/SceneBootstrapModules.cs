@@ -53,6 +53,8 @@ internal sealed class SceneCoreInstaller
         VerticalSliceScenaBootstrap.ReparentByName("InventoryPanelUI", host.UiRoot);
         VerticalSliceScenaBootstrap.ReparentByName("TurnBasedCombatUI", host.UiRoot);
         VerticalSliceScenaBootstrap.ReparentByName("ShopWindowUI", host.UiRoot);
+        VerticalSliceScenaBootstrap.ReparentByName("CombatReticleUI", host.UiRoot);
+        VerticalSliceScenaBootstrap.ReparentByName("VerticalSliceObjectiveUI", host.UiRoot);
 
         VerticalSliceScenaBootstrap.ReparentByName("SceneGround", host.WorldRoot);
         VerticalSliceScenaBootstrap.ReparentByName("Template_Exterior_FogCourtyard", host.WorldRoot);
@@ -228,6 +230,11 @@ internal sealed class SceneCoreInstaller
         if (cameraRig != null && cameraRig.transform.parent != host.CoreRoot)
         {
             cameraRig.transform.SetParent(host.CoreRoot, true);
+        }
+
+        if (cameraRig != null && cameraRig.GetComponent<PlayModeCursorLock>() == null)
+        {
+            cameraRig.gameObject.AddComponent<PlayModeCursorLock>();
         }
 
         Camera cameraComponent = Camera.main != null ? Camera.main : Object.FindAnyObjectByType<Camera>();

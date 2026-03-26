@@ -17,17 +17,13 @@ public static partial class HolstinLevelDesignTemplates
         EnsureSceneRootGroups();
 
         PlayerMover existingPlayer = Object.FindAnyObjectByType<PlayerMover>();
-        GameObject player = existingPlayer != null ? existingPlayer.gameObject : GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        GameObject player = existingPlayer != null ? existingPlayer.gameObject : new GameObject("Player");
         player.name = "Player";
         player.transform.position = spawnPosition;
         if (sceneCoreRoot != null && player.transform.parent != sceneCoreRoot)
             player.transform.SetParent(sceneCoreRoot, true);
 
-        if (existingPlayer == null)
-        {
-            Collider c = player.GetComponent<Collider>();
-            if (c != null) Object.DestroyImmediate(c);
-        }
+        CleanupLegacyPlayerPrimitiveComponents(player);
 
         CharacterController cc = EnsureComponent<CharacterController>(player);
         if (cc == null)
@@ -35,11 +31,8 @@ public static partial class HolstinLevelDesignTemplates
             Debug.LogError("Failed to create CharacterController on Player during template generation.");
             return;
         }
-        cc.center = new Vector3(0f, 0f, 0f); cc.height = 2f; cc.radius = 0.34f;
+        cc.center = new Vector3(0f, 0.95f, 0f); cc.height = 1.9f; cc.radius = 0.32f;
         cc.stepOffset = 0.35f; cc.slopeLimit = 45f; cc.skinWidth = 0.03f;
-
-        Renderer pr = player.GetComponent<Renderer>();
-        if (pr != null) pr.sharedMaterial = accentMaterial ?? GetMaterial(ref accentMaterial, "Accent", new Color(0.38f, 0.4f, 0.44f));
 
         PlayerMover mover       = EnsureComponent<PlayerMover>(player);
         PlayerInteraction inter = EnsureComponent<PlayerInteraction>(player);
@@ -55,14 +48,27 @@ public static partial class HolstinLevelDesignTemplates
         EnsureComponent<ExperienceSystem>(player);
         EnsureComponent<ChoiceHistoryTracker>(player);
 
+        ProceduralHumanoidRig humanoidRig = EnsureComponent<ProceduralHumanoidRig>(player);
+        humanoidRig.ConfigureRendererVisibility(true, true);
+        humanoidRig.EnsureBuilt();
+        EnsureComponent<ActiveRagdollMotor>(player);
+        EnsureComponent<DeathRagdollController>(player);
+        EnsureComponent<PlayerAnimationController>(player);
+        EnsureComponent<PlayerReachController>(player);
+        StyleProtagonistRagdoll(humanoidRig);
+
         Transform headAnchor = player.transform.Find("HeadAnchor");
         if (headAnchor == null) { headAnchor = new GameObject("HeadAnchor").transform; headAnchor.SetParent(player.transform); }
-        headAnchor.localPosition = new Vector3(0f, 1.62f, 0f);
+        headAnchor.localPosition = new Vector3(0f, 1.67f, 0.03f);
         headAnchor.localRotation = Quaternion.identity;
+
+        PlayerHeadAnchorDriver headAnchorDriver = EnsureComponent<PlayerHeadAnchorDriver>(player);
+        headAnchorDriver.Configure(humanoidRig, headAnchor, false, new Vector3(0f, 0.06f, 0.03f));
 
         HolstinCameraRig rig = Object.FindAnyObjectByType<HolstinCameraRig>();
         GameObject rigGO = rig != null ? rig.gameObject : new GameObject("HolstinCameraRig");
         if (rig == null) rig = rigGO.AddComponent<HolstinCameraRig>();
+        EnsureComponent<PlayModeCursorLock>(rigGO);
         if (sceneCoreRoot != null && rigGO.transform.parent != sceneCoreRoot)
             rigGO.transform.SetParent(sceneCoreRoot, true);
 
@@ -130,6 +136,81 @@ public static partial class HolstinLevelDesignTemplates
         EnsureRuntimeUI<InventoryPanelUI>("InventoryPanelUI");
         EnsureRuntimeUI<TurnBasedCombatUI>("TurnBasedCombatUI");
         EnsureRuntimeUI<ShopWindowUI>("ShopWindowUI");
+        EnsureRuntimeUI<CombatReticleUI>("CombatReticleUI");
+    }
+
+    private static void CleanupLegacyPlayerPrimitiveComponents(GameObject player)
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        MeshFilter meshFilter = player.GetComponent<MeshFilter>();
+        if (meshFilter != null)
+        {
+            Object.DestroyImmediate(meshFilter);
+        }
+
+        MeshRenderer meshRenderer = player.GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            Object.DestroyImmediate(meshRenderer);
+        }
+
+        CapsuleCollider capsuleCollider = player.GetComponent<CapsuleCollider>();
+        if (capsuleCollider != null)
+        {
+            Object.DestroyImmediate(capsuleCollider);
+        }
+
+        BoxCollider boxCollider = player.GetComponent<BoxCollider>();
+        if (boxCollider != null)
+        {
+            Object.DestroyImmediate(boxCollider);
+        }
+
+        SphereCollider sphereCollider = player.GetComponent<SphereCollider>();
+        if (sphereCollider != null)
+        {
+            Object.DestroyImmediate(sphereCollider);
+        }
+    }
+
+    private static void StyleProtagonistRagdoll(ProceduralHumanoidRig rig)
+    {
+        if (rig == null || rig.PhysicalRoot == null)
+        {
+            return;
+        }
+
+        Material bodyMaterial = GetMaterial(ref npcMaterial, "NPC", new Color(0.55f, 0.58f, 0.62f));
+        Material accent = GetMaterial(ref accentMaterial, "Accent", new Color(0.30f, 0.45f, 0.56f));
+        Material dark = GetMaterial(ref darkMaterial, "Dark", new Color(0.17f, 0.18f, 0.20f));
+
+        Renderer[] renderers = rig.PhysicalRoot.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer rendererComponent = renderers[i];
+            if (rendererComponent == null)
+            {
+                continue;
+            }
+
+            string lowerName = rendererComponent.gameObject.name.ToLowerInvariant();
+            if (lowerName.Contains("head") || lowerName.Contains("hand"))
+            {
+                rendererComponent.sharedMaterial = bodyMaterial;
+            }
+            else if (lowerName.Contains("spine") || lowerName.Contains("chest") || lowerName.Contains("hips"))
+            {
+                rendererComponent.sharedMaterial = accent;
+            }
+            else
+            {
+                rendererComponent.sharedMaterial = dark;
+            }
+        }
     }
 
     private static void EnsureRuntimeUI<T>(string objectName) where T : MonoBehaviour

@@ -204,15 +204,15 @@ public static class ItemDatabaseBootstrap
     {
         string path = $"{BasePath}/{id}.asset";
         ItemDefinition existing = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
-        if (existing == null)
+        if (existing != null)
         {
-            AssetDatabase.CreateAsset(item, path);
+            EditorUtility.CopySerialized(item, existing);
+            EditorUtility.SetDirty(existing);
+            Object.DestroyImmediate(item);
             return;
         }
 
-        EditorUtility.CopySerializedManagedFieldsOnly(item, existing);
-        EditorUtility.SetDirty(existing);
-        Object.DestroyImmediate(item);
+        AssetDatabase.CreateAsset(item, path);
     }
 
     private static void EnsureFolder(string path)

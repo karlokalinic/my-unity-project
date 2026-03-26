@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 865eb85a3d9e0374495f3264981ced7e, type: 3}
-  m_Name: ammo_pistol
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemId: ammo_pistol
   displayName: Pistol Rounds
@@ -26,6 +26,11 @@ MonoBehaviour:
   fireRate: 0.3
   range: 50
   damageType: 0
+  automaticFire: 1
+  magazineSize: 8
+  reloadSeconds: 1.2
+  projectilesPerShot: 1
+  spreadAngle: 0
   requiredAmmoId: 
   healAmount: 0
   staminaRestoreAmount: 0

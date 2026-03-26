@@ -32,6 +32,7 @@ public static partial class HolstinLevelDesignTemplates
         CreateUnderpassTemplate(new Vector3(12f,-5.5f,10f));
         CreateConnectorStair(new Vector3(10f,-0.05f,6f), 6, 1.02f, 0.2f, 1.8f, 0.2f, 1f, Quaternion.Euler(0f,180f,0f), "HouseToUnderpassSteps");
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         Selection.activeGameObject = FindPlayer()?.gameObject;
         FinalizeScene("Holstin full slice scene created. Bake NavMesh after opening Window > AI > Navigation. Use the template pack as layout scaffolding, not as an excuse to avoid actual level design.");
     }
@@ -53,6 +54,7 @@ public static partial class HolstinLevelDesignTemplates
         CreateFogCourtyardExterior(new Vector3(40f,0f,0f));
         CreateUnderpassTemplate(new Vector3(0f,0f,42f));
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         FinalizeScene("Template pack added to current scene.");
     }
 
@@ -73,6 +75,7 @@ public static partial class HolstinLevelDesignTemplates
         EnsureCoreRig(new Vector3(-8f, 1.2f, 0f));
         CreateInteractableSandbox(Vector3.zero);
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         Selection.activeGameObject = FindPlayer()?.gameObject;
         FinalizeScene("Expanded interactable tutorial scene created. Flow: Inspect -> Pickup -> Unlock -> NPC -> Relay puzzle -> Combat lane -> Final console.");
     }
@@ -85,6 +88,7 @@ public static partial class HolstinLevelDesignTemplates
         EnsureCoreRig(new Vector3(-6f,1.2f,-6f));
         EnsureDirectionalLight();
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         FinalizeScene("Vertical slice bootstrap applied to current scene. Use the component context menu to force a refresh if needed.");
     }
 

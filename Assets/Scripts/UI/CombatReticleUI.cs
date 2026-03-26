@@ -12,13 +12,22 @@ public class CombatReticleUI : MonoBehaviour
     [Header("Style")]
     [SerializeField] private Color activeColor = Color.white;
     [SerializeField] private Color reloadColor = new Color(1f, 0.82f, 0.22f, 1f);
+    [SerializeField] private Color shotFlashColor = new Color(1f, 0.93f, 0.64f, 1f);
+    [SerializeField] private float pulseDecaySpeed = 9f;
+    [SerializeField] private float firstPersonLineLength = 16f;
+    [SerializeField] private float thirdPersonLineLength = 12f;
 
     private Canvas canvas;
     private RectTransform root;
+    private RectTransform horizontalLineRect;
+    private RectTransform verticalLineRect;
+    private RectTransform centerDotRect;
     private Image verticalLine;
     private Image horizontalLine;
     private Image centerDot;
     private TextMeshProUGUI ammoText;
+    private float shotPulse;
+    private RealTimeCombat subscribedCombat;
 
     private void Awake()
     {
@@ -26,9 +35,21 @@ public class CombatReticleUI : MonoBehaviour
         BuildUIIfNeeded();
     }
 
+    private void OnEnable()
+    {
+        TryBindCombatEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnbindCombatEvents();
+    }
+
     private void Update()
     {
         ResolveReferences();
+        TryBindCombatEvents();
+        shotPulse = Mathf.MoveTowards(shotPulse, 0f, pulseDecaySpeed * Time.deltaTime);
         Refresh();
     }
 
@@ -50,6 +71,35 @@ public class CombatReticleUI : MonoBehaviour
         {
             combat = FindAnyObjectByType<RealTimeCombat>();
         }
+    }
+
+    private void TryBindCombatEvents()
+    {
+        if (combat == subscribedCombat)
+        {
+            return;
+        }
+
+        UnbindCombatEvents();
+        subscribedCombat = combat;
+        if (subscribedCombat != null)
+        {
+            subscribedCombat.Fired += OnCombatFired;
+        }
+    }
+
+    private void UnbindCombatEvents()
+    {
+        if (subscribedCombat != null)
+        {
+            subscribedCombat.Fired -= OnCombatFired;
+            subscribedCombat = null;
+        }
+    }
+
+    private void OnCombatFired()
+    {
+        shotPulse = 1f;
     }
 
     private void BuildUIIfNeeded()
@@ -76,9 +126,12 @@ public class CombatReticleUI : MonoBehaviour
         root.anchoredPosition = Vector2.zero;
         root.sizeDelta = new Vector2(80f, 80f);
 
-        horizontalLine = CreateImage("CrosshairH", root, new Vector2(16f, 2f), Vector2.zero, activeColor);
-        verticalLine = CreateImage("CrosshairV", root, new Vector2(2f, 16f), Vector2.zero, activeColor);
+        horizontalLine = CreateImage("CrosshairH", root, new Vector2(firstPersonLineLength, 2f), Vector2.zero, activeColor);
+        verticalLine = CreateImage("CrosshairV", root, new Vector2(2f, firstPersonLineLength), Vector2.zero, activeColor);
         centerDot = CreateImage("CenterDot", root, new Vector2(4f, 4f), Vector2.zero, activeColor);
+        horizontalLineRect = horizontalLine.rectTransform;
+        verticalLineRect = verticalLine.rectTransform;
+        centerDotRect = centerDot.rectTransform;
 
         RectTransform ammoRt = CreateRect("AmmoLabel", transform);
         ammoRt.anchorMin = new Vector2(0.5f, 0f);
@@ -95,7 +148,7 @@ public class CombatReticleUI : MonoBehaviour
 
     private void Refresh()
     {
-        bool visible = combat != null && cameraRig != null && combat.ShouldShowCombatHud;
+        bool visible = combat != null && combat.ShouldShowCombatHud;
 
         if (root != null && root.gameObject.activeSelf != visible)
         {
@@ -112,7 +165,18 @@ public class CombatReticleUI : MonoBehaviour
             return;
         }
 
-        Color color = combat.IsReloading ? reloadColor : activeColor;
+        bool firstPerson = cameraRig != null && cameraRig.IsInFirstPerson;
+        float baseLineLength = firstPerson ? firstPersonLineLength : thirdPersonLineLength;
+        float lineLength = baseLineLength + (shotPulse * 10f);
+        float thickness = firstPerson ? 2f : 3f;
+        float dotSize = (firstPerson ? 4f : 5f) + (shotPulse * 1.8f);
+
+        if (horizontalLineRect != null) horizontalLineRect.sizeDelta = new Vector2(lineLength, thickness);
+        if (verticalLineRect != null) verticalLineRect.sizeDelta = new Vector2(thickness, lineLength);
+        if (centerDotRect != null) centerDotRect.sizeDelta = new Vector2(dotSize, dotSize);
+
+        Color baseColor = combat.IsReloading ? reloadColor : activeColor;
+        Color color = Color.Lerp(baseColor, shotFlashColor, shotPulse);
         if (horizontalLine != null) horizontalLine.color = color;
         if (verticalLine != null) verticalLine.color = color;
         if (centerDot != null) centerDot.color = color;

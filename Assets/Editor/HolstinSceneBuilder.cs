@@ -98,6 +98,36 @@ public class HolstinSceneBuilder : EditorWindow
             HolstinLevelDesignTemplates.ApplyVerticalSliceBootstrapToCurrentScene();
         }
 
+        if (GUILayout.Button("Apply Production Aesthetic Pass"))
+        {
+            HolstinLevelDesignTemplates.ApplyProductionAestheticPassToCurrentScene();
+        }
+
+        if (GUILayout.Button("Create Default Art Pack Asset"))
+        {
+            HolstinArtPackTools.CreateDefaultArtPackAssetMenu();
+        }
+
+        if (GUILayout.Button("Apply Default Art Pack"))
+        {
+            HolstinArtPackTools.ApplyDefaultArtPackToActiveSceneMenu();
+        }
+
+        if (GUILayout.Button("Seed Default Art Pack From Placeholders"))
+        {
+            HolstinArtPackTools.SeedDefaultArtPackFromSceneMenu();
+        }
+
+        if (GUILayout.Button("Auto-Assign Art Pack Prefabs (Selected Folder)"))
+        {
+            HolstinArtPackTools.AutoAssignDefaultArtPackFromSelectedFolderMenu();
+        }
+
+        if (GUILayout.Button("Recover Art Pack From Scene Placements"))
+        {
+            HolstinArtPackTools.RecoverDefaultArtPackFromCurrentSceneMenu();
+        }
+
         if (GUILayout.Button("Find All Asset Placeholders"))
         {
             var placeholders = FindObjectsByType<AssetPlaceholder>();

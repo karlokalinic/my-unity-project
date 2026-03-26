@@ -22,6 +22,9 @@ public class DeathRagdollController : MonoBehaviour
     private Collider[] rootColliders = System.Array.Empty<Collider>();
     private bool[] rootColliderEnabledStates = System.Array.Empty<bool>();
     private bool ragdollActive;
+    private bool cachedHideSourceRenderers;
+    private bool cachedShowRagdollInLife;
+    private bool hasCachedRendererVisibility;
 
     public bool RagdollActive => ragdollActive;
     public bool HasRig => rig != null || GetComponent<ProceduralHumanoidRig>() != null;
@@ -39,7 +42,7 @@ public class DeathRagdollController : MonoBehaviour
         if (rig != null)
         {
             rig.EnsureBuilt();
-            rig.ConfigureRendererVisibility(false, false);
+            rig.ConfigureRendererVisibility(rig.HideSourceRenderers, rig.ShowRagdollRenderersInLife);
         }
 
         rootColliders = GetComponents<Collider>();
@@ -92,6 +95,10 @@ public class DeathRagdollController : MonoBehaviour
         }
 
         rig.EnsureBuilt();
+        cachedHideSourceRenderers = rig.HideSourceRenderers;
+        cachedShowRagdollInLife = rig.ShowRagdollRenderersInLife;
+        hasCachedRendererVisibility = true;
+        rig.ConfigureRendererVisibility(true, true);
         rig.SetRagdollRenderersVisible(true);
 
         Vector3 inheritedVelocity = Vector3.zero;
@@ -172,7 +179,14 @@ public class DeathRagdollController : MonoBehaviour
             return;
         }
 
-        rig.ConfigureRendererVisibility(rig.HideSourceRenderers, rig.ShowRagdollRenderersInLife);
+        if (hasCachedRendererVisibility)
+        {
+            rig.ConfigureRendererVisibility(cachedHideSourceRenderers, cachedShowRagdollInLife);
+        }
+        else
+        {
+            rig.ConfigureRendererVisibility(rig.HideSourceRenderers, rig.ShowRagdollRenderersInLife);
+        }
 
         ProceduralHumanoidRig.BoneBinding[] bindings = rig.Bindings;
         if (bindings != null)
@@ -229,6 +243,7 @@ public class DeathRagdollController : MonoBehaviour
         }
 
         ragdollActive = false;
+        hasCachedRendererVisibility = false;
     }
 
     private void HandleDied()

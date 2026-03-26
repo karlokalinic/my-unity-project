@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -32,6 +33,7 @@ public class RealTimeCombat : MonoBehaviour
     [SerializeField] private SkillSystem skillSystem;
     [SerializeField] private InventorySystem inventory;
     [SerializeField] private HolstinCameraRig cameraRig;
+    [SerializeField] private PlayerAnimationController animationController;
 
     [Header("Fallback (no equipped weapon)")]
     [SerializeField] private float fallbackDamage = 10f;
@@ -50,6 +52,7 @@ public class RealTimeCombat : MonoBehaviour
     [SerializeField] private float staminaCostPerMelee = 12f;
 
     private readonly Dictionary<string, int> weaponMagazineCounts = new Dictionary<string, int>();
+    private readonly RaycastHit[] fireHitBuffer = new RaycastHit[24];
 
     private float nextFireTime;
     private bool isReloading;
@@ -57,6 +60,8 @@ public class RealTimeCombat : MonoBehaviour
     private string reloadWeaponKey;
     private string reloadAmmoId;
     private int reloadMagazineSize;
+
+    public event Action Fired;
 
     public bool IsReloading => isReloading;
     public bool ShouldShowCombatHud => cameraRig != null && cameraRig.IsInFirstPerson && !GameplayPauseFacade.IsPaused;
@@ -168,35 +173,32 @@ public class RealTimeCombat : MonoBehaviour
         for (int projectileIndex = 0; projectileIndex < weaponData.projectilesPerShot; projectileIndex++)
         {
             Ray ray = BuildShotRay(weaponData.spreadAngle);
-            if (Physics.Raycast(ray, out RaycastHit hit, weaponData.range, fireMask, QueryTriggerInteraction.Ignore))
+            if (TryResolveFireHit(ray, weaponData.range, out RaycastHit hit, out Damageable target))
             {
                 if (hit.rigidbody != null)
                 {
                     hit.rigidbody.AddForceAtPosition(ray.direction * impactForce, hit.point, ForceMode.Impulse);
                 }
 
-                Damageable target = hit.collider.GetComponentInParent<Damageable>();
-                if (target == null)
+                if (target != null)
                 {
-                    continue;
-                }
-
-                if (target.IsBoss)
-                {
-                    TurnBasedCombatManager tbm = FindAnyObjectByType<TurnBasedCombatManager>();
-                    if (tbm != null && !tbm.InCombat)
+                    if (target.IsBoss)
                     {
-                        tbm.StartCombat(target);
-                        startedTurnCombat = true;
-                        break;
+                        TurnBasedCombatManager tbm = FindAnyObjectByType<TurnBasedCombatManager>();
+                        if (tbm != null && !tbm.InCombat)
+                        {
+                            tbm.StartCombat(target);
+                            startedTurnCombat = true;
+                            break;
+                        }
                     }
-                }
 
-                bool wasAlive = !target.IsDead;
-                target.ApplyDamage(finalDamage, weaponData.damageType);
-                if (wasAlive && target.IsDead)
-                {
-                    HolstinFeedback.ShowMessage("Target neutralized", 0.9f);
+                    bool wasAlive = !target.IsDead;
+                    target.ApplyDamage(finalDamage, weaponData.damageType);
+                    if (wasAlive && target.IsDead)
+                    {
+                        HolstinFeedback.ShowMessage("Target neutralized", 0.9f);
+                    }
                 }
             }
 
@@ -218,6 +220,13 @@ public class RealTimeCombat : MonoBehaviour
         {
             skillSystem.AddExperience(weaponData.isMelee ? "melee" : "firearms", 5);
         }
+
+        if (animationController != null)
+        {
+            animationController.NotifyFired(weaponData.isMelee);
+        }
+
+        Fired?.Invoke();
     }
 
     private float ComputeDamageWithBonuses(WeaponFireData weaponData)
@@ -353,11 +362,64 @@ public class RealTimeCombat : MonoBehaviour
         }
 
         float spreadRadians = Mathf.Tan(spreadAngle * Mathf.Deg2Rad);
-        Vector2 randomSpread = Random.insideUnitCircle * spreadRadians;
+        Vector2 randomSpread = UnityEngine.Random.insideUnitCircle * spreadRadians;
         Vector3 direction =
             (baseRay.direction + (viewCamera.transform.right * randomSpread.x) + (viewCamera.transform.up * randomSpread.y)).normalized;
 
         return new Ray(baseRay.origin, direction);
+    }
+
+    private bool TryResolveFireHit(Ray ray, float range, out RaycastHit resolvedHit, out Damageable target)
+    {
+        resolvedHit = default;
+        target = null;
+
+        int hitCount = Physics.RaycastNonAlloc(ray, fireHitBuffer, range, fireMask, QueryTriggerInteraction.Ignore);
+        if (hitCount <= 0)
+        {
+            return false;
+        }
+
+        int bestIndex = -1;
+        float bestDistance = float.MaxValue;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit candidate = fireHitBuffer[i];
+            if (candidate.collider == null)
+            {
+                continue;
+            }
+
+            Transform hitTransform = candidate.collider.transform;
+            if (hitTransform == null || hitTransform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (candidate.distance < bestDistance)
+            {
+                bestDistance = candidate.distance;
+                bestIndex = i;
+            }
+        }
+
+        if (bestIndex < 0)
+        {
+            return false;
+        }
+
+        resolvedHit = fireHitBuffer[bestIndex];
+        if (resolvedHit.collider != null)
+        {
+            target = resolvedHit.collider.GetComponentInParent<Damageable>();
+            if (target != null && target.transform.IsChildOf(transform))
+            {
+                target = null;
+            }
+        }
+
+        return true;
     }
 
     private void ResolveReferences()
@@ -366,6 +428,7 @@ public class RealTimeCombat : MonoBehaviour
         if (playerStats == null) playerStats = GetComponent<CharacterStats>();
         if (skillSystem == null) skillSystem = GetComponent<SkillSystem>();
         if (inventory == null) inventory = GetComponent<InventorySystem>();
+        if (animationController == null) animationController = GetComponent<PlayerAnimationController>();
         if (cameraRig == null)
         {
             if (HolstinSceneContext.TryGet(out HolstinSceneContext ctx))

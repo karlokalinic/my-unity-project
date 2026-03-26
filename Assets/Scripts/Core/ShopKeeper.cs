@@ -64,17 +64,35 @@ public class ShopKeeper : MonoBehaviour
         int price = GetBuyPrice(entry, rep);
         if (!wallet.CanAfford(currencyId, price))
         {
-            Debug.Log($"[ShopKeeper] Player cannot afford '{entry.item.itemId}' (price {price} {currencyId}).", this);
+            Debug.LogWarning(
+                $"[ShopKeeper] Cannot buy '{entry.item.itemId}': not enough {currencyId} (price {price}, wallet {wallet.GetAmount(currencyId)}).",
+                this);
             return false;
         }
 
         if (!playerInv.TryAddItem(entry.item, 1))
         {
-            Debug.Log($"[ShopKeeper] Inventory full, '{entry.item.itemId}' not added. No charge applied.", this);
+            Debug.LogWarning($"[ShopKeeper] Cannot buy '{entry.item.itemId}': inventory full.", this);
             return false;
         }
 
-        wallet.TrySpend(currencyId, price);
+        if (!wallet.TrySpend(currencyId, price))
+        {
+            bool rollbackSucceeded = playerInv.TryRemoveItem(entry.item, 1);
+            if (!rollbackSucceeded)
+            {
+                Debug.LogError(
+                    $"[ShopKeeper] Purchase rollback failed for '{entry.item.itemId}'. Inventory and currency may be out of sync.",
+                    this);
+            }
+
+            Debug.LogWarning(
+                $"[ShopKeeper] Cannot finalize purchase for '{entry.item.itemId}': wallet spend failed. " +
+                $"Rollback {(rollbackSucceeded ? "succeeded" : "failed")}.",
+                this);
+            return false;
+        }
+
         entry.stock--;
         ShopChanged?.Invoke();
         return true;
