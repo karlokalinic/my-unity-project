@@ -46,10 +46,10 @@ public class NPCKeyGiverInteractable : InteractableBase
     {
         if (grantOnlyOnce && rewardGranted)
         {
-            return $"[{InputReader.InteractKeyLabel}] Talk to {npcName}";
+            return $"[{InputReader.GetInteractLabel()}] Talk to {npcName}";
         }
 
-        return $"[{InputReader.InteractKeyLabel}] Ask {npcName}";
+        return $"[{InputReader.GetInteractLabel()}] Ask {npcName}";
     }
 
     public override int GetPriority(PlayerInteraction interactor)

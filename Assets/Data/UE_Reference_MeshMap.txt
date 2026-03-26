@@ -1,0 +1,17 @@
+Unreal EasySurvivalRPG reference map (for manual mesh replacement in Unity)
+
+Current ItemDefinition IDs -> Suggested UE source mesh names:
+- wpn_pistol -> SM_Pistol_001.uasset (alt: SM_Pistol_002.uasset)
+- wpn_rifle -> SM_Rifle_001.uasset (alt: SM_Assault_Rifle_001.uasset)
+- wpn_shotgun -> SM_Blunderbuss_001.uasset (alt: SM_Blunderbuss_002.uasset)
+- wpn_knife -> SM_Sword_001.uasset (short blade proxy)
+- wpn_pipe -> SM_Club_001.uasset (pipe/club proxy)
+
+Ammo references:
+- ammo_pistol -> SM_Pistol_Bullets_001.uasset
+- ammo_rifle -> SM_Rifle_Bullets_001.uasset
+- ammo_shell -> SM_Blunderbuss_Bullets_001.uasset
+
+Notes:
+- Content/*.uasset files are Unreal assets and cannot be imported directly into Unity.
+- Use this map to recreate/import equivalent FBX/texture assets or to search store packs faster.

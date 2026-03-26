@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Rendering;
 
 public class InfectionNode : MonoBehaviour
@@ -38,6 +39,7 @@ public class InfectionNode : MonoBehaviour
     private readonly Dictionary<Renderer, Color> rendererBaselineEmission = new Dictionary<Renderer, Color>();
     private readonly Dictionary<Renderer, MaterialPropertyBlock> rendererPropertyBlocks = new Dictionary<Renderer, MaterialPropertyBlock>();
     private readonly HashSet<Volume> configuredVolumes = new HashSet<Volume>();
+    private static readonly HashSet<EntityId> warnedNavMeshActivationObjects = new HashSet<EntityId>();
 
     private InfectionStage currentStage;
     private bool initialized;
@@ -299,9 +301,75 @@ public class InfectionNode : MonoBehaviour
     {
         for (int i = 0; i < targets.Length; i++)
         {
-            if (targets[i] != null)
+            GameObject target = targets[i];
+            if (target == null)
             {
-                targets[i].SetActive(active);
+                continue;
+            }
+
+            if (!active)
+            {
+                target.SetActive(false);
+                continue;
+            }
+
+            ActivateWithSafeNavMeshAgents(target);
+        }
+    }
+
+    private static void ActivateWithSafeNavMeshAgents(GameObject target)
+    {
+        NavMeshAgent[] agents = target.GetComponentsInChildren<NavMeshAgent>(true);
+        bool[] previousEnabledStates = null;
+
+        if (agents.Length > 0)
+        {
+            previousEnabledStates = new bool[agents.Length];
+            for (int i = 0; i < agents.Length; i++)
+            {
+                NavMeshAgent agent = agents[i];
+                if (agent == null)
+                {
+                    continue;
+                }
+
+                previousEnabledStates[i] = agent.enabled;
+                agent.enabled = false;
+            }
+        }
+
+        target.SetActive(true);
+
+        if (agents.Length == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < agents.Length; i++)
+        {
+            NavMeshAgent agent = agents[i];
+            if (agent == null || previousEnabledStates == null || !previousEnabledStates[i])
+            {
+                continue;
+            }
+
+            if (NavMesh.SamplePosition(agent.transform.position, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+            {
+                agent.enabled = true;
+                if (!agent.isOnNavMesh)
+                {
+                    agent.Warp(hit.position);
+                }
+            }
+            else
+            {
+                EntityId id = agent.gameObject.GetEntityId();
+                
+                if (!warnedNavMeshActivationObjects.Contains(id))
+                {
+                    warnedNavMeshActivationObjects.Add(id);
+                    Debug.LogWarning($"Skipped enabling NavMeshAgent on '{agent.gameObject.name}' because no NavMesh was found near the activation point.");
+                }
             }
         }
     }

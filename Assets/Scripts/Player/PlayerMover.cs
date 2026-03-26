@@ -82,6 +82,11 @@ public class PlayerMover : MonoBehaviour
 
     private void Update()
     {
+        if (!CanUseController())
+        {
+            return;
+        }
+
         if ((inspectViewer != null && inspectViewer.IsInspecting) || (playerInteraction != null && playerInteraction.IsBusy))
         {
             planarVelocity = Vector3.zero;
@@ -113,6 +118,11 @@ public class PlayerMover : MonoBehaviour
         float response = (move.sqrMagnitude > 0.0001f ? acceleration : deceleration) * Time.deltaTime;
         planarVelocity = Vector3.MoveTowards(planarVelocity, targetPlanarVelocity, Mathf.Max(0f, response));
 
+        if (!CanUseController())
+        {
+            return;
+        }
+
         controller.Move(planarVelocity * Time.deltaTime);
 
         if (!inFirstPerson && planarVelocity.sqrMagnitude > 0.0001f)
@@ -126,6 +136,11 @@ public class PlayerMover : MonoBehaviour
 
     private void ApplyGravityOnly()
     {
+        if (!CanUseController())
+        {
+            return;
+        }
+
         if (controller.isGrounded && velocity.y < 0f)
         {
             velocity.y = groundedStickForce;
@@ -139,6 +154,15 @@ public class PlayerMover : MonoBehaviour
         controller.Move(Vector3.up * velocity.y * Time.deltaTime);
     }
 
+    private bool CanUseController()
+    {
+        return controller != null &&
+               controller.enabled &&
+               controller.gameObject != null &&
+               controller.gameObject.activeInHierarchy &&
+               isActiveAndEnabled;
+    }
+
     private void NormalizeControllerAlignment()
     {
         if (controller == null)
@@ -146,7 +170,7 @@ public class PlayerMover : MonoBehaviour
             return;
         }
 
-        // Primitive capsule player uses centered visuals, so centered controller avoids "sunk into floor" appearance.
+        // Legacy primitive capsules and centered procedural rigs both benefit from centered controller alignment.
         if (TryGetComponent(out Renderer _))
         {
             controller.center = new Vector3(0f, 0f, 0f);

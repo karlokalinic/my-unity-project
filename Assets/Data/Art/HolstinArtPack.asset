@@ -1,0 +1,182 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e66307470db41d5924f43d123e1eeca, type: 3}
+  m_Name: HolstinArtPack
+  m_EditorClassIdentifier: Assembly-CSharp::HolstinArtPack
+  caseInsensitiveTags: 1
+  allowCategoryFallback: 1
+  mappings:
+  - id: auto_Prop_well_00
+    category: 1
+    assetTag: well
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Light_lamp_post_01
+    category: 3
+    assetTag: lamp_post
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Container_barrel_02
+    category: 6
+    assetTag: barrel
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Prop_cart_03
+    category: 1
+    assetTag: cart
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Furniture_bench_04
+    category: 0
+    assetTag: bench
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Light_lantern_05
+    category: 3
+    assetTag: lantern
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Furniture_bed_06
+    category: 0
+    assetTag: bed
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Furniture_shelf_07
+    category: 0
+    assetTag: shelf
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Container_crate_cluster_08
+    category: 6
+    assetTag: crate_cluster
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Furniture_table_09
+    category: 0
+    assetTag: table
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Furniture_desk_10
+    category: 0
+    assetTag: desk
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Prop_portal_11
+    category: 1
+    assetTag: portal
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Prop_inspectable_key_12
+    category: 1
+    assetTag: inspectable_key
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Prop_key_item_00
+    category: 1
+    assetTag: key_item
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []
+  - id: auto_Prop_console_terminal_01
+    category: 1
+    assetTag: console_terminal
+    prefab: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localRotationEuler: {x: 0, y: 0, z: 0}
+    localScaleMultiplier: {x: 1, y: 1, z: 1}
+    fitToPlaceholderBounds: 1
+    preservePlaceholder: 1
+    setStaticFlags: 1
+    materialOverrides: []

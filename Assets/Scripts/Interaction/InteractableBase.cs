@@ -16,7 +16,7 @@ public abstract class InteractableBase : MonoBehaviour
 
     public virtual string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
-        return $"[{InputReader.InteractKeyLabel}] {interactionLabel} {subjectLabel}";
+        return $"[{InputReader.GetInteractLabel()}] {interactionLabel} {subjectLabel}";
     }
 
     public virtual bool IsAvailable(PlayerInteraction interactor, InventorySystem inventory)

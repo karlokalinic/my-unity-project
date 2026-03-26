@@ -98,9 +98,39 @@ public class HolstinSceneBuilder : EditorWindow
             HolstinLevelDesignTemplates.ApplyVerticalSliceBootstrapToCurrentScene();
         }
 
+        if (GUILayout.Button("Apply Production Aesthetic Pass"))
+        {
+            HolstinLevelDesignTemplates.ApplyProductionAestheticPassToCurrentScene();
+        }
+
+        if (GUILayout.Button("Create Default Art Pack Asset"))
+        {
+            HolstinArtPackTools.CreateDefaultArtPackAssetMenu();
+        }
+
+        if (GUILayout.Button("Apply Default Art Pack"))
+        {
+            HolstinArtPackTools.ApplyDefaultArtPackToActiveSceneMenu();
+        }
+
+        if (GUILayout.Button("Seed Default Art Pack From Placeholders"))
+        {
+            HolstinArtPackTools.SeedDefaultArtPackFromSceneMenu();
+        }
+
+        if (GUILayout.Button("Auto-Assign Art Pack Prefabs (Selected Folder)"))
+        {
+            HolstinArtPackTools.AutoAssignDefaultArtPackFromSelectedFolderMenu();
+        }
+
+        if (GUILayout.Button("Recover Art Pack From Scene Placements"))
+        {
+            HolstinArtPackTools.RecoverDefaultArtPackFromCurrentSceneMenu();
+        }
+
         if (GUILayout.Button("Find All Asset Placeholders"))
         {
-            var placeholders = FindObjectsByType<AssetPlaceholder>(FindObjectsSortMode.None);
+            var placeholders = FindObjectsByType<AssetPlaceholder>();
             Debug.Log($"Found {placeholders.Length} AssetPlaceholder(s) in scene.");
             if (placeholders.Length > 0)
             {
@@ -133,15 +163,15 @@ public class HolstinSceneBuilder : EditorWindow
                 break;
             case LayoutPreset.ExteriorCourtyard:
                 if (createNewScene) PrepareNewScene();
-                HolstinLevelDesignTemplates.CreateTemplatePackInCurrentScene();
+                HolstinLevelDesignTemplates.AddExteriorTemplate();
                 break;
             case LayoutPreset.InteriorBoardingHouse:
                 if (createNewScene) PrepareNewScene();
-                HolstinLevelDesignTemplates.CreateTemplatePackInCurrentScene();
+                HolstinLevelDesignTemplates.AddInteriorTemplate();
                 break;
             case LayoutPreset.UnderpassCatacombs:
                 if (createNewScene) PrepareNewScene();
-                HolstinLevelDesignTemplates.CreateTemplatePackInCurrentScene();
+                HolstinLevelDesignTemplates.AddUnderpassTemplateMenu();
                 break;
             case LayoutPreset.InteractableSandbox:
                 HolstinLevelDesignTemplates.CreateInteractableTestScene();

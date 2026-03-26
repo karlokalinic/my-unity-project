@@ -49,6 +49,11 @@ public class ItemDefinition : ScriptableObject
     public float fireRate = 0.3f;
     public float range = 50f;
     public DamageType damageType = DamageType.Physical;
+    public bool automaticFire = true;
+    [Min(1)] public int magazineSize = 8;
+    [Min(0.05f)] public float reloadSeconds = 1.2f;
+    [Min(1)] public int projectilesPerShot = 1;
+    [Range(0f, 12f)] public float spreadAngle = 0f;
     public string requiredAmmoId;
 
     [Header("Consumable (if applicable)")]

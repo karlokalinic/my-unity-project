@@ -6,7 +6,9 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
+using System.Collections.Generic;
 
 public static partial class HolstinLevelDesignTemplates
 {
@@ -30,6 +32,7 @@ public static partial class HolstinLevelDesignTemplates
         CreateUnderpassTemplate(new Vector3(12f,-5.5f,10f));
         CreateConnectorStair(new Vector3(10f,-0.05f,6f), 6, 1.02f, 0.2f, 1.8f, 0.2f, 1f, Quaternion.Euler(0f,180f,0f), "HouseToUnderpassSteps");
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         Selection.activeGameObject = FindPlayer()?.gameObject;
         FinalizeScene("Holstin full slice scene created. Bake NavMesh after opening Window > AI > Navigation. Use the template pack as layout scaffolding, not as an excuse to avoid actual level design.");
     }
@@ -39,12 +42,19 @@ public static partial class HolstinLevelDesignTemplates
     {
         ResetMaterialCache();
         EnsureSceneRootGroups();
+        DestroyAllByName(
+            "Template_Interior_BoardingHouse",
+            "Template_Exterior_FogCourtyard",
+            "Template_Underpass_Catacombs",
+            "HouseToUnderpassSteps",
+            "Template_Interactable_Sandbox");
         EnsureCoreRig(new Vector3(0f,1.2f,-8f));
         EnsureDirectionalLight();
         CreateBoardingHouseInterior(new Vector3(0f,0f,0f));
         CreateFogCourtyardExterior(new Vector3(40f,0f,0f));
         CreateUnderpassTemplate(new Vector3(0f,0f,42f));
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         FinalizeScene("Template pack added to current scene.");
     }
 
@@ -65,6 +75,7 @@ public static partial class HolstinLevelDesignTemplates
         EnsureCoreRig(new Vector3(-8f, 1.2f, 0f));
         CreateInteractableSandbox(Vector3.zero);
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         Selection.activeGameObject = FindPlayer()?.gameObject;
         FinalizeScene("Expanded interactable tutorial scene created. Flow: Inspect -> Pickup -> Unlock -> NPC -> Relay puzzle -> Combat lane -> Final console.");
     }
@@ -77,7 +88,36 @@ public static partial class HolstinLevelDesignTemplates
         EnsureCoreRig(new Vector3(-6f,1.2f,-6f));
         EnsureDirectionalLight();
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         FinalizeScene("Vertical slice bootstrap applied to current scene. Use the component context menu to force a refresh if needed.");
+    }
+
+    [MenuItem("Tools/Holstin Level Design Templates/Cleanup Missing Scripts In Active Scene")]
+    public static void CleanupMissingScriptsInActiveScene()
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (!activeScene.IsValid())
+        {
+            Debug.LogWarning("No valid active scene to clean.");
+            return;
+        }
+
+        GameObject[] roots = activeScene.GetRootGameObjects();
+        int removedCount = 0;
+        for (int i = 0; i < roots.Length; i++)
+        {
+            removedCount += RemoveMissingScriptsRecursive(roots[i].transform);
+        }
+
+        if (removedCount > 0)
+        {
+            EditorSceneManager.MarkSceneDirty(activeScene);
+            Debug.Log($"Removed {removedCount} missing script component(s) from scene '{activeScene.name}'. Save the scene to persist.");
+        }
+        else
+        {
+            Debug.Log($"No missing script components found in scene '{activeScene.name}'.");
+        }
     }
 
     private static void CreateInteractableSandbox(Vector3 origin)
@@ -306,6 +346,27 @@ public static partial class HolstinLevelDesignTemplates
         CreateWall(parent, origin + new Vector3(0f, 2.8f, 0f), new Vector3(0.35f, 0.8f, 2.4f), wallMaterial, label + "_Lintel");
     }
 
+    private static void DestroyAllByName(params string[] names)
+    {
+        if (names == null || names.Length == 0)
+        {
+            return;
+        }
+
+        HashSet<string> lookup = new HashSet<string>(names);
+        Transform[] allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include);
+        for (int i = allTransforms.Length - 1; i >= 0; i--)
+        {
+            Transform transformComponent = allTransforms[i];
+            if (transformComponent == null || !lookup.Contains(transformComponent.name))
+            {
+                continue;
+            }
+
+            Object.DestroyImmediate(transformComponent.gameObject);
+        }
+    }
+
     private static void CreateCheckpoint(Transform parent, string name, Vector3 pos, Vector3 size, string message)
     {
         GameObject zone = new GameObject(name);
@@ -317,5 +378,21 @@ public static partial class HolstinLevelDesignTemplates
 
         CheckpointZone checkpoint = zone.AddComponent<CheckpointZone>();
         checkpoint.Configure(message, true);
+    }
+
+    private static int RemoveMissingScriptsRecursive(Transform root)
+    {
+        if (root == null)
+        {
+            return 0;
+        }
+
+        int removed = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(root.gameObject);
+        for (int i = 0; i < root.childCount; i++)
+        {
+            removed += RemoveMissingScriptsRecursive(root.GetChild(i));
+        }
+
+        return removed;
     }
 }

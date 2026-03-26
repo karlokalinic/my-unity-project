@@ -569,6 +569,9 @@ GameObject:
   - component: {fileID: 15105716}
   - component: {fileID: 15105715}
   - component: {fileID: 15105714}
+  - component: {fileID: 15105719}
+  - component: {fileID: 15105720}
+  - component: {fileID: 15105721}
   m_Layer: 0
   m_Name: VS_ExteriorKeyPickup
   m_TagString: Untagged
@@ -733,6 +736,45 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 15105712}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &15105719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15105712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 984684569}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &15105720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15105712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 139393946}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &15105721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15105712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 569522637}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
 --- !u!1 &17355898
 GameObject:
   m_ObjectHideFlags: 0
@@ -973,7 +1015,7 @@ GameObject:
   - component: {fileID: 23686759}
   - component: {fileID: 23686757}
   - component: {fileID: 23686758}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftLowerLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1055,22 +1097,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -140
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 5
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 6
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 6
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -1110,7 +1152,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
+    positionSpring: 420
     positionDamper: 45
     maximumForce: 1000000
     useAcceleration: 0
@@ -3765,6 +3807,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 130810200}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!115 &139393946
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &146023794
 GameObject:
   m_ObjectHideFlags: 0
@@ -6793,7 +6850,7 @@ Transform:
   m_GameObject: {fileID: 282431069}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 14.2, y: -4.5, z: 9}
+  m_LocalPosition: {x: 13.240817, y: -4.5, z: 14.755091}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7120,7 +7177,7 @@ GameObject:
   - component: {fileID: 329734521}
   - component: {fileID: 329734519}
   - component: {fileID: 329734520}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightLowerLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7202,22 +7259,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -140
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 5
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 6
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 6
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -7257,7 +7314,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
+    positionSpring: 420
     positionDamper: 45
     maximumForce: 1000000
     useAcceleration: 0
@@ -7458,7 +7515,7 @@ Transform:
   m_GameObject: {fileID: 330344824}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 15.7, y: -4.35, z: 11}
+  m_LocalPosition: {x: 14.740817, y: -4.35, z: 16.75509}
   m_LocalScale: {x: 0.22, y: 2.3, z: 2.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9275,7 +9332,6 @@ GameObject:
   - component: {fileID: 417226088}
   - component: {fileID: 417226087}
   - component: {fileID: 417226086}
-  - component: {fileID: 417226085}
   m_Layer: 0
   m_Name: Landlady
   m_TagString: Untagged
@@ -9298,24 +9354,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 985548677}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &417226085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 417226083}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb5d5392f2851034580b0bbc476bd827, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCPlaceholder
-  npcName: Landlady
-  narrativeRole: Collects rent, inventories supplies, and edits her memory to remain
-    employable.
-  lookTarget: {fileID: 1372260327}
-  turnSpeed: 3.5
-  revealOnStart: 0
 --- !u!23 &417226086
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9889,7 +9927,6 @@ GameObject:
   - component: {fileID: 430010015}
   - component: {fileID: 430010014}
   - component: {fileID: 430010013}
-  - component: {fileID: 430010012}
   m_Layer: 0
   m_Name: TunnelStalker
   m_TagString: Untagged
@@ -9912,28 +9949,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 596799162}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &430010012
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 430010010}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14e53bc0757b0fa48a7f7ba3a19461f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SimpleEnemyAgent
-  patrolPoints:
-  - {fileID: 765930259}
-  - {fileID: 358335276}
-  - {fileID: 128896185}
-  - {fileID: 337908447}
-  detectionRadius: 8
-  loseTargetRadius: 13
-  attackRange: 1.8
-  patrolPause: 1
-  hitPoints: 3
 --- !u!195 &430010013
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -10338,7 +10353,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &452582817
 Canvas:
   m_ObjectHideFlags: 0
@@ -10620,7 +10635,7 @@ GameObject:
   - component: {fileID: 470017782}
   - component: {fileID: 470017781}
   - component: {fileID: 470017780}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10674,22 +10689,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -40
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 55
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 60
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -10729,8 +10744,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 350
+    positionDamper: 40
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -10908,7 +10923,7 @@ Transform:
   m_GameObject: {fileID: 483501564}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16, y: -3.5, z: 10}
+  m_LocalPosition: {x: 15.040817, y: -3.5, z: 15.755091}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11608,7 +11623,7 @@ GameObject:
   - component: {fileID: 514847257}
   - component: {fileID: 514847255}
   - component: {fileID: 514847256}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightUpperArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11690,22 +11705,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -80
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 80
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 70
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 45
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -11745,8 +11760,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 300
+    positionDamper: 35
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -11975,7 +11990,6 @@ GameObject:
   - component: {fileID: 523699623}
   - component: {fileID: 523699622}
   - component: {fileID: 523699621}
-  - component: {fileID: 523699620}
   m_Layer: 0
   m_Name: CourtyardProwler
   m_TagString: Untagged
@@ -11998,27 +12012,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 930769055}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &523699620
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 523699618}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14e53bc0757b0fa48a7f7ba3a19461f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SimpleEnemyAgent
-  patrolPoints:
-  - {fileID: 928598692}
-  - {fileID: 2000362139}
-  - {fileID: 1358889810}
-  detectionRadius: 8
-  loseTargetRadius: 13
-  attackRange: 1.8
-  patrolPause: 1
-  hitPoints: 3
 --- !u!195 &523699621
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -12264,6 +12257,11 @@ Transform:
   m_Children:
   - {fileID: 452582818}
   - {fileID: 792758735}
+  - {fileID: 1960804464}
+  - {fileID: 586473843}
+  - {fileID: 1214407307}
+  - {fileID: 2044128988}
+  - {fileID: 912104163}
   m_Father: {fileID: 1855639092}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &538420601
@@ -12604,6 +12602,67 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!115 &569522637
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
+--- !u!1 &586473842
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 586473843}
+  - component: {fileID: 586473844}
+  m_Layer: 0
+  m_Name: InventoryPanelUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &586473843
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586473842}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 530552321}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &586473844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586473842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2405de02ea2153549a02e60789c22c65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryPanelUI
+  inventory: {fileID: 0}
+  toggleKey: 9
 --- !u!1 &594530019
 GameObject:
   m_ObjectHideFlags: 0
@@ -12616,7 +12675,6 @@ GameObject:
   - component: {fileID: 594530024}
   - component: {fileID: 594530023}
   - component: {fileID: 594530022}
-  - component: {fileID: 594530021}
   m_Layer: 0
   m_Name: CheckpointGuard
   m_TagString: Untagged
@@ -12639,23 +12697,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1098725238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &594530021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 594530019}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb5d5392f2851034580b0bbc476bd827, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCPlaceholder
-  npcName: Checkpoint Guard
-  narrativeRole: Thinks procedure is the same thing as justice. Adorable.
-  lookTarget: {fileID: 1372260327}
-  turnSpeed: 3.5
-  revealOnStart: 0
 --- !u!23 &594530022
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12985,7 +13026,7 @@ GameObject:
   - component: {fileID: 613232701}
   - component: {fileID: 613232700}
   - component: {fileID: 613232699}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13039,22 +13080,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -50
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 50
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -13094,8 +13135,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 200
+    positionDamper: 25
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -13758,7 +13799,6 @@ GameObject:
   - component: {fileID: 640461702}
   - component: {fileID: 640461701}
   - component: {fileID: 640461700}
-  - component: {fileID: 640461699}
   m_Layer: 0
   m_Name: StreetProwler
   m_TagString: Untagged
@@ -13781,27 +13821,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1812307767}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &640461699
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 640461697}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14e53bc0757b0fa48a7f7ba3a19461f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SimpleEnemyAgent
-  patrolPoints:
-  - {fileID: 1115030986}
-  - {fileID: 1707808456}
-  - {fileID: 414866210}
-  detectionRadius: 8
-  loseTargetRadius: 13
-  attackRange: 1.8
-  patrolPause: 1
-  hitPoints: 3
 --- !u!195 &640461700
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -14207,7 +14226,7 @@ GameObject:
   - component: {fileID: 659721190}
   - component: {fileID: 659721189}
   - component: {fileID: 659721188}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightFoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14261,22 +14280,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -30
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 45
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 12
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 15
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -14316,8 +14335,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 250
+    positionDamper: 30
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -15939,7 +15958,7 @@ GameObject:
   - component: {fileID: 758861543}
   - component: {fileID: 758861541}
   - component: {fileID: 758861542}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightUpperLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -16021,22 +16040,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -80
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -16076,8 +16095,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 450
+    positionDamper: 50
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -16297,7 +16316,7 @@ GameObject:
   - component: {fileID: 763874030}
   - component: {fileID: 763874029}
   - component: {fileID: 763874028}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -16351,22 +16370,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -40
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 55
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 60
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -16406,8 +16425,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 350
+    positionDamper: 40
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -17098,7 +17117,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &792758734
 Canvas:
   m_ObjectHideFlags: 0
@@ -17597,6 +17616,8 @@ GameObject:
   - component: {fileID: 813770264}
   - component: {fileID: 813770263}
   - component: {fileID: 813770262}
+  - component: {fileID: 813770267}
+  - component: {fileID: 813770268}
   m_Layer: 0
   m_Name: VS_ServiceConsole
   m_TagString: Untagged
@@ -17613,7 +17634,7 @@ Transform:
   m_GameObject: {fileID: 813770260}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 14.3, y: -4.6, z: 9.2}
+  m_LocalPosition: {x: 13.340817, y: -4.6, z: 14.9550905}
   m_LocalScale: {x: 1.1, y: 1.8, z: 0.9}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17742,6 +17763,32 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 813770260}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &813770267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 813770260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 984684569}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &813770268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 813770260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 139393946}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
 --- !u!1 &814865919
 GameObject:
   m_ObjectHideFlags: 0
@@ -17756,7 +17803,7 @@ GameObject:
   - component: {fileID: 814865923}
   - component: {fileID: 814865921}
   - component: {fileID: 814865922}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightLowerArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -17838,22 +17885,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -5
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 140
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 8
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 8
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -17893,8 +17940,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 280
+    positionDamper: 30
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -18286,7 +18333,7 @@ Transform:
   m_GameObject: {fileID: 842096300}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 12, y: -5.5, z: 10}
+  m_LocalPosition: {x: 11.040817, y: -5.5, z: 15.755091}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -18538,7 +18585,7 @@ GameObject:
   - component: {fileID: 853012036}
   - component: {fileID: 853012035}
   - component: {fileID: 853012034}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftFoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -18592,22 +18639,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -30
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 45
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 12
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 15
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -18647,8 +18694,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 250
+    positionDamper: 30
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -19784,6 +19831,54 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 907693930}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &912104162
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 912104163}
+  - component: {fileID: 912104164}
+  m_Layer: 0
+  m_Name: CombatReticleUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &912104163
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 912104162}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 530552321}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &912104164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 912104162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a5caf352c9e125439ff73c31a5d1580, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatReticleUI
+  cameraRig: {fileID: 0}
+  combat: {fileID: 0}
+  activeColor: {r: 1, g: 1, b: 1, a: 1}
+  reloadColor: {r: 1, g: 0.82, b: 0.22, a: 1}
 --- !u!1 &928598691
 GameObject:
   m_ObjectHideFlags: 0
@@ -19862,7 +19957,6 @@ GameObject:
   - component: {fileID: 939081319}
   - component: {fileID: 939081318}
   - component: {fileID: 939081317}
-  - component: {fileID: 939081316}
   m_Layer: 0
   m_Name: TunnelHermit
   m_TagString: Untagged
@@ -19885,23 +19979,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 842096301}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &939081316
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 939081314}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb5d5392f2851034580b0bbc476bd827, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCPlaceholder
-  npcName: Tunnel Hermit
-  narrativeRole: Claims the portal only opens for the already condemned.
-  lookTarget: {fileID: 1372260327}
-  turnSpeed: 3.5
-  revealOnStart: 0
 --- !u!23 &939081317
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -20532,6 +20609,21 @@ Transform:
   - {fileID: 152132684}
   m_Father: {fileID: 985548677}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &984684569
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &984764485
 GameObject:
   m_ObjectHideFlags: 0
@@ -20546,6 +20638,7 @@ GameObject:
   - component: {fileID: 984764489}
   - component: {fileID: 984764488}
   - component: {fileID: 984764487}
+  - component: {fileID: 984764492}
   m_Layer: 0
   m_Name: VS_InteriorGate_Door
   m_TagString: Untagged
@@ -20715,6 +20808,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 984764485}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &984764492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 984764485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 984684569}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
 --- !u!1 &985548676
 GameObject:
   m_ObjectHideFlags: 0
@@ -21655,7 +21761,7 @@ GameObject:
   - component: {fileID: 1027183098}
   - component: {fileID: 1027183097}
   - component: {fileID: 1027183096}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -21709,22 +21815,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -50
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 50
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -21764,8 +21870,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 200
+    positionDamper: 25
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -22010,7 +22116,7 @@ GameObject:
   - component: {fileID: 1042790830}
   - component: {fileID: 1042790829}
   - component: {fileID: 1042790828}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22064,22 +22170,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -50
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 50
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -22119,8 +22225,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 200
+    positionDamper: 25
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -22477,7 +22583,7 @@ GameObject:
   - component: {fileID: 1082298641}
   - component: {fileID: 1082298640}
   - component: {fileID: 1082298639}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftFoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22531,22 +22637,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -30
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 45
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 12
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 15
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -22586,8 +22692,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 250
+    positionDamper: 30
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -25493,7 +25599,7 @@ Transform:
   m_GameObject: {fileID: 1212453428}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18.3, y: -3.3, z: 11}
+  m_LocalPosition: {x: 17.340816, y: -3.3, z: 16.75509}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -25725,6 +25831,51 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1213439815}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1214407306
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1214407307}
+  - component: {fileID: 1214407308}
+  m_Layer: 0
+  m_Name: TurnBasedCombatUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1214407307
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1214407306}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 530552321}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1214407308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1214407306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6393e60f420b9314ba66ebd1f47eb1a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurnBasedCombatUI
+  combatManager: {fileID: 0}
 --- !u!1 &1215406360
 GameObject:
   m_ObjectHideFlags: 0
@@ -26265,7 +26416,7 @@ GameObject:
   - component: {fileID: 1241678343}
   - component: {fileID: 1241678341}
   - component: {fileID: 1241678342}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftUpperLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -26347,22 +26498,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -80
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -26402,8 +26553,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 450
+    positionDamper: 50
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -27263,7 +27414,7 @@ GameObject:
   - component: {fileID: 1280947762}
   - component: {fileID: 1280947760}
   - component: {fileID: 1280947761}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftUpperArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27345,22 +27496,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -80
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 80
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 70
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 45
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -27400,8 +27551,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 300
+    positionDamper: 35
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -28363,7 +28514,7 @@ GameObject:
   - component: {fileID: 1344573652}
   - component: {fileID: 1344573650}
   - component: {fileID: 1344573651}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftLowerLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -28445,22 +28596,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -140
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 5
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 6
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 6
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -28500,7 +28651,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
+    positionSpring: 420
     positionDamper: 45
     maximumForce: 1000000
     useAcceleration: 0
@@ -28864,7 +29015,7 @@ GameObject:
   - component: {fileID: 1360236995}
   - component: {fileID: 1360236993}
   - component: {fileID: 1360236994}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: Spine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -28946,22 +29097,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -20
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 15
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 12
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -29001,8 +29152,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 500
+    positionDamper: 55
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -29108,7 +29259,7 @@ GameObject:
   - component: {fileID: 1363284407}
   - component: {fileID: 1363284405}
   - component: {fileID: 1363284406}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: Chest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29192,22 +29343,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -15
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 18
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 10
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -29247,8 +29398,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 480
+    positionDamper: 50
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -29578,7 +29729,6 @@ GameObject:
   - component: {fileID: 1371914596}
   - component: {fileID: 1371914595}
   - component: {fileID: 1371914594}
-  - component: {fileID: 1371914593}
   m_Layer: 0
   m_Name: NeedleSeller
   m_TagString: Untagged
@@ -29601,23 +29751,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1098725238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1371914593
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1371914591}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb5d5392f2851034580b0bbc476bd827, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCPlaceholder
-  npcName: Needle Seller
-  narrativeRole: Trades bandages, rumors, and occasionally bad advice.
-  lookTarget: {fileID: 1372260327}
-  turnSpeed: 3.5
-  revealOnStart: 0
 --- !u!23 &1371914594
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -29712,12 +29845,15 @@ GameObject:
   - component: {fileID: 1372260330}
   - component: {fileID: 1372260329}
   - component: {fileID: 1372260328}
-  - component: {fileID: 2099999988}
   - component: {fileID: 2099999994}
   - component: {fileID: 2099999993}
   - component: {fileID: 2099999992}
   - component: {fileID: 2099999990}
   - component: {fileID: 2099999989}
+  - component: {fileID: 2099999995}
+  - component: {fileID: 2099999998}
+  - component: {fileID: 2099999997}
+  - component: {fileID: 2099999996}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -29758,7 +29894,7 @@ MonoBehaviour:
   viewCamera: {fileID: 1514561223}
   cameraRig: {fileID: 1625788402}
   inspectViewer: {fileID: 1625788401}
-  inventory: {fileID: 2099999988}
+  inventory: {fileID: 2099999995}
   promptUI: {fileID: 452582814}
   pickupAnchor: {fileID: 647872281}
   reachController: {fileID: 0}
@@ -29769,12 +29905,6 @@ MonoBehaviour:
     m_Bits: 4294967295
   minimumFacingDot: -0.2
   interactionReachDuration: 0.26
-  fireDistance: 100
-  fireMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  fireCooldown: 0.16
-  rigidbodyImpactForce: 8
   autoExitInspectOnMovementIntent: 1
   busyStateFailsafe: 1
   busyFailsafeSeconds: 2.5
@@ -30879,7 +31009,6 @@ GameObject:
   - component: {fileID: 1431205498}
   - component: {fileID: 1431205497}
   - component: {fileID: 1431205496}
-  - component: {fileID: 1431205495}
   m_Layer: 0
   m_Name: Convalescent
   m_TagString: Untagged
@@ -30902,23 +31031,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 985548677}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1431205495
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1431205493}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb5d5392f2851034580b0bbc476bd827, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCPlaceholder
-  npcName: Convalescent
-  narrativeRole: Talks in feverish fragments about the tunnel shrine under the house.
-  lookTarget: {fileID: 1372260327}
-  turnSpeed: 3.5
-  revealOnStart: 0
 --- !u!23 &1431205496
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -31125,7 +31237,7 @@ GameObject:
   - component: {fileID: 1439343491}
   - component: {fileID: 1439343489}
   - component: {fileID: 1439343490}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftLowerArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31207,22 +31319,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -5
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 140
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 8
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 8
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -31262,8 +31374,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 280
+    positionDamper: 30
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -34698,12 +34810,15 @@ GameObject:
   - component: {fileID: 1589790489}
   - component: {fileID: 1589790488}
   - component: {fileID: 1589790487}
-  - component: {fileID: 1589790486}
   - component: {fileID: 1589790485}
   - component: {fileID: 1589790484}
   - component: {fileID: 1589790483}
   - component: {fileID: 1589790482}
   - component: {fileID: 1589790481}
+  - component: {fileID: 1589790491}
+  - component: {fileID: 1589790490}
+  - component: {fileID: 1589790493}
+  - component: {fileID: 1589790492}
   m_Layer: 0
   m_Name: VS_CaretakerNPC
   m_TagString: Untagged
@@ -34765,6 +34880,7 @@ MonoBehaviour:
   buildOnAwake: 1
   hideSourceRenderers: 1
   setRagdollLayerToIgnoreRaycast: 1
+  ragdollLayer: 10
   physicalRoot: {fileID: 1954163760}
   targetRoot: {fileID: 596804664}
   rootHeight: 0
@@ -34958,23 +35074,6 @@ MonoBehaviour:
   enterTimeline: {fileID: 0}
   exitTimeline: {fileID: 0}
   timelineControlsCamera: 0
---- !u!114 &1589790486
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1589790479}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb5d5392f2851034580b0bbc476bd827, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCPlaceholder
-  npcName: Caretaker
-  narrativeRole: Keeps exits open and explanations short.
-  lookTarget: {fileID: 1372260327}
-  turnSpeed: 3.5
-  revealOnStart: 0
 --- !u!23 &1589790487
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -35055,6 +35154,69 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1589790479}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1589790490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1589790479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 984684569}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &1589790491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1589790479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b09c2f8b9c9a9154b9f57f05a286707b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NpcIdentity
+  npcName: Caretaker
+  factionId: boarding_house
+  narrativeRole: Keeps exits open and explanations short.
+  lookTarget: {fileID: 1372260327}
+  turnSpeed: 3.5
+--- !u!114 &1589790492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1589790479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a477801e1b8112245abf32f4be91c2db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeathRagdollController
+  enableForPlayer: 1
+  disableCharacterControllerOnDeath: 1
+  disableNavMeshAgentOnDeath: 1
+  disableRootCollidersOnDeath: 1
+  inheritedVelocityScale: 0.75
+--- !u!114 &1589790493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1589790479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 620b31be3fb857d4c8c69a7042f1c55f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Damageable
+  standaloneMaxHealth: 50
+  destroyOnDeath: 1
+  deathDelay: 0.5
+  isBoss: 0
 --- !u!21 &1591969079
 Material:
   serializedVersion: 8
@@ -35891,6 +36053,9 @@ MonoBehaviour:
     m_Bits: 4294967295
   obstructionRadius: 0.18
   obstructionPadding: 0.2
+  obstructionMinDistance: 2
+  obstructionSmoothSpeed: 6
+  disableObstructionInIsometric: 1
   defaultDialogueBlendSeconds: 0.45
   defaultDialogueFov: 38
 --- !u!4 &1625788403
@@ -37433,7 +37598,7 @@ GameObject:
   - component: {fileID: 1716537486}
   - component: {fileID: 1716537484}
   - component: {fileID: 1716537485}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: Spine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37515,22 +37680,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -20
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 15
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 12
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -37570,8 +37735,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 500
+    positionDamper: 55
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -37932,7 +38097,7 @@ GameObject:
   - component: {fileID: 1740208812}
   - component: {fileID: 1740208811}
   - component: {fileID: 1740208810}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: Hips
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38910,7 +39075,7 @@ GameObject:
   - component: {fileID: 1786338718}
   - component: {fileID: 1786338716}
   - component: {fileID: 1786338717}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightLowerArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38992,22 +39157,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -5
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 140
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 8
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 8
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -39047,8 +39212,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 280
+    positionDamper: 30
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -39156,7 +39321,7 @@ GameObject:
   - component: {fileID: 1795875360}
   - component: {fileID: 1795875358}
   - component: {fileID: 1795875359}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftUpperArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -39238,22 +39403,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -80
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 80
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 70
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 45
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -39293,8 +39458,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 300
+    positionDamper: 35
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -39437,7 +39602,7 @@ GameObject:
   - component: {fileID: 1827451816}
   - component: {fileID: 1827451814}
   - component: {fileID: 1827451815}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftLowerArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -39519,22 +39684,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -5
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 140
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 8
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 8
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -39574,8 +39739,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 280
+    positionDamper: 30
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -39683,7 +39848,7 @@ GameObject:
   - component: {fileID: 1829028997}
   - component: {fileID: 1829028995}
   - component: {fileID: 1829028996}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightLowerLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -39765,22 +39930,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -140
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 5
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 6
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 6
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -39820,7 +39985,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
+    positionSpring: 420
     positionDamper: 45
     maximumForce: 1000000
     useAcceleration: 0
@@ -39928,7 +40093,7 @@ GameObject:
   - component: {fileID: 1832227719}
   - component: {fileID: 1832227718}
   - component: {fileID: 1832227717}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: Hips
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40663,7 +40828,7 @@ GameObject:
   - component: {fileID: 1871035675}
   - component: {fileID: 1871035674}
   - component: {fileID: 1871035673}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40717,22 +40882,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -50
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 50
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -40772,8 +40937,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 200
+    positionDamper: 25
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -40906,7 +41071,7 @@ GameObject:
   - component: {fileID: 1873323852}
   - component: {fileID: 1873323850}
   - component: {fileID: 1873323851}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: Chest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40990,22 +41155,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -15
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 18
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 10
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -41045,8 +41210,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 480
+    positionDamper: 50
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -43092,6 +43257,55 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!1 &1960804463
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1960804464}
+  - component: {fileID: 1960804465}
+  m_Layer: 0
+  m_Name: HealthStaminaHUD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1960804464
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1960804463}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 530552321}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1960804465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1960804463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c93279677333cfb40b9e52aa0062fc1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthStaminaHUD
+  stats: {fileID: 0}
+  healthFill: {fileID: 0}
+  staminaFill: {fileID: 0}
+  healthText: {fileID: 0}
+  staminaText: {fileID: 0}
 --- !u!1 &1971686651
 GameObject:
   m_ObjectHideFlags: 0
@@ -43980,7 +44194,7 @@ GameObject:
   - component: {fileID: 1996886250}
   - component: {fileID: 1996886248}
   - component: {fileID: 1996886249}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightUpperLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44062,22 +44276,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -80
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -44117,8 +44331,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 450
+    positionDamper: 50
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -44651,7 +44865,7 @@ GameObject:
   - component: {fileID: 2043490166}
   - component: {fileID: 2043490165}
   - component: {fileID: 2043490164}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightFoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44705,22 +44919,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -30
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 45
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 12
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 15
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -44760,8 +44974,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 250
+    positionDamper: 30
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -44992,6 +45206,54 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2043931615}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2044128987
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2044128988}
+  - component: {fileID: 2044128989}
+  m_Layer: 0
+  m_Name: ShopWindowUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2044128988
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2044128987}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 530552321}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2044128989
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2044128987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4a76b0e85d36ff499190a268ad456df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShopWindowUI
+  currentShop: {fileID: 0}
+  playerInventory: {fileID: 0}
+  playerWallet: {fileID: 0}
+  playerRep: {fileID: 0}
 --- !u!1 &2044790608
 GameObject:
   m_ObjectHideFlags: 0
@@ -45006,7 +45268,7 @@ GameObject:
   - component: {fileID: 2044790612}
   - component: {fileID: 2044790610}
   - component: {fileID: 2044790611}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: LeftUpperLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -45088,22 +45350,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -80
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -45143,8 +45405,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 450
+    positionDamper: 50
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -45600,7 +45862,7 @@ GameObject:
   - component: {fileID: 2059515900}
   - component: {fileID: 2059515898}
   - component: {fileID: 2059515899}
-  m_Layer: 2
+  m_Layer: 10
   m_Name: RightUpperArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -45682,22 +45944,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 38
+    limit: -80
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 38
+    limit: 80
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 38
+    limit: 70
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 38
+    limit: 45
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -45737,8 +45999,8 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 380
-    positionDamper: 45
+    positionSpring: 300
+    positionDamper: 35
     maximumForce: 1000000
     useAcceleration: 0
   m_ProjectionMode: 0
@@ -46403,20 +46665,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2091677422}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &2099999988
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1372260326}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a619636a69b8ec4893ed0215eb06f51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
-  startingItems: []
-  logInventoryEvents: 1
 --- !u!114 &2099999989
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46471,6 +46719,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VerticalSliceScenaBootstrap
   targetSceneName: Scena
+  secondaryTargetSceneName: INTERAKCIJA
   autoApplyInPlayMode: 1
   autoApplyInEditMode: 1
   logOperations: 0
@@ -46481,6 +46730,11 @@ MonoBehaviour:
   debugRoot: {fileID: 2041254986}
   uiRoot: {fileID: 530552321}
   infectionDirector: {fileID: 1127218922}
+  enforceTemplateSeparation: 1
+  minTemplateSeparation: 18
+  exteriorTemplateOrigin: {x: -18, y: 0, z: -6}
+  interiorTemplateOrigin: {x: 14, y: 0, z: -2}
+  underpassTemplateOrigin: {x: 12, y: -5.5, z: 10}
 --- !u!114 &2099999992
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46517,6 +46771,7 @@ MonoBehaviour:
   buildOnAwake: 1
   hideSourceRenderers: 1
   setRagdollLayerToIgnoreRaycast: 1
+  ragdollLayer: 10
   physicalRoot: {fileID: 1845677218}
   targetRoot: {fileID: 356603459}
   rootHeight: 0
@@ -46637,6 +46892,88 @@ MonoBehaviour:
   respawnMessageDuration: 2.8
   defaultCheckpointMessage: Checkpoint updated.
   respawnMessage: You return to the last checkpoint.
+--- !u!114 &2099999995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372260326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63cbd74e4b930974f9fb4aca7d25c624, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventorySystem
+  maxSlots: 30
+  slots: []
+  weaponSlot:
+    slotName: Weapon
+    equippedItem: {fileID: 0}
+  armorSlot:
+    slotName: Armor
+    equippedItem: {fileID: 0}
+--- !u!114 &2099999996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372260326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a477801e1b8112245abf32f4be91c2db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeathRagdollController
+  enableForPlayer: 1
+  disableCharacterControllerOnDeath: 1
+  disableNavMeshAgentOnDeath: 1
+  disableRootCollidersOnDeath: 1
+  inheritedVelocityScale: 0.75
+--- !u!114 &2099999997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372260326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 620b31be3fb857d4c8c69a7042f1c55f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Damageable
+  standaloneMaxHealth: 50
+  destroyOnDeath: 1
+  deathDelay: 0.5
+  isBoss: 0
+--- !u!114 &2099999998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372260326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91fe083e9844cb448a6955e0a813fc65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RealTimeCombat
+  viewCamera: {fileID: 0}
+  playerStats: {fileID: 0}
+  skillSystem: {fileID: 0}
+  inventory: {fileID: 0}
+  cameraRig: {fileID: 0}
+  fallbackDamage: 10
+  fallbackRange: 50
+  fallbackFireRate: 0.3
+  fallbackAutomaticFire: 1
+  fallbackMagazineSize: 10
+  fallbackReloadSeconds: 1.15
+  fireMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  impactForce: 8
+  staminaCostPerShot: 5
+  staminaCostPerMelee: 12
 --- !u!1 &2102947502
 GameObject:
   m_ObjectHideFlags: 0

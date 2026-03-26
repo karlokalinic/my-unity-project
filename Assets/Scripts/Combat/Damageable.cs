@@ -83,6 +83,13 @@ public class Damageable : MonoBehaviour
     private void HandleDeath()
     {
         if (!destroyOnDeath) return;
+
+        DeathRagdollController deathRagdoll = GetComponent<DeathRagdollController>();
+        if (deathRagdoll != null && deathRagdoll.enabled && deathRagdoll.HasRig)
+        {
+            return;
+        }
+
         Destroy(gameObject, deathDelay);
     }
 

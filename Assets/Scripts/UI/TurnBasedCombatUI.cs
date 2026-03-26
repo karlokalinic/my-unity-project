@@ -19,7 +19,6 @@ public class TurnBasedCombatUI : MonoBehaviour
     private Button defendBtn;
     private Button itemBtn;
     private Button fleeBtn;
-    private bool isShowing;
 
     private void Awake()
     {
@@ -49,7 +48,6 @@ public class TurnBasedCombatUI : MonoBehaviour
     private void OnCombatStarted()
     {
         panel.gameObject.SetActive(true);
-        isShowing = true;
         logText.text = "Boss encounter!\n";
         SetButtonsInteractable(true);
     }
@@ -64,7 +62,6 @@ public class TurnBasedCombatUI : MonoBehaviour
     private void HidePanel()
     {
         panel.gameObject.SetActive(false);
-        isShowing = false;
     }
 
     private void OnPhaseChanged(TurnBasedCombatManager.TurnPhase phase)

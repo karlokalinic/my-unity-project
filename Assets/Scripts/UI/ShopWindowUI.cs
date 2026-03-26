@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
@@ -42,7 +43,11 @@ public class ShopWindowUI : MonoBehaviour
 
     private void Update()
     {
-        if (isOpen && Input.GetKeyDown(KeyCode.Escape)) Close();
+        if (!isOpen) return;
+
+        bool keyboardCancel = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+        bool gamepadCancel = Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame;
+        if (keyboardCancel || gamepadCancel) Close();
     }
 
     public void Open(ShopKeeper shop, InventorySystem inv, CurrencyWallet wallet, ReputationSystem rep)

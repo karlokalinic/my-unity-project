@@ -34,6 +34,7 @@ public static partial class HolstinLevelDesignTemplates
         CreateSkyGround(new Vector3(0f, -0.2f, 0f), new Vector3(140f, 0.4f, 140f), "SceneGround");
         EnsureCoreRig(new Vector3(0f, 1.2f, -22f));
         CreateIsometricChoiceMegastructureContent(Vector3.zero);
+        ApplyProductionAestheticPassInternal();
         Selection.activeGameObject = FindPlayer()?.gameObject;
         FinalizeScene("Isometric choice megastructure created. Use camera zones, branch milestones, and ChoiceWorldStateDirector reactions to iterate layout psychology.");
     }

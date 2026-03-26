@@ -33,11 +33,19 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField] private float reachHandPitch = 10f;
     [SerializeField] private float reachInfluenceSpeed = 7f;
 
+    [Header("Fire Feedback")]
+    [SerializeField] private float fireKickDuration = 0.12f;
+    [SerializeField] private float fireKickPitch = 12f;
+    [SerializeField] private float fireKickYaw = 2f;
+    [SerializeField] private float fireKickRoll = 5f;
+
     private readonly Dictionary<string, Quaternion> baseLocalRotations = new Dictionary<string, Quaternion>();
     private float gaitTime;
     private float reachWeight;
     private bool reaching;
     private Vector3 reachWorldPoint;
+    private float fireKickTimer;
+    private bool fireKickMelee;
 
     private Transform chestTarget;
     private Transform leftUpperArm;
@@ -103,6 +111,12 @@ public class PlayerAnimationController : MonoBehaviour
     public void EndReach()
     {
         reaching = false;
+    }
+
+    public void NotifyFired(bool meleeAttack)
+    {
+        fireKickMelee = meleeAttack;
+        fireKickTimer = Mathf.Max(0.02f, fireKickDuration);
     }
 
     private MotionState ResolveState(float planarSpeed, bool sprinting)
@@ -174,6 +188,40 @@ public class PlayerAnimationController : MonoBehaviour
             BlendTowardPose(rightLowerArm, "RightLowerArm", lowerReach, reachWeight);
             BlendTowardPose(rightHand, "RightHand", handReach, reachWeight);
         }
+
+        ApplyFireKickPose();
+    }
+
+    private void ApplyFireKickPose()
+    {
+        if (fireKickTimer <= 0f)
+        {
+            return;
+        }
+
+        fireKickTimer = Mathf.Max(0f, fireKickTimer - Time.deltaTime);
+        float normalized = fireKickDuration > 0.001f ? (fireKickTimer / fireKickDuration) : 0f;
+        float envelope = Mathf.Sin((1f - normalized) * Mathf.PI);
+        if (envelope <= 0.0001f)
+        {
+            return;
+        }
+
+        float meleeScale = fireKickMelee ? 0.35f : 1f;
+        float pitch = fireKickPitch * envelope * meleeScale;
+        float yaw = fireKickYaw * envelope * meleeScale;
+        float roll = fireKickRoll * envelope * meleeScale;
+        float blend = Mathf.Clamp01(envelope);
+
+        BlendTowardPose(rightUpperArm, "RightUpperArm", Quaternion.Euler(-pitch, yaw, -roll), blend);
+        BlendTowardPose(rightLowerArm, "RightLowerArm", Quaternion.Euler(-pitch * 0.78f, 0f, 0f), blend);
+        BlendTowardPose(rightHand, "RightHand", Quaternion.Euler(-pitch * 0.45f, 0f, 0f), blend);
+
+        if (chestTarget != null && baseLocalRotations.TryGetValue("Chest", out Quaternion chestBase))
+        {
+            Quaternion chestKick = chestBase * Quaternion.Euler(-pitch * 0.18f, yaw * 0.24f, 0f);
+            chestTarget.localRotation = Quaternion.Slerp(chestTarget.localRotation, chestKick, poseLerpSpeed * Time.deltaTime);
+        }
     }
 
     private void BlendTowardPose(Transform bone, string key, Quaternion additivePose, float blend)
@@ -227,6 +275,7 @@ public class PlayerAnimationController : MonoBehaviour
         leftFoot = rig.GetBone("LeftFoot", true);
         rightFoot = rig.GetBone("RightFoot", true);
 
+        CacheBaseRotation("Chest", chestTarget);
         CacheBaseRotation("LeftUpperArm", leftUpperArm);
         CacheBaseRotation("RightUpperArm", rightUpperArm);
         CacheBaseRotation("LeftLowerArm", leftLowerArm);

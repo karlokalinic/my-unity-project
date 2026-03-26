@@ -1,8 +1,5 @@
 using UnityEngine;
-
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-#endif
 
 public static class InputReader
 {
@@ -13,14 +10,71 @@ public static class InputReader
     public const string DialogueSubmitKeyLabel = "Enter";
     public const string DialogueLeaveKeyLabel = "Esc";
 
+    private static InputAction moveAction;
+    private static InputAction lookAction;
+    private static InputAction attackAction;
+    private static InputAction interactAction;
+    private static InputAction sprintAction;
+    private static InputAction previousAction;
+    private static InputAction nextAction;
+    private static InputAction navigateAction;
+    private static InputAction submitAction;
+    private static InputAction cancelAction;
+
     private static bool dialogueStickUpLatch;
     private static bool dialogueStickDownLatch;
     private static bool dialogueStickLeftLatch;
     private static bool dialogueStickRightLatch;
 
+    /// <summary>
+    /// Bind Input Action references from a provided asset (Gameplay/UI/Dialogue maps).
+    /// Safe to call multiple times; enables the actions lazily.
+    /// </summary>
+    public static void BindActions(InputActionAsset asset)
+    {
+        if (asset == null)
+        {
+            return;
+        }
+
+        InputActionMap playerMap = asset.FindActionMap("Player", false);
+        InputActionMap uiMap = asset.FindActionMap("UI", false);
+
+        moveAction = playerMap?.FindAction("Move");
+        lookAction = playerMap?.FindAction("Look");
+        attackAction = playerMap?.FindAction("Attack");
+        interactAction = playerMap?.FindAction("Interact");
+        sprintAction = playerMap?.FindAction("Sprint");
+        previousAction = playerMap?.FindAction("Previous");
+        nextAction = playerMap?.FindAction("Next");
+
+        navigateAction = uiMap?.FindAction("Navigate");
+        submitAction = uiMap?.FindAction("Submit");
+        cancelAction = uiMap?.FindAction("Cancel");
+
+        EnableIfPresent(moveAction);
+        EnableIfPresent(lookAction);
+        EnableIfPresent(attackAction);
+        EnableIfPresent(interactAction);
+        EnableIfPresent(sprintAction);
+        EnableIfPresent(previousAction);
+        EnableIfPresent(nextAction);
+        EnableIfPresent(navigateAction);
+        EnableIfPresent(submitAction);
+        EnableIfPresent(cancelAction);
+    }
+
     public static Vector2 GetMoveVector()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (moveAction != null)
+        {
+            Vector2 actionMove = moveAction.ReadValue<Vector2>();
+            if (actionMove.sqrMagnitude > 0.0001f)
+            {
+                return Vector2.ClampMagnitude(actionMove, 1f);
+            }
+        }
+
         Vector2 move = Vector2.zero;
         Keyboard keyboard = Keyboard.current;
         if (keyboard != null)
@@ -42,14 +96,19 @@ public static class InputReader
         }
 
         return Vector2.ClampMagnitude(move, 1f);
-#else
-        return new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-#endif
     }
 
     public static Vector2 GetLookDelta()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (lookAction != null)
+        {
+            Vector2 look = lookAction.ReadValue<Vector2>();
+            if (look.sqrMagnitude > 0.0001f)
+            {
+                return look;
+            }
+        }
+
         Vector2 delta = Vector2.zero;
         if (Mouse.current != null)
         {
@@ -61,112 +120,129 @@ public static class InputReader
         }
 
         return delta;
-#else
-        return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
-#endif
     }
 
     public static bool SprintHeld()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (sprintAction != null)
+        {
+            return sprintAction.IsPressed();
+        }
+
         return (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed) ||
                (Gamepad.current != null && Gamepad.current.leftStickButton.isPressed);
-#else
-        return Input.GetKey(KeyCode.LeftShift);
-#endif
     }
 
     public static bool RotateLeftPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (previousAction != null && previousAction.WasPressedThisFrame())
+        {
+            return true;
+        }
+
         return (Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame) ||
                (Gamepad.current != null && Gamepad.current.leftShoulder.wasPressedThisFrame);
-#else
-        return Input.GetKeyDown(KeyCode.Q);
-#endif
     }
 
     public static bool RotateRightPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (nextAction != null && nextAction.WasPressedThisFrame())
+        {
+            return true;
+        }
+
         return (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame) ||
                (Gamepad.current != null && Gamepad.current.rightShoulder.wasPressedThisFrame);
-#else
-        return Input.GetKeyDown(KeyCode.R);
-#endif
     }
 
     public static bool AimHeld()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return (Mouse.current != null && Mouse.current.rightButton.isPressed) ||
                (Gamepad.current != null && Gamepad.current.leftTrigger.ReadValue() > 0.35f);
-#else
-        return Input.GetMouseButton(1);
-#endif
     }
 
     public static bool AimTogglePressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
-#else
-        return Input.GetMouseButtonDown(1);
-#endif
     }
 
     public static bool FireHeld()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (attackAction != null)
+        {
+            return attackAction.IsPressed();
+        }
+
         return (Mouse.current != null && Mouse.current.leftButton.isPressed) ||
                (Gamepad.current != null && Gamepad.current.rightTrigger.ReadValue() > 0.35f);
-#else
-        return Input.GetMouseButton(0);
-#endif
+    }
+
+    public static bool FirePressed()
+    {
+        if (attackAction != null && attackAction.WasPressedThisFrame())
+        {
+            return true;
+        }
+
+        return (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) ||
+               (Gamepad.current != null && Gamepad.current.rightTrigger.wasPressedThisFrame);
     }
 
     public static bool InspectRotateHeld()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
         return Mouse.current != null && Mouse.current.leftButton.isPressed;
-#else
-        return Input.GetMouseButton(0);
-#endif
+    }
+
+    public static bool ReloadPressed()
+    {
+        return (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame) ||
+               (Gamepad.current != null && Gamepad.current.buttonWest.wasPressedThisFrame);
     }
 
     public static bool InteractPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (interactAction != null && interactAction.WasPressedThisFrame())
+        {
+            return true;
+        }
+
         return (Keyboard.current != null && (Keyboard.current.eKey.wasPressedThisFrame || Keyboard.current.fKey.wasPressedThisFrame)) ||
                (Gamepad.current != null && Gamepad.current.buttonSouth.wasPressedThisFrame);
-#else
-        return Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.F);
-#endif
     }
 
     public static bool CancelPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (cancelAction != null && cancelAction.WasPressedThisFrame())
+        {
+            return true;
+        }
+
         return (Keyboard.current != null && (Keyboard.current.escapeKey.wasPressedThisFrame || Keyboard.current.tabKey.wasPressedThisFrame)) ||
                (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame);
-#else
-        return Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Tab);
-#endif
     }
 
     public static bool DialogueSubmitPressed()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (submitAction != null && submitAction.WasPressedThisFrame())
+        {
+            return true;
+        }
+
         return (Keyboard.current != null && (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.numpadEnterKey.wasPressedThisFrame || Keyboard.current.eKey.wasPressedThisFrame)) ||
                (Gamepad.current != null && (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.buttonNorth.wasPressedThisFrame));
-#else
-        return Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.E);
-#endif
     }
 
     public static Vector2 GetDialogueNavigateVector()
     {
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+        if (navigateAction != null)
+        {
+            Vector2 nav = navigateAction.ReadValue<Vector2>();
+            if (nav.sqrMagnitude > 0.0001f)
+            {
+                return nav;
+            }
+        }
+
         Vector2 navigate = Vector2.zero;
 
         Keyboard keyboard = Keyboard.current;
@@ -218,17 +294,8 @@ public static class InputReader
         }
 
         return navigate;
-#else
-        Vector2 navigate = Vector2.zero;
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) navigate.y += 1f;
-        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) navigate.y -= 1f;
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) navigate.x -= 1f;
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) navigate.x += 1f;
-        return navigate;
-#endif
     }
 
-#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
     private static bool ReadStickEdge(ref bool latch, float value, float threshold)
     {
         bool nowActive = value > threshold;
@@ -236,5 +303,34 @@ public static class InputReader
         latch = nowActive;
         return triggered;
     }
-#endif
+
+    public static string GetInteractLabel() => GetBindingLabel(interactAction, InteractKeyLabel);
+    public static string GetDialogueSubmitLabel() => GetBindingLabel(submitAction ?? interactAction, DialogueSubmitKeyLabel);
+    public static string GetDialogueCancelLabel() => GetBindingLabel(cancelAction, DialogueLeaveKeyLabel);
+
+    private static string GetBindingLabel(InputAction action, string fallback)
+    {
+        if (action == null)
+        {
+            return fallback;
+        }
+
+        try
+        {
+            return action.GetBindingDisplayString();
+        }
+        catch
+        {
+            return fallback;
+        }
+    }
+
+    private static void EnableIfPresent(InputAction action)
+    {
+        if (action == null) return;
+        if (!action.enabled)
+        {
+            action.Enable();
+        }
+    }
 }

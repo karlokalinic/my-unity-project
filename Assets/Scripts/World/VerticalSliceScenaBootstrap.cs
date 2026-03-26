@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 #if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem.UI;
+using UnityEngine.InputSystem;
 #endif
 
 #if UNITY_EDITOR
@@ -21,6 +22,7 @@ using UnityEditor.SceneManagement;
 public class VerticalSliceScenaBootstrap : MonoBehaviour
 {
     [SerializeField] private string targetSceneName = "Scena";
+    [SerializeField] private string secondaryTargetSceneName = "INTERAKCIJA";
     [SerializeField] private bool autoApplyInPlayMode = true;
     [SerializeField] private bool autoApplyInEditMode = true;
     [SerializeField] private bool logOperations;
@@ -32,6 +34,16 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
     [SerializeField] private Transform debugRoot;
     [SerializeField] private Transform uiRoot;
     [SerializeField] private InfectionDirector infectionDirector;
+#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+    [SerializeField] private InputActionAsset inputActions;
+#endif
+
+    [Header("Template Layout")]
+    [SerializeField] private bool enforceTemplateSeparation = true;
+    [SerializeField] private float minTemplateSeparation = 18f;
+    [SerializeField] private Vector3 exteriorTemplateOrigin = new Vector3(-18f, 0f, -6f);
+    [SerializeField] private Vector3 interiorTemplateOrigin = new Vector3(14f, 0f, -2f);
+    [SerializeField] private Vector3 underpassTemplateOrigin = new Vector3(12f, -5.5f, 10f);
 
     private bool queuedEditorApply;
 
@@ -81,13 +93,19 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             return;
         }
 
-        EnsureRootGroups();
-        ReparentSceneAnchors();
-        EnsureCoreSystems();
-        EnsureNarrativeInteractionChain();
-        EnsureCinematicVolumes();
-        EnsureInfectionSystem();
-        EnsureCharacterPresentationSystems();
+        SceneCoreInstaller coreInstaller = new SceneCoreInstaller(this);
+        SceneInteractionInstaller interactionInstaller = new SceneInteractionInstaller(this);
+        SceneNarrativeInstaller narrativeInstaller = new SceneNarrativeInstaller(this);
+        SceneCombatInstaller combatInstaller = new SceneCombatInstaller(this);
+
+        coreInstaller.Apply();
+        interactionInstaller.Apply();
+        narrativeInstaller.Apply();
+        combatInstaller.Apply();
+
+#if UNITY_EDITOR
+        RemoveMissingScriptsInActiveScene();
+#endif
 
         if (logOperations)
         {
@@ -110,192 +128,833 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(targetSceneName))
+        if (string.IsNullOrWhiteSpace(targetSceneName) && string.IsNullOrWhiteSpace(secondaryTargetSceneName))
         {
             return true;
         }
 
-        return string.Equals(scene.name, targetSceneName, StringComparison.OrdinalIgnoreCase);
+        return SceneNameMatches(scene.name, targetSceneName) ||
+               SceneNameMatches(scene.name, secondaryTargetSceneName);
     }
 
-    private void EnsureRootGroups()
+    private static bool SceneNameMatches(string sceneName, string targetName)
     {
-        coreRoot = EnsureRootObject("_Core").transform;
-        worldRoot = EnsureRootObject("_World").transform;
-        gameplayRoot = EnsureRootObject("_Gameplay").transform;
-        lightingRoot = EnsureRootObject("_Lighting").transform;
-        debugRoot = EnsureRootObject("_Debug").transform;
-        uiRoot = EnsureChildObject(coreRoot, "UI").transform;
+        return !string.IsNullOrWhiteSpace(targetName) &&
+               string.Equals(sceneName, targetName, StringComparison.OrdinalIgnoreCase);
     }
 
-    private void ReparentSceneAnchors()
+    internal Transform CoreRoot
     {
-        ReparentByName("Player", coreRoot);
-        ReparentByName("HolstinCameraRig", coreRoot);
-        ReparentByName("NavMeshSurfaceRoot", coreRoot);
-        ReparentByName("EventSystem", coreRoot);
-        ReparentByName("HolstinSceneContext", coreRoot);
-        ReparentByName("InteractionPromptUI", uiRoot);
-        ReparentByName("DialoguePanelUI", uiRoot);
-        ReparentByName("HealthStaminaHUD", uiRoot);
-        ReparentByName("InventoryPanelUI", uiRoot);
-        ReparentByName("TurnBasedCombatUI", uiRoot);
-        ReparentByName("ShopWindowUI", uiRoot);
-
-        ReparentByName("SceneGround", worldRoot);
-        ReparentByName("Template_Exterior_FogCourtyard", worldRoot);
-        ReparentByName("Template_Interior_BoardingHouse", worldRoot);
-        ReparentByName("Template_Underpass_Catacombs", worldRoot);
-        ReparentByName("HouseToUnderpassSteps", worldRoot);
-
-        ReparentByName("Directional Light", lightingRoot);
-        ReparentByName("VS_CinematicVolumes", lightingRoot);
+        get => coreRoot;
+        set => coreRoot = value;
     }
 
-    private void EnsureCoreSystems()
+    internal Transform WorldRoot
     {
-        EventSystem eventSystem = FindAnyObjectByType<EventSystem>();
-        if (eventSystem == null)
-        {
-            GameObject eventObject = new GameObject("EventSystem", typeof(EventSystem));
-            eventObject.transform.SetParent(coreRoot, false);
-            eventSystem = eventObject.GetComponent<EventSystem>();
-        }
+        get => worldRoot;
+        set => worldRoot = value;
+    }
 
-        if (eventSystem.transform.parent != coreRoot)
-        {
-            eventSystem.transform.SetParent(coreRoot, true);
-        }
+    internal Transform GameplayRoot
+    {
+        get => gameplayRoot;
+        set => gameplayRoot = value;
+    }
+
+    internal Transform LightingRoot
+    {
+        get => lightingRoot;
+        set => lightingRoot = value;
+    }
+
+    internal Transform DebugRoot
+    {
+        get => debugRoot;
+        set => debugRoot = value;
+    }
+
+    internal Transform UiRoot
+    {
+        get => uiRoot;
+        set => uiRoot = value;
+    }
+
+    internal InfectionDirector InfectionDirector
+    {
+        get => infectionDirector;
+        set => infectionDirector = value;
+    }
 
 #if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
-        if (eventSystem.GetComponent<InputSystemUIInputModule>() == null)
-        {
-            eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
-        }
+    internal InputActionAsset InputActions
+    {
+        get => inputActions;
+        set => inputActions = value;
+    }
 #endif
 
-        InteractionPromptUI promptUI = FindAnyObjectByType<InteractionPromptUI>();
-        if (promptUI == null)
-        {
-            GameObject promptObject = new GameObject(
-                "InteractionPromptUI",
-                typeof(RectTransform),
-                typeof(Canvas),
-                typeof(CanvasScaler),
-                typeof(GraphicRaycaster),
-                typeof(InteractionPromptUI));
-            promptObject.transform.SetParent(uiRoot, false);
-            promptUI = promptObject.GetComponent<InteractionPromptUI>();
-        }
-        else if (promptUI.transform.parent != uiRoot)
-        {
-            promptUI.transform.SetParent(uiRoot, true);
-        }
+    internal bool EnforceTemplateSeparation => enforceTemplateSeparation;
+    internal float MinTemplateSeparation => minTemplateSeparation;
+    internal Vector3 ExteriorTemplateOrigin => exteriorTemplateOrigin;
+    internal Vector3 InteriorTemplateOrigin => interiorTemplateOrigin;
+    internal Vector3 UnderpassTemplateOrigin => underpassTemplateOrigin;
 
-        DialoguePanelUI dialoguePanel = FindAnyObjectByType<DialoguePanelUI>();
-        if (dialoguePanel == null)
-        {
-            GameObject dialogueObject = new GameObject(
-                "DialoguePanelUI",
-                typeof(RectTransform),
-                typeof(Canvas),
-                typeof(CanvasScaler),
-                typeof(GraphicRaycaster),
-                typeof(DialoguePanelUI));
-            dialogueObject.transform.SetParent(uiRoot, false);
-            dialoguePanel = dialogueObject.GetComponent<DialoguePanelUI>();
-        }
-        else if (dialoguePanel.transform.parent != uiRoot)
-        {
-            dialoguePanel.transform.SetParent(uiRoot, true);
-        }
+    internal Vector3 ResolveTemplateOrigin(string rootName, Vector3 fallback)
+    {
+        GameObject root = FindSceneObject(rootName);
+        return root != null ? root.transform.position : fallback;
+    }
 
-        HolstinSceneContext sceneContext = FindAnyObjectByType<HolstinSceneContext>();
-        if (sceneContext == null)
-        {
-            GameObject contextObject = new GameObject("HolstinSceneContext");
-            contextObject.transform.SetParent(coreRoot, false);
-            sceneContext = contextObject.AddComponent<HolstinSceneContext>();
-        }
-        else if (sceneContext.transform.parent != coreRoot)
-        {
-            sceneContext.transform.SetParent(coreRoot, true);
-        }
-
-        PlayerMover playerMover = FindAnyObjectByType<PlayerMover>();
-        if (playerMover == null)
+    internal static void EnsureHumanoidActorSystems(GameObject actorRoot, bool playerControlled)
+    {
+        if (actorRoot == null)
         {
             return;
         }
 
-        if (playerMover.transform.parent != coreRoot)
+        float sourceGroundY = actorRoot.transform.position.y;
+        bool hasSourceGroundY = TryGetSourceGroundY(actorRoot, null, out sourceGroundY);
+
+        if (playerControlled)
         {
-            playerMover.transform.SetParent(coreRoot, true);
+            RemoveLegacyPlayerPrimitiveComponents(actorRoot);
         }
 
-        InventorySystem inventory = playerMover.GetComponent<InventorySystem>();
-        if (inventory == null)
+        ProceduralHumanoidRig rig = actorRoot.GetComponent<ProceduralHumanoidRig>();
+        if (rig == null)
         {
-            inventory = playerMover.gameObject.AddComponent<InventorySystem>();
+            rig = actorRoot.AddComponent<ProceduralHumanoidRig>();
+        }
+        rig.EnsureBuilt();
+
+        bool hasDownloadedModel = EnsureDownloadedStoreModelVisual(
+            actorRoot,
+            playerControlled,
+            hasSourceGroundY ? sourceGroundY : (float?)null);
+
+        if (hasSourceGroundY)
+        {
+            AlignRigFeetToWorldY(rig, sourceGroundY);
         }
 
-        PlayerInteraction interaction = playerMover.GetComponent<PlayerInteraction>();
-        if (interaction == null)
+        EnsureRagdollLayerMatchesActor(rig, actorRoot.layer);
+
+        bool hasSourceRenderers = HasSourceRenderers(actorRoot, rig.PhysicalRoot);
+        if (hasDownloadedModel)
         {
-            interaction = playerMover.gameObject.AddComponent<PlayerInteraction>();
+            SetSourceRenderersVisible(actorRoot, rig.PhysicalRoot, true);
+            rig.ConfigureRendererVisibility(false, false);
+        }
+        else if (playerControlled)
+        {
+            rig.ConfigureRendererVisibility(true, true);
+        }
+        else if (hasSourceRenderers)
+        {
+            SetSourceRenderersVisible(actorRoot, rig.PhysicalRoot, true);
+            rig.ConfigureRendererVisibility(false, false);
+        }
+        else
+        {
+            // No source mesh found on this actor, so keep ragdoll renderer visible in life state.
+            rig.ConfigureRendererVisibility(true, true);
         }
 
-        HolstinCameraRig cameraRig = FindAnyObjectByType<HolstinCameraRig>();
-        if (cameraRig != null && cameraRig.transform.parent != coreRoot)
+        StyleRagdollRenderers(rig, playerControlled);
+
+        if (playerControlled)
         {
-            cameraRig.transform.SetParent(coreRoot, true);
+            PlayerHeadAnchorDriver headAnchorDriver = actorRoot.GetComponent<PlayerHeadAnchorDriver>();
+            if (headAnchorDriver == null)
+            {
+                headAnchorDriver = actorRoot.AddComponent<PlayerHeadAnchorDriver>();
+            }
+
+            Transform headAnchor = actorRoot.transform.Find("HeadAnchor");
+            if (headAnchor == null)
+            {
+                GameObject anchorObject = new GameObject("HeadAnchor");
+                anchorObject.transform.SetParent(actorRoot.transform, false);
+                headAnchor = anchorObject.transform;
+            }
+
+            headAnchorDriver.Configure(rig, headAnchor, false, new Vector3(0f, 0.06f, 0.03f));
         }
 
-        Camera cameraComponent = Camera.main != null ? Camera.main : FindAnyObjectByType<Camera>();
-        InspectItemViewer inspectViewer = FindAnyObjectByType<InspectItemViewer>();
-        if (cameraComponent != null)
+        if (actorRoot.GetComponent<ActiveRagdollMotor>() == null)
         {
-            Transform pickupAnchor = EnsureChildObject(cameraComponent.transform, "PickupAnchor").transform;
-            pickupAnchor.localPosition = new Vector3(0.2f, -0.15f, 0.62f);
-            pickupAnchor.localRotation = Quaternion.identity;
-
-            playerMover.SetCameraForwardSource(cameraComponent.transform);
-            interaction.ConfigureRuntimeReferences(inventory, promptUI, pickupAnchor);
+            actorRoot.AddComponent<ActiveRagdollMotor>();
         }
 
-        if (cameraComponent != null && cameraRig != null && inspectViewer != null)
+        if (actorRoot.GetComponent<DeathRagdollController>() == null)
         {
-            interaction.Configure(cameraComponent, cameraRig, inspectViewer);
+            actorRoot.AddComponent<DeathRagdollController>();
         }
 
-        CheckpointLiteManager checkpointManager = playerMover.GetComponent<CheckpointLiteManager>();
-        if (checkpointManager == null)
+        if (playerControlled)
         {
-            checkpointManager = playerMover.gameObject.AddComponent<CheckpointLiteManager>();
+            if (actorRoot.GetComponent<PlayerAnimationController>() == null)
+            {
+                actorRoot.AddComponent<PlayerAnimationController>();
+            }
+
+            if (actorRoot.GetComponent<PlayerReachController>() == null)
+            {
+                actorRoot.AddComponent<PlayerReachController>();
+            }
         }
-        checkpointManager.Configure(inventory, playerMover.GetComponent<CharacterController>(), playerMover);
-
-        EnsureHumanoidActorSystems(playerMover.gameObject, true);
-
-        sceneContext.Configure(cameraRig, promptUI, inspectViewer, playerMover, dialoguePanel);
-        sceneContext.ResolveMissingReferences();
-
-        // Runtime UI singletons
-        EnsureRuntimeUISingleton<HealthStaminaHUD>("HealthStaminaHUD");
-        EnsureRuntimeUISingleton<InventoryPanelUI>("InventoryPanelUI");
-        EnsureRuntimeUISingleton<TurnBasedCombatUI>("TurnBasedCombatUI");
-        EnsureRuntimeUISingleton<ShopWindowUI>("ShopWindowUI");
     }
 
-    private void EnsureRuntimeUISingleton<T>(string objectName) where T : MonoBehaviour
+    private static bool EnsureDownloadedStoreModelVisual(GameObject actorRoot, bool playerControlled, float? sourceGroundY)
     {
-        if (FindAnyObjectByType<T>() != null) return;
-        GameObject go = new GameObject(objectName);
-        go.AddComponent<T>();
-        if (uiRoot != null) go.transform.SetParent(uiRoot, false);
+        if (actorRoot == null)
+        {
+            return false;
+        }
+
+        Transform existingModelRoot = actorRoot.transform.Find("StoreModelVisual");
+        if (existingModelRoot != null)
+        {
+            HideActorRootRenderer(actorRoot);
+            FitModelToTargetHeight(existingModelRoot, playerControlled ? 1.78f : 1.70f);
+            if (sourceGroundY.HasValue)
+            {
+                AlignModelFeetToWorldY(existingModelRoot, sourceGroundY.Value);
+            }
+            else
+            {
+                AlignModelFeetToActorGround(existingModelRoot);
+            }
+            return true;
+        }
+
+#if UNITY_EDITOR
+        GameObject modelAsset = ResolveDownloadedModelForActor(actorRoot, playerControlled);
+        if (modelAsset == null)
+        {
+            return false;
+        }
+
+        GameObject visualRoot = new GameObject("StoreModelVisual");
+        visualRoot.transform.SetParent(actorRoot.transform, false);
+        visualRoot.transform.localPosition = Vector3.zero;
+        visualRoot.transform.localRotation = Quaternion.identity;
+        visualRoot.transform.localScale = Vector3.one;
+
+        GameObject modelInstance = PrefabUtility.InstantiatePrefab(modelAsset) as GameObject;
+        if (modelInstance == null)
+        {
+            modelInstance = UnityEngine.Object.Instantiate(modelAsset);
+        }
+
+        if (modelInstance == null)
+        {
+            UnityEngine.Object.DestroyImmediate(visualRoot);
+            return false;
+        }
+
+        modelInstance.name = modelAsset.name;
+        modelInstance.transform.SetParent(visualRoot.transform, false);
+        modelInstance.transform.localPosition = Vector3.zero;
+        modelInstance.transform.localRotation = Quaternion.identity;
+        modelInstance.transform.localScale = Vector3.one;
+
+        DisableModelPhysics(modelInstance);
+        FitModelToTargetHeight(visualRoot.transform, playerControlled ? 1.78f : 1.70f);
+        if (sourceGroundY.HasValue)
+        {
+            AlignModelFeetToWorldY(visualRoot.transform, sourceGroundY.Value);
+        }
+        else
+        {
+            AlignModelFeetToActorGround(visualRoot.transform);
+        }
+        SetLayerRecursive(visualRoot.transform, actorRoot.layer);
+        HideActorRootRenderer(actorRoot);
+        return true;
+#endif
+
+        return false;
     }
 
-    private void EnsureNarrativeInteractionChain()
+#if UNITY_EDITOR
+    private static readonly string PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx";
+    private static readonly string NpcModelPath = "Assets/Ch02_nonPBR@Double Dagger Stab.fbx";
+    private static readonly string EnemyModelPath = "Assets/Ch11_nonPBR@Double Dagger Stab.fbx";
+
+    private static GameObject ResolveDownloadedModelForActor(GameObject actorRoot, bool playerControlled)
+    {
+        if (playerControlled)
+        {
+            return LoadModelAsset(PlayerModelPath)
+                ?? LoadModelByQuery("Ch01_nonPBR");
+        }
+
+        if (actorRoot.GetComponent<EnemyController>() != null)
+        {
+            return LoadModelAsset(EnemyModelPath)
+                ?? LoadModelByQuery("Ch11_nonPBR")
+                ?? LoadModelByQuery("Ch03_nonPBR")
+                ?? LoadModelByQuery("Ch02_nonPBR");
+        }
+
+        return LoadModelAsset(NpcModelPath)
+            ?? LoadModelByQuery("Ch02_nonPBR")
+            ?? LoadModelByQuery("Ch11_nonPBR");
+    }
+
+    private static GameObject LoadModelAsset(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+    }
+
+    private static GameObject LoadModelByQuery(string nameQuery)
+    {
+        if (string.IsNullOrWhiteSpace(nameQuery))
+        {
+            return null;
+        }
+
+        string[] guids = AssetDatabase.FindAssets(nameQuery + " t:Model", new[] { "Assets" });
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (model != null)
+            {
+                return model;
+            }
+        }
+
+        return null;
+    }
+#endif
+
+    private static void DisableModelPhysics(GameObject modelRoot)
+    {
+        if (modelRoot == null)
+        {
+            return;
+        }
+
+        Collider[] colliders = modelRoot.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null)
+            {
+                colliders[i].enabled = false;
+            }
+        }
+
+        Rigidbody[] rigidbodies = modelRoot.GetComponentsInChildren<Rigidbody>(true);
+        for (int i = 0; i < rigidbodies.Length; i++)
+        {
+            if (rigidbodies[i] != null)
+            {
+                rigidbodies[i].isKinematic = true;
+                rigidbodies[i].useGravity = false;
+            }
+        }
+    }
+
+    private static void HideActorRootRenderer(GameObject actorRoot)
+    {
+        if (actorRoot == null)
+        {
+            return;
+        }
+
+        Renderer rootRenderer = actorRoot.GetComponent<Renderer>();
+        if (rootRenderer != null)
+        {
+            rootRenderer.enabled = false;
+        }
+    }
+
+    private static void FitModelToTargetHeight(Transform visualRoot, float targetHeight)
+    {
+        if (visualRoot == null || targetHeight <= 0.01f)
+        {
+            return;
+        }
+
+        if (!TryGetCombinedRendererBounds(visualRoot, out Bounds bounds))
+        {
+            return;
+        }
+
+        float sourceHeight = Mathf.Max(0.001f, bounds.size.y);
+        float scale = Mathf.Clamp(targetHeight / sourceHeight, 0.01f, 10f);
+        visualRoot.localScale *= scale;
+    }
+
+    private static void AlignModelFeetToActorGround(Transform visualRoot)
+    {
+        if (visualRoot == null)
+        {
+            return;
+        }
+
+        if (!TryGetCombinedRendererBounds(visualRoot, out Bounds bounds))
+        {
+            return;
+        }
+
+        float localFeetY = visualRoot.InverseTransformPoint(new Vector3(0f, bounds.min.y, 0f)).y;
+        visualRoot.localPosition += new Vector3(0f, -localFeetY, 0f);
+    }
+
+    private static void AlignModelFeetToWorldY(Transform visualRoot, float worldGroundY)
+    {
+        if (visualRoot == null)
+        {
+            return;
+        }
+
+        if (!TryGetCombinedRendererBounds(visualRoot, out Bounds bounds))
+        {
+            return;
+        }
+
+        float delta = worldGroundY - bounds.min.y;
+        if (Mathf.Abs(delta) <= 0.0001f)
+        {
+            return;
+        }
+
+        visualRoot.position += Vector3.up * delta;
+    }
+
+    private static bool TryGetSourceGroundY(GameObject actorRoot, Transform ragdollRoot, out float worldGroundY)
+    {
+        worldGroundY = 0f;
+        if (actorRoot == null)
+        {
+            return false;
+        }
+
+        Renderer[] renderers = actorRoot.GetComponentsInChildren<Renderer>(true);
+        bool hasGround = false;
+        float minY = float.MaxValue;
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer rendererComponent = renderers[i];
+            if (rendererComponent == null)
+            {
+                continue;
+            }
+
+            Transform rendererTransform = rendererComponent.transform;
+            if (rendererTransform == null)
+            {
+                continue;
+            }
+
+            if (ragdollRoot != null && rendererTransform.IsChildOf(ragdollRoot))
+            {
+                continue;
+            }
+
+            Bounds bounds = rendererComponent.bounds;
+            if (bounds.size.sqrMagnitude <= 0.000001f)
+            {
+                continue;
+            }
+
+            minY = Mathf.Min(minY, bounds.min.y);
+            hasGround = true;
+        }
+
+        if (!hasGround)
+        {
+            return false;
+        }
+
+        worldGroundY = minY;
+        return true;
+    }
+
+    private static void AlignRigFeetToWorldY(ProceduralHumanoidRig rig, float worldGroundY)
+    {
+        if (rig == null || rig.PhysicalRoot == null)
+        {
+            return;
+        }
+
+        if (!TryGetCombinedRendererBounds(rig.PhysicalRoot, out Bounds rigBounds))
+        {
+            return;
+        }
+
+        float delta = worldGroundY - rigBounds.min.y;
+        if (Mathf.Abs(delta) <= 0.0001f)
+        {
+            return;
+        }
+
+        rig.PhysicalRoot.position += Vector3.up * delta;
+        if (rig.TargetRoot != null)
+        {
+            rig.TargetRoot.position += Vector3.up * delta;
+        }
+    }
+
+    private static bool TryGetCombinedRendererBounds(Transform root, out Bounds bounds)
+    {
+        bounds = default;
+        if (root == null)
+        {
+            return false;
+        }
+
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        bool hasBounds = false;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer rendererComponent = renderers[i];
+            if (rendererComponent == null)
+            {
+                continue;
+            }
+
+            if (!hasBounds)
+            {
+                bounds = rendererComponent.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(rendererComponent.bounds);
+            }
+        }
+
+        return hasBounds;
+    }
+
+    private static void SetLayerRecursive(Transform root, int layer)
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i] != null)
+            {
+                children[i].gameObject.layer = layer;
+            }
+        }
+    }
+
+    private static void RemoveLegacyPlayerPrimitiveComponents(GameObject actorRoot)
+    {
+        if (actorRoot == null)
+        {
+            return;
+        }
+
+        MeshFilter meshFilter = actorRoot.GetComponent<MeshFilter>();
+        if (meshFilter != null)
+        {
+            DestroyComponent(meshFilter);
+        }
+
+        MeshRenderer meshRenderer = actorRoot.GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            DestroyComponent(meshRenderer);
+        }
+
+        CapsuleCollider capsuleCollider = actorRoot.GetComponent<CapsuleCollider>();
+        if (capsuleCollider != null)
+        {
+            DestroyComponent(capsuleCollider);
+        }
+
+        SphereCollider sphereCollider = actorRoot.GetComponent<SphereCollider>();
+        if (sphereCollider != null)
+        {
+            DestroyComponent(sphereCollider);
+        }
+
+        BoxCollider boxCollider = actorRoot.GetComponent<BoxCollider>();
+        if (boxCollider != null)
+        {
+            DestroyComponent(boxCollider);
+        }
+    }
+
+    private static bool HasSourceRenderers(GameObject actorRoot, Transform ragdollRoot)
+    {
+        if (actorRoot == null)
+        {
+            return false;
+        }
+
+        Renderer[] renderers = actorRoot.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer rendererComponent = renderers[i];
+            if (rendererComponent == null)
+            {
+                continue;
+            }
+
+            Transform rendererTransform = rendererComponent.transform;
+            if (rendererTransform == null)
+            {
+                continue;
+            }
+
+            // Ignore the actor root primitive/capsule renderer so we do not treat it as a valid source mesh.
+            if (rendererTransform == actorRoot.transform)
+            {
+                continue;
+            }
+
+            if (ragdollRoot != null && rendererTransform.IsChildOf(ragdollRoot))
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void SetSourceRenderersVisible(GameObject actorRoot, Transform ragdollRoot, bool visible)
+    {
+        if (actorRoot == null)
+        {
+            return;
+        }
+
+        Renderer[] renderers = actorRoot.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer rendererComponent = renderers[i];
+            if (rendererComponent == null)
+            {
+                continue;
+            }
+
+            Transform rendererTransform = rendererComponent.transform;
+            if (rendererTransform == actorRoot.transform)
+            {
+                continue;
+            }
+
+            if (rendererTransform != null && ragdollRoot != null && rendererTransform.IsChildOf(ragdollRoot))
+            {
+                continue;
+            }
+
+            rendererComponent.enabled = visible;
+        }
+    }
+
+    private static void EnsureRagdollLayerMatchesActor(ProceduralHumanoidRig rig, int actorLayer)
+    {
+        if (rig == null || rig.PhysicalRoot == null)
+        {
+            return;
+        }
+
+        Transform[] bones = rig.PhysicalRoot.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < bones.Length; i++)
+        {
+            Transform bone = bones[i];
+            if (bone != null)
+            {
+                bone.gameObject.layer = actorLayer;
+            }
+        }
+    }
+
+    private static void DestroyComponent(Component component)
+    {
+        if (component == null)
+        {
+            return;
+        }
+
+        if (Application.isPlaying)
+        {
+            UnityEngine.Object.Destroy(component);
+        }
+        else
+        {
+            UnityEngine.Object.DestroyImmediate(component);
+        }
+    }
+
+    private static Material playerSkinMaterial;
+    private static Material playerClothMaterial;
+    private static Material actorNeutralMaterial;
+    private static Shader fallbackLitShader;
+
+    private static void StyleRagdollRenderers(ProceduralHumanoidRig rig, bool playerControlled)
+    {
+        if (rig == null || rig.PhysicalRoot == null)
+        {
+            return;
+        }
+
+        if (fallbackLitShader == null)
+        {
+            fallbackLitShader = Shader.Find("Universal Render Pipeline/Lit")
+                               ?? Shader.Find("Standard")
+                               ?? Shader.Find("Sprites/Default");
+        }
+
+        if (fallbackLitShader == null)
+        {
+            return;
+        }
+
+        if (playerSkinMaterial == null)
+        {
+            playerSkinMaterial = new Material(fallbackLitShader) { name = "VS_PlayerSkin" };
+            ConfigureMaterialColor(playerSkinMaterial, new Color(0.67f, 0.57f, 0.50f, 1f), 0.22f, 0.03f);
+        }
+
+        if (playerClothMaterial == null)
+        {
+            playerClothMaterial = new Material(fallbackLitShader) { name = "VS_PlayerCloth" };
+            ConfigureMaterialColor(playerClothMaterial, new Color(0.23f, 0.28f, 0.34f, 1f), 0.14f, 0.15f);
+        }
+
+        if (actorNeutralMaterial == null)
+        {
+            actorNeutralMaterial = new Material(fallbackLitShader) { name = "VS_ActorNeutral" };
+            ConfigureMaterialColor(actorNeutralMaterial, new Color(0.47f, 0.50f, 0.54f, 1f), 0.2f, 0.05f);
+        }
+
+        Renderer[] renderers = rig.PhysicalRoot.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer rendererComponent = renderers[i];
+            if (rendererComponent == null)
+            {
+                continue;
+            }
+
+            if (!playerControlled)
+            {
+                rendererComponent.sharedMaterial = actorNeutralMaterial;
+                continue;
+            }
+
+            string lowerName = rendererComponent.gameObject.name.ToLowerInvariant();
+            if (lowerName.Contains("head") || lowerName.Contains("hand"))
+            {
+                rendererComponent.sharedMaterial = playerSkinMaterial;
+            }
+            else
+            {
+                rendererComponent.sharedMaterial = playerClothMaterial;
+            }
+        }
+    }
+
+    private static void ConfigureMaterialColor(Material material, Color baseColor, float smoothness, float metallic)
+    {
+        if (material == null)
+        {
+            return;
+        }
+
+        if (material.HasProperty("_BaseColor"))
+        {
+            material.SetColor("_BaseColor", baseColor);
+        }
+
+        if (material.HasProperty("_Color"))
+        {
+            material.SetColor("_Color", baseColor);
+        }
+
+        if (material.HasProperty("_Smoothness"))
+        {
+            material.SetFloat("_Smoothness", smoothness);
+        }
+
+        if (material.HasProperty("_Glossiness"))
+        {
+            material.SetFloat("_Glossiness", smoothness);
+        }
+
+        if (material.HasProperty("_Metallic"))
+        {
+            material.SetFloat("_Metallic", metallic);
+        }
+
+        material.enableInstancing = true;
+    }
+
+    internal static void EnsureNpcDialogueCameraAnchor(GameObject npcObject)
+    {
+        if (npcObject == null)
+        {
+            return;
+        }
+
+        NpcDialogueController dialogueController = npcObject.GetComponent<NpcDialogueController>();
+        if (dialogueController == null)
+        {
+            dialogueController = npcObject.AddComponent<NpcDialogueController>();
+        }
+
+        Transform anchor = npcObject.transform.Find("DialogueCameraAnchor");
+        if (anchor == null)
+        {
+            GameObject anchorObject = new GameObject("DialogueCameraAnchor");
+            anchorObject.transform.SetParent(npcObject.transform, false);
+            anchor = anchorObject.transform;
+        }
+
+        anchor.localPosition = new Vector3(0.65f, 1.55f, 1.35f);
+        anchor.LookAt(npcObject.transform.position + Vector3.up * 1.35f);
+        dialogueController.ConfigureCameraAnchor(anchor);
+    }
+
+    internal static void EnsureReachAnchorsForInteractables()
+    {
+        InteractableBase[] interactables = FindObjectsByType<InteractableBase>(FindObjectsInactive.Exclude);
+        for (int i = 0; i < interactables.Length; i++)
+        {
+            InteractableBase interactable = interactables[i];
+            if (interactable == null)
+            {
+                continue;
+            }
+
+            if (interactable.GetComponentInChildren<ReachTargetAnchor>() == null)
+            {
+                interactable.gameObject.AddComponent<ReachTargetAnchor>();
+            }
+        }
+    }
+
+    internal static T[] FilterNull<T>(params T[] values) where T : UnityEngine.Object
+    {
+        List<T> result = new List<T>();
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (values[i] != null) result.Add(values[i]);
+        }
+        return result.ToArray();
+    }
+    internal void EnsureNarrativeInteractionChain()
     {
         GameObject sandboxRoot = FindSceneObject("Template_Interactable_Sandbox");
         if (sandboxRoot != null)
@@ -315,10 +974,11 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         EnsureMidpointNpc(loopRoot, interiorOrigin);
         EnsureUnderpassConsole(loopRoot, underpassOrigin);
         EnsureCheckpointZones(loopRoot, exteriorOrigin, interiorOrigin, underpassOrigin);
+        EnsureCombatEncounters(loopRoot, exteriorOrigin, underpassOrigin);
         EnsureReachAnchorsForInteractables();
     }
 
-    private void EnsureCharacterPresentationSystems()
+    internal void EnsureCharacterPresentationSystems()
     {
         PlayerMover playerMover = FindAnyObjectByType<PlayerMover>();
         if (playerMover != null)
@@ -354,86 +1014,18 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             if (npc == null) continue;
             EnsureHumanoidActorSystems(npc.gameObject, false);
         }
-    }
 
-    private static void EnsureHumanoidActorSystems(GameObject actorRoot, bool playerControlled)
-    {
-        if (actorRoot == null)
+        // Combat enemies
+        EnemyController[] enemies = FindObjectsByType<EnemyController>(FindObjectsInactive.Exclude);
+        for (int i = 0; i < enemies.Length; i++)
         {
-            return;
-        }
-
-        ProceduralHumanoidRig rig = actorRoot.GetComponent<ProceduralHumanoidRig>();
-        if (rig == null)
-        {
-            rig = actorRoot.AddComponent<ProceduralHumanoidRig>();
-        }
-        rig.EnsureBuilt();
-
-        if (actorRoot.GetComponent<ActiveRagdollMotor>() == null)
-        {
-            actorRoot.AddComponent<ActiveRagdollMotor>();
-        }
-
-        if (playerControlled)
-        {
-            if (actorRoot.GetComponent<PlayerAnimationController>() == null)
-            {
-                actorRoot.AddComponent<PlayerAnimationController>();
-            }
-
-            if (actorRoot.GetComponent<PlayerReachController>() == null)
-            {
-                actorRoot.AddComponent<PlayerReachController>();
-            }
+            EnemyController enemy = enemies[i];
+            if (enemy == null) continue;
+            EnsureHumanoidActorSystems(enemy.gameObject, false);
         }
     }
 
-    private static void EnsureNpcDialogueCameraAnchor(GameObject npcObject)
-    {
-        if (npcObject == null)
-        {
-            return;
-        }
-
-        NpcDialogueController dialogueController = npcObject.GetComponent<NpcDialogueController>();
-        if (dialogueController == null)
-        {
-            dialogueController = npcObject.AddComponent<NpcDialogueController>();
-        }
-
-        Transform anchor = npcObject.transform.Find("DialogueCameraAnchor");
-        if (anchor == null)
-        {
-            GameObject anchorObject = new GameObject("DialogueCameraAnchor");
-            anchorObject.transform.SetParent(npcObject.transform, false);
-            anchor = anchorObject.transform;
-        }
-
-        anchor.localPosition = new Vector3(0.65f, 1.55f, 1.35f);
-        anchor.LookAt(npcObject.transform.position + Vector3.up * 1.35f);
-        dialogueController.ConfigureCameraAnchor(anchor);
-    }
-
-    private static void EnsureReachAnchorsForInteractables()
-    {
-        InteractableBase[] interactables = FindObjectsByType<InteractableBase>(FindObjectsInactive.Exclude);
-        for (int i = 0; i < interactables.Length; i++)
-        {
-            InteractableBase interactable = interactables[i];
-            if (interactable == null)
-            {
-                continue;
-            }
-
-            if (interactable.GetComponentInChildren<ReachTargetAnchor>() == null)
-            {
-                interactable.gameObject.AddComponent<ReachTargetAnchor>();
-            }
-        }
-    }
-
-    private void EnsureCinematicVolumes()
+    internal void EnsureCinematicVolumes()
     {
         Transform volumeRoot = EnsureChildObject(lightingRoot, "VS_CinematicVolumes").transform;
         Volume globalVolume = EnsureVolume(
@@ -456,7 +1048,7 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         EnsureVolume(EnsureChildObject(volumeRoot, "VS_Volume_Underpass").transform, false, new Vector3(30f, 10f, 20f), new Color(0.78f, 0.84f, 0.9f, 1f), -0.45f, 0.45f, 0.36f).transform.position = underpassOrigin + new Vector3(4f, 2f, 0f);
     }
 
-    private void EnsureInfectionSystem()
+    internal void EnsureInfectionSystem()
     {
         Transform infectionRoot = EnsureChildObject(gameplayRoot, "VS_InfectionSystem").transform;
         InfectionNode exteriorNode = EnsureNode(infectionRoot, "VS_Node_Exterior", "Exterior District");
@@ -616,6 +1208,33 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
             underpassOrigin + new Vector3(2.2f, 1f, -1f),
             new Vector3(3.5f, 2f, 3.5f),
             "Checkpoint set: Underpass.");
+    }
+
+    private void EnsureCombatEncounters(Transform parent, Vector3 exteriorOrigin, Vector3 underpassOrigin)
+    {
+        EnsureTutorialEnemy(
+            parent,
+            "VS_ExteriorProwler",
+            exteriorOrigin + new Vector3(8.3f, 1f, -1.6f),
+            new[]
+            {
+                exteriorOrigin + new Vector3(6.1f, 0f, -3.7f),
+                exteriorOrigin + new Vector3(9.8f, 0f, -3.2f),
+                exteriorOrigin + new Vector3(9.4f, 0f, 0.6f),
+                exteriorOrigin + new Vector3(6.2f, 0f, 1.1f)
+            });
+
+        EnsureTutorialEnemy(
+            parent,
+            "VS_UnderpassStalker",
+            underpassOrigin + new Vector3(5f, 1f, 2.2f),
+            new[]
+            {
+                underpassOrigin + new Vector3(3.4f, 0f, 0.2f),
+                underpassOrigin + new Vector3(6.8f, 0f, 0.4f),
+                underpassOrigin + new Vector3(6.6f, 0f, 3.4f),
+                underpassOrigin + new Vector3(3.5f, 0f, 3.7f)
+            });
     }
 
     private void EnsureLegacyInteractableSandboxExpansion(Vector3 sandboxOrigin)
@@ -905,6 +1524,10 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         agent.speed = 3.25f;
         agent.angularSpeed = 720f;
         agent.acceleration = 18f;
+        if (!NavMesh.SamplePosition(enemy.transform.position, out _, 2.5f, NavMesh.AllAreas))
+        {
+            agent.enabled = false;
+        }
 
         Transform[] points = new Transform[patrolPoints.Length];
         for (int i = 0; i < patrolPoints.Length; i++)
@@ -919,11 +1542,13 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
 
         Damageable enemyDamageable = enemy.GetComponent<Damageable>();
         if (enemyDamageable == null) enemyDamageable = enemy.AddComponent<Damageable>();
-        enemyDamageable.Configure(50f, false, true);
+        enemyDamageable.Configure(50f, false, false);
 
         EnemyController enemyController = enemy.GetComponent<EnemyController>();
         if (enemyController == null) enemyController = enemy.AddComponent<EnemyController>();
         enemyController.SetPatrolPoints(points);
+
+        EnsureHumanoidActorSystems(enemy, false);
     }
 
     private static void EnsureCheckpointZone(Transform parent, string name, Vector3 worldPosition, Vector3 size, string message)
@@ -999,29 +1624,73 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         return volume;
     }
 
-    private Vector3 ResolveTemplateOrigin(string rootName, Vector3 fallback)
+#if UNITY_EDITOR
+    private static void RemoveMissingScriptsInActiveScene()
     {
-        GameObject root = FindSceneObject(rootName);
-        return root != null ? root.transform.position : fallback;
-    }
-
-    private static T[] FilterNull<T>(params T[] values) where T : UnityEngine.Object
-    {
-        List<T> result = new List<T>();
-        for (int i = 0; i < values.Length; i++)
+        Scene scene = SceneManager.GetActiveScene();
+        if (!scene.IsValid())
         {
-            if (values[i] != null) result.Add(values[i]);
+            return;
         }
-        return result.ToArray();
+
+        GameObject[] roots = scene.GetRootGameObjects();
+        int removedCount = 0;
+        for (int i = 0; i < roots.Length; i++)
+        {
+            removedCount += RemoveMissingScriptsRecursive(roots[i].transform);
+        }
+
+        if (removedCount > 0)
+        {
+            Debug.Log($"Removed {removedCount} missing script component(s) from scene '{scene.name}'.");
+        }
     }
 
-    private static GameObject EnsureRootObject(string name)
+    private static int RemoveMissingScriptsRecursive(Transform root)
+    {
+        if (root == null)
+        {
+            return 0;
+        }
+
+        int removed = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(root.gameObject);
+        for (int i = 0; i < root.childCount; i++)
+        {
+            removed += RemoveMissingScriptsRecursive(root.GetChild(i));
+        }
+
+        return removed;
+    }
+
+    internal static ItemDefinition FindItemAssetById(string itemId)
+    {
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return null;
+        }
+
+        string[] guids = AssetDatabase.FindAssets("t:ItemDefinition", new[] { "Assets/Data/Items" });
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            ItemDefinition item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+            if (item != null && string.Equals(item.itemId, itemId, StringComparison.OrdinalIgnoreCase))
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+#endif
+
+    internal static GameObject EnsureRootObject(string name)
     {
         GameObject existing = FindRootObject(name);
         return existing ?? new GameObject(name);
     }
 
-    private static GameObject EnsureChildObject(Transform parent, string name)
+    internal static GameObject EnsureChildObject(Transform parent, string name)
     {
         Transform existing = parent.Find(name);
         if (existing != null) return existing.gameObject;
@@ -1030,7 +1699,7 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         return created;
     }
 
-    private static GameObject EnsurePrimitiveObject(PrimitiveType type, string name, Transform parent, Vector3 worldPosition, Vector3 scale)
+    internal static GameObject EnsurePrimitiveObject(PrimitiveType type, string name, Transform parent, Vector3 worldPosition, Vector3 scale)
     {
         GameObject existing = FindSceneObject(name);
         GameObject primitive = existing ?? GameObject.CreatePrimitive(type);
@@ -1041,7 +1710,7 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         return primitive;
     }
 
-    private static void ReparentByName(string objectName, Transform parent)
+    internal static void ReparentByName(string objectName, Transform parent)
     {
         GameObject sceneObject = FindSceneObject(objectName);
         if (sceneObject != null && sceneObject.transform.parent != parent)
@@ -1060,7 +1729,7 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         return null;
     }
 
-    private static GameObject FindSceneObject(string name)
+    internal static GameObject FindSceneObject(string name)
     {
         GameObject[] roots = SceneManager.GetActiveScene().GetRootGameObjects();
         for (int i = 0; i < roots.Length; i++)
@@ -1082,3 +1751,4 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         return null;
     }
 }
+

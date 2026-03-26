@@ -17,6 +17,7 @@ public static partial class HolstinLevelDesignTemplates
         EnsureDirectionalLight();
         CreateUnderpassTemplate(Vector3.zero);
         EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
         FinalizeScene("Underpass template added.");
     }
 

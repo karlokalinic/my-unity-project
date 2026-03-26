@@ -117,10 +117,44 @@ public static partial class HolstinLevelDesignTemplates
     private static GameObject NewRoot(string name, Vector3 origin)
     {
         EnsureSceneRootGroups();
+
+        GameObject existing = FindSceneObjectByName(name);
+        if (existing != null)
+        {
+            if (sceneWorldRoot != null && existing.transform.parent != sceneWorldRoot)
+            {
+                existing.transform.SetParent(sceneWorldRoot, false);
+            }
+
+            while (existing.transform.childCount > 0)
+            {
+                Object.DestroyImmediate(existing.transform.GetChild(0).gameObject);
+            }
+
+            existing.transform.position = origin;
+            existing.transform.rotation = Quaternion.identity;
+            existing.transform.localScale = Vector3.one;
+            return existing;
+        }
+
         GameObject root = new GameObject(name);
         if (sceneWorldRoot != null) root.transform.SetParent(sceneWorldRoot, false);
         root.transform.position = origin;
         return root;
+    }
+
+    private static GameObject FindSceneObjectByName(string name)
+    {
+        foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            Transform found = FindTransformRecursive(root.transform, name);
+            if (found != null)
+            {
+                return found.gameObject;
+            }
+        }
+
+        return null;
     }
 
     private static void CreateSkyGround(Vector3 position, Vector3 scale, string name)

@@ -68,7 +68,7 @@ public class ItemConsumeInteractable : InteractableBase
             return "Already used";
         }
 
-        return $"[{InputReader.InteractKeyLabel}] Use {requiredItemDisplayName}";
+        return $"[{InputReader.GetInteractLabel()}] Use {requiredItemDisplayName}";
     }
 
     public override bool IsAvailable(PlayerInteraction interactor, InventorySystem inventory)
