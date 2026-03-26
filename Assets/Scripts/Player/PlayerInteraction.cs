@@ -204,7 +204,7 @@ public class PlayerInteraction : MonoBehaviour
 
         if (currentInspectable != null)
         {
-            promptUI.ShowPrompt($"[{InputReader.InteractKeyLabel}] Inspect {currentInspectable.ItemName}");
+            promptUI.ShowPrompt($"[{InputReader.GetInteractLabel()}] Inspect {currentInspectable.ItemName}");
             return;
         }
 

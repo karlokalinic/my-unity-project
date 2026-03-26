@@ -47,7 +47,7 @@ public class PickupInteractable : InteractableBase
 
     public override string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
-        return $"[{InputReader.InteractKeyLabel}] Pick up {itemDisplayName}";
+        return $"[{InputReader.GetInteractLabel()}] Pick up {itemDisplayName}";
     }
 
     public override void Interact(PlayerInteraction interactor, InventorySystem inventory)

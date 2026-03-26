@@ -38,7 +38,7 @@ public class SkillCheckNpcInteractable : InteractableBase
     public override string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
         string name = identity != null ? identity.NpcName : "NPC";
-        return $"[{InputReader.InteractKeyLabel}] Talk to {name}";
+        return $"[{InputReader.GetInteractLabel()}] Talk to {name}";
     }
 
     public override int GetPriority(PlayerInteraction interactor) => 5;

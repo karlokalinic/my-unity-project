@@ -396,7 +396,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4765907}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1026,7 +1026,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 31040047}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1564,7 +1564,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 60624326}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1810,7 +1810,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 63377905}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -2193,7 +2193,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 90347874}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -2485,7 +2485,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 103846718}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -2850,7 +2850,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 111433843}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3240,7 +3240,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 111993358}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3336,6 +3336,13 @@ GameObject:
   - component: {fileID: 116006138}
   - component: {fileID: 116006141}
   - component: {fileID: 116006142}
+  - component: {fileID: 116006143}
+  - component: {fileID: 116006144}
+  - component: {fileID: 116006145}
+  - component: {fileID: 116006146}
+  - component: {fileID: 116006147}
+  - component: {fileID: 116006148}
+  - component: {fileID: 116006149}
   m_Layer: 0
   m_Name: Caretaker
   m_TagString: Untagged
@@ -3432,7 +3439,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 116006126}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3539,7 +3546,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralHumanoidRig
   buildOnAwake: 1
-  hideSourceRenderers: 1
+  hideSourceRenderers: 0
+  showRagdollRenderersInLife: 0
   setRagdollLayerToIgnoreRaycast: 1
   ragdollLayer: 10
   physicalRoot: {fileID: 554635714}
@@ -3654,7 +3662,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &116006136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3687,7 +3694,6 @@ MonoBehaviour:
   m_Script: {fileID: 313362150}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &116006138
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3733,7 +3739,6 @@ MonoBehaviour:
   m_Script: {fileID: 1263828158}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &116006141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3746,7 +3751,6 @@ MonoBehaviour:
   m_Script: {fileID: 1211142699}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &116006142
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3757,6 +3761,93 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 1415497704}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+--- !u!114 &116006143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116006126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &116006144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116006126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1756839954}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &116006145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116006126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1913064522}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &116006146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116006126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1280836287}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &116006147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116006126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1305675734}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &116006148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116006126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 229756572}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &116006149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116006126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 2144036205}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
@@ -4300,7 +4391,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 124769787}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -4678,6 +4769,13 @@ GameObject:
   - component: {fileID: 155186462}
   - component: {fileID: 155186463}
   - component: {fileID: 155186464}
+  - component: {fileID: 155186465}
+  - component: {fileID: 155186466}
+  - component: {fileID: 155186467}
+  - component: {fileID: 155186468}
+  - component: {fileID: 155186469}
+  - component: {fileID: 155186470}
+  - component: {fileID: 155186471}
   m_Layer: 0
   m_Name: INT_FinalConsole
   m_TagString: Untagged
@@ -4822,7 +4920,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &155186461
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4835,7 +4932,6 @@ MonoBehaviour:
   m_Script: {fileID: 313362150}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &155186462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4848,7 +4944,6 @@ MonoBehaviour:
   m_Script: {fileID: 1263828158}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &155186463
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4861,7 +4956,6 @@ MonoBehaviour:
   m_Script: {fileID: 1211142699}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &155186464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4872,6 +4966,93 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 1415497704}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+--- !u!114 &155186465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155186454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &155186466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155186454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1756839954}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &155186467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155186454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1913064522}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &155186468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155186454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1280836287}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &155186469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155186454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1305675734}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &155186470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155186454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 229756572}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &155186471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155186454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 2144036205}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
@@ -5239,7 +5420,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 187003513}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -5485,7 +5666,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 187366041}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -5558,6 +5739,126 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 187366041}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!21 &195154317
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HolstinTemplate_Accent
+  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AddPrecomputedVelocity: 0
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
+    - _Blend: 0
+    - _BlendModePreserveSpecular: 1
+    - _BumpScale: 1
+    - _ClearCoatMask: 0
+    - _ClearCoatSmoothness: 0
+    - _Cull: 2
+    - _Cutoff: 0.5
+    - _DetailAlbedoMapScale: 1
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
+    - _DstBlendAlpha: 0
+    - _EnvironmentReflections: 1
+    - _GlossMapScale: 0
+    - _Glossiness: 0.33
+    - _GlossyReflections: 0
+    - _Metallic: 0.15
+    - _OcclusionStrength: 1
+    - _Parallax: 0.005
+    - _QueueOffset: 0
+    - _ReceiveShadows: 1
+    - _Smoothness: 0.33
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
+    - _Surface: 0
+    - _WorkflowMode: 1
+    - _XRMotionVectorsPass: 1
+    - _ZWrite: 1
+    m_Colors:
+    - _BaseColor: {r: 0.3, g: 0.45, b: 0.56, a: 1}
+    - _Color: {r: 0.3, g: 0.45, b: 0.56, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &198850962
 GameObject:
   m_ObjectHideFlags: 0
@@ -5611,6 +5912,13 @@ GameObject:
   - component: {fileID: 199522646}
   - component: {fileID: 199522647}
   - component: {fileID: 199522648}
+  - component: {fileID: 199522649}
+  - component: {fileID: 199522650}
+  - component: {fileID: 199522651}
+  - component: {fileID: 199522652}
+  - component: {fileID: 199522653}
+  - component: {fileID: 199522654}
+  - component: {fileID: 199522655}
   m_Layer: 0
   m_Name: VS_InteriorGate_Door
   m_TagString: Untagged
@@ -5779,7 +6087,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &199522645
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5792,7 +6099,6 @@ MonoBehaviour:
   m_Script: {fileID: 313362150}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &199522646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5805,7 +6111,6 @@ MonoBehaviour:
   m_Script: {fileID: 1263828158}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &199522647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5818,7 +6123,6 @@ MonoBehaviour:
   m_Script: {fileID: 1211142699}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &199522648
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5829,6 +6133,93 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 1415497704}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+--- !u!114 &199522649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199522638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &199522650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199522638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1756839954}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &199522651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199522638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1913064522}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &199522652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199522638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1280836287}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &199522653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199522638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1305675734}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &199522654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199522638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 229756572}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
+  explicitAnchor: {fileID: 0}
+--- !u!114 &199522655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199522638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 2144036205}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
@@ -6127,7 +6518,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 217527045}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -6231,6 +6622,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 423804675}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &229756572
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &238804725
 GameObject:
   m_ObjectHideFlags: 0
@@ -7140,7 +7546,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 299895605}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -7530,7 +7936,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 329329872}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -7773,7 +8179,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 331789485}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -8114,6 +8520,9 @@ GameObject:
   - component: {fileID: 357098390}
   - component: {fileID: 357098394}
   - component: {fileID: 357098395}
+  - component: {fileID: 357098396}
+  - component: {fileID: 357098397}
+  - component: {fileID: 357098398}
   m_Layer: 0
   m_Name: INT_ArchiveExit_Leaf
   m_TagString: Untagged
@@ -8282,7 +8691,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &357098395
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8296,6 +8704,42 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &357098396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357098388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &357098397
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357098388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1756839954}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &357098398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357098388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1913064522}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &359320715
 GameObject:
   m_ObjectHideFlags: 0
@@ -8343,6 +8787,9 @@ GameObject:
   - component: {fileID: 360044284}
   - component: {fileID: 360044288}
   - component: {fileID: 360044289}
+  - component: {fileID: 360044290}
+  - component: {fileID: 360044291}
+  - component: {fileID: 360044292}
   m_Layer: 0
   m_Name: INT_RelayFuseA
   m_TagString: Untagged
@@ -8505,7 +8952,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &360044289
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8519,6 +8965,42 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &360044290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 360044282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &360044291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 360044282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1756839954}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
+--- !u!114 &360044292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 360044282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1913064522}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &365584835
 GameObject:
   m_ObjectHideFlags: 0
@@ -8958,7 +9440,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 371067890}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -9204,7 +9686,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 376302110}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -9773,7 +10255,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 401366957}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -10571,6 +11053,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 429800733}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!115 &438813232
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Holstin.Runtime
 --- !u!1 &441693686
 GameObject:
   m_ObjectHideFlags: 0
@@ -10989,7 +11486,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 477647806}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -11265,7 +11762,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 481779116}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -11508,7 +12005,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 489086044}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -11752,7 +12249,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 498888219}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -12089,7 +12586,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 520119610}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -12598,7 +13095,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 544185523}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -12842,7 +13339,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 552989207}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -13465,13 +13962,14 @@ GameObject:
   m_Component:
   - component: {fileID: 611599917}
   - component: {fileID: 611599916}
+  - component: {fileID: 611599918}
   m_Layer: 0
   m_Name: VS_ServiceBeacon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &611599916
 Light:
   m_ObjectHideFlags: 0
@@ -13552,6 +14050,35 @@ Transform:
   m_Children: []
   m_Father: {fileID: 242823552}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &611599918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 611599915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &616997504
 GameObject:
   m_ObjectHideFlags: 0
@@ -13612,6 +14139,7 @@ GameObject:
   - component: {fileID: 622210706}
   - component: {fileID: 622210705}
   - component: {fileID: 622210704}
+  - component: {fileID: 622210713}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -13725,7 +14253,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 622210690}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -13743,7 +14271,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1110659181}
+  - {fileID: 195154317}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -13870,7 +14398,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralHumanoidRig
   buildOnAwake: 1
-  hideSourceRenderers: 1
+  hideSourceRenderers: 0
+  showRagdollRenderersInLife: 0
   setRagdollLayerToIgnoreRaycast: 1
   ragdollLayer: 10
   physicalRoot: {fileID: 394365172}
@@ -14148,6 +14677,33 @@ MonoBehaviour:
   impactForce: 8
   staminaCostPerShot: 5
   staminaCostPerMelee: 12
+--- !u!114 &622210713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 622210690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edd25952ea0d8e4419d2250fcece2cd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::StarterLoadout
+  grantOnStart: 1
+  grantOnlyIfInventoryEmpty: 1
+  startingWeapon: {fileID: 11400000, guid: aa7dcdf3f62feab4ca2734f71e7d8114, type: 2}
+  startingItems:
+  - {fileID: 11400000, guid: aa7dcdf3f62feab4ca2734f71e7d8114, type: 2}
+  - {fileID: 11400000, guid: 525001796b5077d449f3739f88fa01ec, type: 2}
+  - {fileID: 11400000, guid: e8f6b0e57977a6645a2c5b8d3e876a7f, type: 2}
+  - {fileID: 11400000, guid: 3a7c559e1a095c24e8cfeefa035c0f9d, type: 2}
+  startingAmmo:
+  - ammoItemId: ammo_pistol
+    amount: 60
+  - ammoItemId: ammo_rifle
+    amount: 32
+  - ammoItemId: ammo_shell
+    amount: 20
 --- !u!1 &623634502
 GameObject:
   m_ObjectHideFlags: 0
@@ -15648,7 +16204,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 754650040}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -15923,7 +16479,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 761229045}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -16167,7 +16723,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 763638444}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -16658,7 +17214,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 807715863}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -16787,6 +17343,7 @@ MonoBehaviour:
   debugRoot: {fileID: 616997505}
   uiRoot: {fileID: 2143980379}
   infectionDirector: {fileID: 170605982}
+  inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   enforceTemplateSeparation: 1
   minTemplateSeparation: 18
   exteriorTemplateOrigin: {x: -18, y: 0, z: -6}
@@ -16991,6 +17548,7 @@ GameObject:
   - component: {fileID: 836936791}
   - component: {fileID: 836936795}
   - component: {fileID: 836936796}
+  - component: {fileID: 836936797}
   m_Layer: 0
   m_Name: INT_RelayFuseB
   m_TagString: Untagged
@@ -17153,7 +17711,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &836936796
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17167,6 +17724,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &836936797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836936789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &845400138
 GameObject:
   m_ObjectHideFlags: 0
@@ -17579,7 +18148,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 879905594}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -17854,7 +18423,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 898349761}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -18154,6 +18723,7 @@ GameObject:
   - component: {fileID: 925863616}
   - component: {fileID: 925863620}
   - component: {fileID: 925863621}
+  - component: {fileID: 925863622}
   m_Layer: 0
   m_Name: ServiceDoor
   m_TagString: Untagged
@@ -18322,7 +18892,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &925863621
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18336,6 +18905,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &925863622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 925863614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &927722721
 GameObject:
   m_ObjectHideFlags: 0
@@ -18623,7 +19204,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 934615317}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -19154,7 +19735,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 946802633}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -19577,7 +20158,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 976940699}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -19755,6 +20336,7 @@ GameObject:
   - component: {fileID: 987806827}
   - component: {fileID: 987806829}
   - component: {fileID: 987806830}
+  - component: {fileID: 987806831}
   m_Layer: 0
   m_Name: OldKeyPickup
   m_TagString: Untagged
@@ -19863,7 +20445,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &987806830
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19877,6 +20458,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &987806831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987806825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &989671409
 GameObject:
   m_ObjectHideFlags: 0
@@ -20050,7 +20643,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 989671409}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -20390,7 +20983,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1026611001}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -20667,7 +21260,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1037806899}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -20911,7 +21504,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1047564258}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -21036,6 +21629,7 @@ GameObject:
   - component: {fileID: 1056560697}
   - component: {fileID: 1056560699}
   - component: {fileID: 1056560698}
+  - component: {fileID: 1056560700}
   m_Layer: 0
   m_Name: VS_CaretakerNPC
   m_TagString: Untagged
@@ -21132,7 +21726,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056560686}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -21239,7 +21833,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralHumanoidRig
   buildOnAwake: 1
-  hideSourceRenderers: 1
+  hideSourceRenderers: 0
+  showRagdollRenderersInLife: 0
   setRagdollLayerToIgnoreRaycast: 1
   ragdollLayer: 10
   physicalRoot: {fileID: 972816716}
@@ -21354,7 +21949,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &1056560696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21421,6 +22015,18 @@ MonoBehaviour:
   destroyOnDeath: 1
   deathDelay: 0.5
   isBoss: 0
+--- !u!114 &1056560700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056560686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &1056903910
 GameObject:
   m_ObjectHideFlags: 0
@@ -21436,6 +22042,7 @@ GameObject:
   - component: {fileID: 1056903912}
   - component: {fileID: 1056903916}
   - component: {fileID: 1056903917}
+  - component: {fileID: 1056903918}
   m_Layer: 0
   m_Name: VS_ExteriorKeyPickup
   m_TagString: Untagged
@@ -21599,7 +22206,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &1056903917
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21613,6 +22219,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &1056903918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056903910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &1060932721
 GameObject:
   m_ObjectHideFlags: 0
@@ -22040,7 +22658,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1084718341}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -22280,126 +22898,6 @@ Transform:
   - {fileID: 1654455195}
   m_Father: {fileID: 1016534843}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!21 &1110659181
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: HolstinTemplate_Accent
-  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 1
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _BaseMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _BumpMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _DetailAlbedoMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _DetailMask:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _DetailNormalMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _EmissionMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MetallicGlossMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _OcclusionMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _ParallaxMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SpecGlossMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _AddPrecomputedVelocity: 0
-    - _AlphaClip: 0
-    - _AlphaToMask: 0
-    - _Blend: 0
-    - _BlendModePreserveSpecular: 1
-    - _BumpScale: 1
-    - _ClearCoatMask: 0
-    - _ClearCoatSmoothness: 0
-    - _Cull: 2
-    - _Cutoff: 0.5
-    - _DetailAlbedoMapScale: 1
-    - _DetailNormalMapScale: 1
-    - _DstBlend: 0
-    - _DstBlendAlpha: 0
-    - _EnvironmentReflections: 1
-    - _GlossMapScale: 0
-    - _Glossiness: 0.33
-    - _GlossyReflections: 0
-    - _Metallic: 0.15
-    - _OcclusionStrength: 1
-    - _Parallax: 0.005
-    - _QueueOffset: 0
-    - _ReceiveShadows: 1
-    - _Smoothness: 0.33
-    - _SmoothnessTextureChannel: 0
-    - _SpecularHighlights: 1
-    - _SrcBlend: 1
-    - _SrcBlendAlpha: 1
-    - _Surface: 0
-    - _WorkflowMode: 1
-    - _XRMotionVectorsPass: 1
-    - _ZWrite: 1
-    m_Colors:
-    - _BaseColor: {r: 0.3, g: 0.45, b: 0.56, a: 1}
-    - _Color: {r: 0.3, g: 0.45, b: 0.56, a: 1}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1114817295
 GameObject:
   m_ObjectHideFlags: 0
@@ -22809,7 +23307,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1124547505}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -23195,7 +23693,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1137750218}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -23439,7 +23937,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1139491917}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -24039,6 +24537,7 @@ GameObject:
   - component: {fileID: 1222399535}
   - component: {fileID: 1222399539}
   - component: {fileID: 1222399540}
+  - component: {fileID: 1222399541}
   m_Layer: 0
   m_Name: ServiceConsole
   m_TagString: Untagged
@@ -24183,7 +24682,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &1222399540
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24197,6 +24695,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &1222399541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222399533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &1239949924
 GameObject:
   m_ObjectHideFlags: 0
@@ -24419,7 +24929,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1250661308}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -24665,7 +25175,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1252018770}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -25165,6 +25675,21 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!115 &1280836287
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &1286998610
 GameObject:
   m_ObjectHideFlags: 0
@@ -25308,6 +25833,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1342940459}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &1305675734
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &1307702747
 GameObject:
   m_ObjectHideFlags: 0
@@ -25480,7 +26020,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1307702747}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -25800,6 +26340,7 @@ GameObject:
   - component: {fileID: 1334671302}
   - component: {fileID: 1334671306}
   - component: {fileID: 1334671307}
+  - component: {fileID: 1334671308}
   m_Layer: 0
   m_Name: INT_RelayConsoleA
   m_TagString: Untagged
@@ -25944,7 +26485,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &1334671307
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25958,6 +26498,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &1334671308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1334671300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &1337346469
 GameObject:
   m_ObjectHideFlags: 0
@@ -26130,7 +26682,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1337346469}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -26470,7 +27022,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1347213131}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -27186,7 +27738,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1421731277}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -27432,7 +27984,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1422492148}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -27577,7 +28129,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1423243955}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -27752,7 +28304,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralHumanoidRig
   buildOnAwake: 1
-  hideSourceRenderers: 1
+  hideSourceRenderers: 0
+  showRagdollRenderersInLife: 0
   setRagdollLayerToIgnoreRaycast: 1
   ragdollLayer: 10
   physicalRoot: {fileID: 1054530875}
@@ -28222,7 +28775,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1433090863}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -28543,7 +29096,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1440088319}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -28788,7 +29341,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1441285847}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -29031,7 +29584,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1442971222}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -29271,6 +29824,7 @@ GameObject:
   - component: {fileID: 1472097989}
   - component: {fileID: 1472097993}
   - component: {fileID: 1472097994}
+  - component: {fileID: 1472097995}
   m_Layer: 0
   m_Name: VS_ServiceConsole
   m_TagString: Untagged
@@ -29415,7 +29969,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &1472097994
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29429,6 +29982,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &1472097995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1472097987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &1476715838
 GameObject:
   m_ObjectHideFlags: 0
@@ -29602,7 +30167,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1476715838}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -29913,7 +30478,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1509044594}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -30092,7 +30657,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1552515220}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -30367,7 +30932,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1558577342}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -30713,7 +31278,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1563914664}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -31257,7 +31822,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1603372212}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -31648,7 +32213,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1623301002}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -31893,7 +32458,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1626918901}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -31985,6 +32550,7 @@ GameObject:
   - component: {fileID: 1627410866}
   - component: {fileID: 1627410869}
   - component: {fileID: 1627410868}
+  - component: {fileID: 1627410870}
   m_Layer: 0
   m_Name: INT_ArchivistNPC
   m_TagString: Untagged
@@ -32077,7 +32643,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1627410855}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -32184,7 +32750,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralHumanoidRig
   buildOnAwake: 1
-  hideSourceRenderers: 1
+  hideSourceRenderers: 0
+  showRagdollRenderersInLife: 0
   setRagdollLayerToIgnoreRaycast: 1
   ragdollLayer: 10
   physicalRoot: {fileID: 366676570}
@@ -32299,7 +32866,6 @@ MonoBehaviour:
   m_Script: {fileID: 2082431103}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
-  explicitAnchor: {fileID: 0}
 --- !u!114 &1627410865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32383,6 +32949,18 @@ MonoBehaviour:
   destroyOnDeath: 1
   deathDelay: 0.5
   isBoss: 0
+--- !u!114 &1627410870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1627410855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &1653911839
 GameObject:
   m_ObjectHideFlags: 0
@@ -32794,7 +33372,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1706739676}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -33038,7 +33616,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1712772197}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -33286,7 +33864,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1717563281}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -33988,7 +34566,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1737874724}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -34367,7 +34945,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1747201549}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -34438,6 +35016,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1747201549}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!115 &1756839954
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Holstin.Runtime
 --- !u!1 &1760485631
 GameObject:
   m_ObjectHideFlags: 0
@@ -34750,7 +35343,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1774182146}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -34996,7 +35589,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1774358568}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -35422,7 +36015,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1838901451}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -35667,7 +36260,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1842838443}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -35943,7 +36536,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1858477417}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -36250,6 +36843,72 @@ Transform:
   m_Children: []
   m_Father: {fileID: 242823552}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &1913064522
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Holstin.Runtime
+--- !u!1 &1916928309
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1916928310}
+  - component: {fileID: 1916928311}
+  m_Layer: 0
+  m_Name: VerticalSliceObjectiveUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1916928310
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1916928309}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2143980379}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1916928311
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1916928309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc02d428229d5764889bbc27c80372e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::VerticalSliceObjectiveUI
+  inventory: {fileID: 0}
+  requiredEnemyKills: 1
+  enemyRescanInterval: 1.25
+  panelColor: {r: 0.05, g: 0.06, b: 0.08, a: 0.8}
+  pendingColor: {r: 0.95, g: 0.78, b: 0.44, a: 1}
+  completeColor: {r: 0.62, g: 0.95, b: 0.66, a: 1}
+  titleColor: {r: 0.88, g: 0.92, b: 0.98, a: 1}
 --- !u!1 &1921696840
 GameObject:
   m_ObjectHideFlags: 0
@@ -36518,7 +37177,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1924774070}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -36762,7 +37421,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1926820807}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -37130,7 +37789,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1938782213}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -37983,7 +38642,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2000729340}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -38228,7 +38887,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2009282477}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -39129,6 +39788,7 @@ GameObject:
   - component: {fileID: 2091174762}
   - component: {fileID: 2091174761}
   - component: {fileID: 2091174765}
+  - component: {fileID: 2091174766}
   m_Layer: 0
   m_Name: INT_RelayConsoleB
   m_TagString: Untagged
@@ -39274,6 +39934,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReachTargetAnchor
   explicitAnchor: {fileID: 0}
+--- !u!114 &2091174766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2091174759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 438813232}
+  m_Name: 
+  m_EditorClassIdentifier: Holstin.Runtime::ReachTargetAnchor
 --- !u!1 &2094712762
 GameObject:
   m_ObjectHideFlags: 0
@@ -39631,7 +40303,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2108792319}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -40125,7 +40797,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2118206855}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -40401,7 +41073,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2136008059}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -40646,7 +41318,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2136202762}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -40843,8 +41515,24 @@ Transform:
   - {fileID: 1435865532}
   - {fileID: 662679791}
   - {fileID: 1254142036}
+  - {fileID: 1916928310}
   m_Father: {fileID: 1832293878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &2144036205
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: ReachTargetAnchor
+  m_Namespace: 
+  m_AssemblyName: Assembly-CSharp
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -31,7 +31,7 @@ public class VerticalSliceObjectiveUI : MonoBehaviour
     private TextMeshProUGUI objectiveText;
 
     private readonly Dictionary<Damageable, Action> enemyDeathHandlers = new Dictionary<Damageable, Action>();
-    private readonly HashSet<int> defeatedEnemyIds = new HashSet<int>();
+    private readonly HashSet<EnemyController> defeatedEnemyIds = new HashSet<EnemyController>();
 
     private bool hasOldKey;
     private bool gateUnlocked;
@@ -174,8 +174,7 @@ public class VerticalSliceObjectiveUI : MonoBehaviour
             return;
         }
 
-        int enemyId = enemy.gameObject.GetInstanceID();
-        if (!defeatedEnemyIds.Add(enemyId))
+        if (!defeatedEnemyIds.Add(enemy))
         {
             return;
         }

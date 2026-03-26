@@ -6,6 +6,7 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 using System.Collections.Generic;
 
@@ -85,6 +86,34 @@ public static partial class HolstinLevelDesignTemplates
         EnsureDirectionalLight();
         EnsureVerticalSliceBootstrap();
         FinalizeScene("Vertical slice bootstrap applied to current scene. Use the component context menu to force a refresh if needed.");
+    }
+
+    [MenuItem("Tools/Holstin Level Design Templates/Cleanup Missing Scripts In Active Scene")]
+    public static void CleanupMissingScriptsInActiveScene()
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (!activeScene.IsValid())
+        {
+            Debug.LogWarning("No valid active scene to clean.");
+            return;
+        }
+
+        GameObject[] roots = activeScene.GetRootGameObjects();
+        int removedCount = 0;
+        for (int i = 0; i < roots.Length; i++)
+        {
+            removedCount += RemoveMissingScriptsRecursive(roots[i].transform);
+        }
+
+        if (removedCount > 0)
+        {
+            EditorSceneManager.MarkSceneDirty(activeScene);
+            Debug.Log($"Removed {removedCount} missing script component(s) from scene '{activeScene.name}'. Save the scene to persist.");
+        }
+        else
+        {
+            Debug.Log($"No missing script components found in scene '{activeScene.name}'.");
+        }
     }
 
     private static void CreateInteractableSandbox(Vector3 origin)
@@ -321,7 +350,7 @@ public static partial class HolstinLevelDesignTemplates
         }
 
         HashSet<string> lookup = new HashSet<string>(names);
-        Transform[] allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Transform[] allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include);
         for (int i = allTransforms.Length - 1; i >= 0; i--)
         {
             Transform transformComponent = allTransforms[i];
@@ -345,5 +374,21 @@ public static partial class HolstinLevelDesignTemplates
 
         CheckpointZone checkpoint = zone.AddComponent<CheckpointZone>();
         checkpoint.Configure(message, true);
+    }
+
+    private static int RemoveMissingScriptsRecursive(Transform root)
+    {
+        if (root == null)
+        {
+            return 0;
+        }
+
+        int removed = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(root.gameObject);
+        for (int i = 0; i < root.childCount; i++)
+        {
+            removed += RemoveMissingScriptsRecursive(root.GetChild(i));
+        }
+
+        return removed;
     }
 }

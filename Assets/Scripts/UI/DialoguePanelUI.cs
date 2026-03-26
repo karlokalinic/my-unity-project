@@ -152,7 +152,7 @@ public class DialoguePanelUI : MonoBehaviour
 
         if (hintText != null)
         {
-            hintText.text = $"[{InputReader.DialogueSubmitKeyLabel}] Confirm    [{InputReader.DialogueLeaveKeyLabel}] Leave";
+            hintText.text = $"[{InputReader.GetDialogueSubmitLabel()}] Confirm    [{InputReader.GetDialogueCancelLabel()}] Leave";
         }
 
         RefreshChoiceWidgets();
@@ -241,8 +241,8 @@ public class DialoguePanelUI : MonoBehaviour
         if (hintText != null)
         {
             hintText.text = queuedLines.Count > 0
-                ? $"[{InputReader.InteractKeyLabel}] Next    [{InputReader.DialogueLeaveKeyLabel}] Skip"
-                : $"[{InputReader.InteractKeyLabel}] Close    [{InputReader.DialogueLeaveKeyLabel}] Skip";
+                ? $"[{InputReader.GetInteractLabel()}] Next    [{InputReader.GetDialogueCancelLabel()}] Skip"
+                : $"[{InputReader.GetInteractLabel()}] Close    [{InputReader.GetDialogueCancelLabel()}] Skip";
         }
     }
 

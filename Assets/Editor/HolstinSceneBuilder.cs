@@ -100,7 +100,7 @@ public class HolstinSceneBuilder : EditorWindow
 
         if (GUILayout.Button("Find All Asset Placeholders"))
         {
-            var placeholders = FindObjectsByType<AssetPlaceholder>(FindObjectsSortMode.None);
+            var placeholders = FindObjectsByType<AssetPlaceholder>();
             Debug.Log($"Found {placeholders.Length} AssetPlaceholder(s) in scene.");
             if (placeholders.Length > 0)
             {
@@ -133,15 +133,15 @@ public class HolstinSceneBuilder : EditorWindow
                 break;
             case LayoutPreset.ExteriorCourtyard:
                 if (createNewScene) PrepareNewScene();
-                HolstinLevelDesignTemplates.CreateTemplatePackInCurrentScene();
+                HolstinLevelDesignTemplates.AddExteriorTemplate();
                 break;
             case LayoutPreset.InteriorBoardingHouse:
                 if (createNewScene) PrepareNewScene();
-                HolstinLevelDesignTemplates.CreateTemplatePackInCurrentScene();
+                HolstinLevelDesignTemplates.AddInteriorTemplate();
                 break;
             case LayoutPreset.UnderpassCatacombs:
                 if (createNewScene) PrepareNewScene();
-                HolstinLevelDesignTemplates.CreateTemplatePackInCurrentScene();
+                HolstinLevelDesignTemplates.AddUnderpassTemplateMenu();
                 break;
             case LayoutPreset.InteractableSandbox:
                 HolstinLevelDesignTemplates.CreateInteractableTestScene();

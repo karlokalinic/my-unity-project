@@ -74,13 +74,13 @@ public class DoorInteractable : InteractableBase
         {
             if (inventory != null && inventory.HasItem(requiredItemId))
             {
-                return $"[{InputReader.InteractKeyLabel}] Unlock door with {requiredItemDisplayName}";
+                return $"[{InputReader.GetInteractLabel()}] Unlock door with {requiredItemDisplayName}";
             }
 
-            return $"[{InputReader.InteractKeyLabel}] Try locked door";
+            return $"[{InputReader.GetInteractLabel()}] Try locked door";
         }
 
-        return isOpen ? $"[{InputReader.InteractKeyLabel}] Close door" : $"[{InputReader.InteractKeyLabel}] Open door";
+        return isOpen ? $"[{InputReader.GetInteractLabel()}] Close door" : $"[{InputReader.GetInteractLabel()}] Open door";
     }
 
     public override void Interact(PlayerInteraction interactor, InventorySystem inventory)

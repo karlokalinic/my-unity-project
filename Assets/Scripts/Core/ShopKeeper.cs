@@ -43,14 +43,38 @@ public class ShopKeeper : MonoBehaviour
 
     public bool TryBuy(ShopEntry entry, InventorySystem playerInv, CurrencyWallet wallet, ReputationSystem rep)
     {
-        if (entry == null || entry.item == null || entry.stock <= 0) return false;
-        if (playerInv == null || wallet == null) return false;
+        if (entry == null || entry.item == null)
+        {
+            Debug.LogWarning("[ShopKeeper] Cannot buy: missing shop entry or item definition.", this);
+            return false;
+        }
+
+        if (entry.stock <= 0)
+        {
+            Debug.LogWarning($"[ShopKeeper] Cannot buy '{entry.item.itemId}': no stock remaining.", this);
+            return false;
+        }
+
+        if (playerInv == null || wallet == null)
+        {
+            Debug.LogWarning("[ShopKeeper] Cannot buy: missing player inventory or currency wallet.", this);
+            return false;
+        }
 
         int price = GetBuyPrice(entry, rep);
-        if (!wallet.CanAfford(currencyId, price)) return false;
+        if (!wallet.CanAfford(currencyId, price))
+        {
+            Debug.Log($"[ShopKeeper] Player cannot afford '{entry.item.itemId}' (price {price} {currencyId}).", this);
+            return false;
+        }
+
+        if (!playerInv.TryAddItem(entry.item, 1))
+        {
+            Debug.Log($"[ShopKeeper] Inventory full, '{entry.item.itemId}' not added. No charge applied.", this);
+            return false;
+        }
 
         wallet.TrySpend(currencyId, price);
-        playerInv.TryAddItem(entry.item, 1);
         entry.stock--;
         ShopChanged?.Invoke();
         return true;

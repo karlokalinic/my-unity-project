@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 /// <summary>
 /// Editor utility: generates a starter set of ItemDefinition ScriptableObjects.
@@ -202,7 +203,16 @@ public static class ItemDatabaseBootstrap
     private static void Save(ItemDefinition item, string id)
     {
         string path = $"{BasePath}/{id}.asset";
-        AssetDatabase.CreateAsset(item, path);
+        ItemDefinition existing = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+        if (existing == null)
+        {
+            AssetDatabase.CreateAsset(item, path);
+            return;
+        }
+
+        EditorUtility.CopySerializedManagedFieldsOnly(item, existing);
+        EditorUtility.SetDirty(existing);
+        Object.DestroyImmediate(item);
     }
 
     private static void EnsureFolder(string path)

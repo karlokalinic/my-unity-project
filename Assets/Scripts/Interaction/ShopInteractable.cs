@@ -17,7 +17,7 @@ public class ShopInteractable : InteractableBase
     public override string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
         string name = shopKeeper != null ? shopKeeper.ShopName : "Merchant";
-        return $"[{InputReader.InteractKeyLabel}] Trade with {name}";
+        return $"[{InputReader.GetInteractLabel()}] Trade with {name}";
     }
 
     public override int GetPriority(PlayerInteraction interactor) => 4;
