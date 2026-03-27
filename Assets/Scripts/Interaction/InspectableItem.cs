@@ -4,6 +4,7 @@ public class InspectableItem : MonoBehaviour
 {
     [SerializeField] private string itemName = "Inspectable Item";
     [SerializeField] [TextArea(2, 5)] private string itemDescription = "A useful greybox stand-in for a lore object.";
+    [SerializeField] private string milestoneOnInspect;
     [SerializeField] private Vector3 previewLocalPosition = new Vector3(0f, 0f, 1.25f);
     [SerializeField] private Vector3 previewLocalEuler = new Vector3(12f, -30f, 0f);
     [SerializeField] private float previewScale = 1.25f;
@@ -14,6 +15,7 @@ public class InspectableItem : MonoBehaviour
 
     public string ItemName => itemName;
     public string ItemDescription => itemDescription;
+    public string MilestoneOnInspect => milestoneOnInspect;
     public Vector3 PreviewLocalPosition => previewLocalPosition;
     public Vector3 PreviewLocalEuler => previewLocalEuler;
     public float PreviewScale => previewScale;
@@ -24,6 +26,11 @@ public class InspectableItem : MonoBehaviour
     {
         itemName = newName;
         itemDescription = newDescription;
+    }
+
+    public void ConfigureMilestone(string milestoneId)
+    {
+        milestoneOnInspect = milestoneId;
     }
 
     private void Awake()

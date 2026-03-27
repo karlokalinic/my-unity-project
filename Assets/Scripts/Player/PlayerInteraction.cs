@@ -98,11 +98,19 @@ public class PlayerInteraction : MonoBehaviour
         if (cameraRig == null)
         {
             cameraRig = FindAnyObjectByType<HolstinCameraRig>();
+            if (cameraRig != null)
+            {
+                Debug.LogWarning("BOOTSTRAP_FALLBACK: PlayerInteraction resolved HolstinCameraRig via FindAnyObjectByType.");
+            }
         }
 
         if (inspectViewer == null)
         {
             inspectViewer = FindAnyObjectByType<InspectItemViewer>();
+            if (inspectViewer != null)
+            {
+                Debug.LogWarning("BOOTSTRAP_FALLBACK: PlayerInteraction resolved InspectItemViewer via FindAnyObjectByType.");
+            }
         }
 
         if (inventory == null)
@@ -113,6 +121,10 @@ public class PlayerInteraction : MonoBehaviour
         if (promptUI == null)
         {
             promptUI = FindAnyObjectByType<InteractionPromptUI>();
+            if (promptUI != null)
+            {
+                Debug.LogWarning("BOOTSTRAP_FALLBACK: PlayerInteraction resolved InteractionPromptUI via FindAnyObjectByType.");
+            }
         }
 
         if (pickupAnchor == null)

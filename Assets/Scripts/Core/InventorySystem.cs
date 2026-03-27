@@ -40,7 +40,10 @@ public class InventorySystem : MonoBehaviour
     public event Action<ItemDefinition> ItemRemoved;
     public event Action<EquipmentSlot> EquipmentChanged;
 
-    // === Backward compatibility with old string-based system ===
+    // LEGACY KEEP REMOVE_LATER:
+    // Backward compatibility with string-based item paths still used at runtime by:
+    // NPCKeyGiverInteractable, ItemConsumeInteractable, DoorInteractable, SkillCheckNpcInteractable.
+    // Remove after all runtime callsites are migrated to ItemDefinition-based APIs.
     private readonly Dictionary<string, int> legacyItems = new Dictionary<string, int>();
     private readonly Dictionary<string, string> legacyDisplayNames = new Dictionary<string, string>();
 
@@ -57,34 +60,9 @@ public class InventorySystem : MonoBehaviour
 
     public bool TryAddItem(ItemDefinition item, int amount = 1)
     {
-        if (item == null || amount <= 0) return false;
-
-        int remaining = amount;
-
-        // Stack into existing slots first
-        if (item.stackable)
+        if (!TryAddItemToSlots(item, amount))
         {
-            for (int i = 0; i < slots.Count && remaining > 0; i++)
-            {
-                if (slots[i].item == item && slots[i].count < item.maxStack)
-                {
-                    int canAdd = Mathf.Min(remaining, item.maxStack - slots[i].count);
-                    slots[i].count += canAdd;
-                    remaining -= canAdd;
-                }
-            }
-        }
-
-        // Fill empty slots
-        while (remaining > 0)
-        {
-            int emptyIndex = FindEmptySlot();
-            if (emptyIndex < 0) return false; // Inventory full
-
-            int toAdd = item.stackable ? Mathf.Min(remaining, item.maxStack) : 1;
-            slots[emptyIndex].item = item;
-            slots[emptyIndex].count = toAdd;
-            remaining -= toAdd;
+            return false;
         }
 
         ItemAdded?.Invoke(item);
@@ -176,6 +154,7 @@ public class InventorySystem : MonoBehaviour
 
     private int FindEmptySlot()
     {
+        EnsureSlotsInitialized();
         for (int i = 0; i < slots.Count; i++)
         {
             if (slots[i].IsEmpty) return i;
@@ -183,7 +162,8 @@ public class InventorySystem : MonoBehaviour
         return -1;
     }
 
-    // === Legacy compatibility (old string-based interactions still work) ===
+    // LEGACY KEEP REMOVE_LATER:
+    // String-id API remains active while runtime interaction scripts are migrated.
 
     public bool HasItem(string itemId)
     {
@@ -196,7 +176,7 @@ public class InventorySystem : MonoBehaviour
                 return true;
         }
 
-        // Fallback to legacy
+        // LEGACY KEEP REMOVE_LATER: emergency fallback path for remaining string-id callsites.
         return legacyItems.TryGetValue(itemId, out int c) && c > 0;
     }
 
@@ -228,7 +208,7 @@ public class InventorySystem : MonoBehaviour
             }
         }
 
-        // Fallback to legacy
+        // LEGACY KEEP REMOVE_LATER: emergency fallback path for remaining string-id callsites.
         if (legacyItems.TryGetValue(itemId, out int c) && c >= amount)
         {
             legacyItems[itemId] -= amount;
@@ -268,12 +248,18 @@ public class InventorySystem : MonoBehaviour
         for (int i = 0; i < slots.Count; i++)
         {
             if (slots[i].item != null && slots[i].count > 0)
+            {
                 result.Add(new InventoryEntry
                 {
                     itemId = slots[i].item.itemId,
                     displayName = slots[i].item.displayName,
-                    count = slots[i].count
+                    count = slots[i].count,
+                    item = slots[i].item,
+                    isLegacy = false,
+                    equipWeapon = weaponSlot != null && weaponSlot.equippedItem == slots[i].item,
+                    equipArmor = armorSlot != null && armorSlot.equippedItem == slots[i].item
                 });
+            }
         }
         foreach (var kv in legacyItems)
         {
@@ -282,7 +268,8 @@ public class InventorySystem : MonoBehaviour
                 {
                     itemId = kv.Key,
                     displayName = legacyDisplayNames.TryGetValue(kv.Key, out string dn) ? dn : kv.Key,
-                    count = kv.Value
+                    count = kv.Value,
+                    isLegacy = true
                 });
         }
         return result;
@@ -295,18 +282,154 @@ public class InventorySystem : MonoBehaviour
 
     public void RestoreSnapshot(List<InventoryEntry> snapshot)
     {
+        EnsureSlotsInitialized();
+        ClearSlots();
         legacyItems.Clear();
         legacyDisplayNames.Clear();
-        if (snapshot == null) return;
+        ItemDefinition weaponToEquip = null;
+        ItemDefinition armorToEquip = null;
+
+        if (weaponSlot != null)
+        {
+            weaponSlot.equippedItem = null;
+        }
+
+        if (armorSlot != null)
+        {
+            armorSlot.equippedItem = null;
+        }
+
+        if (snapshot == null)
+        {
+            InventoryChanged?.Invoke();
+            return;
+        }
+
         for (int i = 0; i < snapshot.Count; i++)
         {
             var e = snapshot[i];
-            if (e != null && !string.IsNullOrWhiteSpace(e.itemId))
+            if (e == null || e.count <= 0 || string.IsNullOrWhiteSpace(e.itemId))
             {
-                legacyItems[e.itemId] = e.count;
-                legacyDisplayNames[e.itemId] = e.displayName;
+                continue;
+            }
+
+            if (e.isLegacy || e.item == null)
+            {
+                AddLegacyItem(e.itemId, e.displayName, e.count);
+                continue;
+            }
+
+            if (!TryAddItemToSlots(e.item, e.count))
+            {
+                Debug.LogWarning($"[InventorySystem] Could not fully restore snapshot item '{e.itemId}'.");
+            }
+
+            if (e.equipWeapon)
+            {
+                weaponToEquip = e.item;
+            }
+
+            if (e.equipArmor)
+            {
+                armorToEquip = e.item;
             }
         }
+
+        if (weaponSlot != null && weaponToEquip != null && HasItem(weaponToEquip))
+        {
+            weaponSlot.equippedItem = weaponToEquip;
+            EquipmentChanged?.Invoke(weaponSlot);
+        }
+
+        if (armorSlot != null && armorToEquip != null && HasItem(armorToEquip))
+        {
+            armorSlot.equippedItem = armorToEquip;
+            EquipmentChanged?.Invoke(armorSlot);
+        }
+
         InventoryChanged?.Invoke();
+    }
+
+    private bool TryAddItemToSlots(ItemDefinition item, int amount)
+    {
+        if (item == null || amount <= 0)
+        {
+            return false;
+        }
+
+        EnsureSlotsInitialized();
+        int remaining = amount;
+
+        // Stack into existing slots first.
+        if (item.stackable)
+        {
+            for (int i = 0; i < slots.Count && remaining > 0; i++)
+            {
+                if (slots[i].item == item && slots[i].count < item.maxStack)
+                {
+                    int canAdd = Mathf.Min(remaining, item.maxStack - slots[i].count);
+                    slots[i].count += canAdd;
+                    remaining -= canAdd;
+                }
+            }
+        }
+
+        // Fill empty slots.
+        while (remaining > 0)
+        {
+            int emptyIndex = FindEmptySlot();
+            if (emptyIndex < 0)
+            {
+                return false;
+            }
+
+            int toAdd = item.stackable ? Mathf.Min(remaining, item.maxStack) : 1;
+            slots[emptyIndex].item = item;
+            slots[emptyIndex].count = toAdd;
+            remaining -= toAdd;
+        }
+
+        return true;
+    }
+
+    private void AddLegacyItem(string itemId, string displayName, int amount)
+    {
+        if (string.IsNullOrWhiteSpace(itemId) || amount <= 0)
+        {
+            return;
+        }
+
+        if (!legacyItems.ContainsKey(itemId))
+        {
+            legacyItems[itemId] = 0;
+        }
+
+        legacyItems[itemId] += amount;
+        legacyDisplayNames[itemId] = string.IsNullOrWhiteSpace(displayName) ? itemId : displayName;
+    }
+
+    private void ClearSlots()
+    {
+        for (int i = 0; i < slots.Count; i++)
+        {
+            slots[i].item = null;
+            slots[i].count = 0;
+        }
+    }
+
+    private void EnsureSlotsInitialized()
+    {
+        if (slots == null)
+        {
+            slots = new List<InventorySlot>();
+        }
+
+        if (slots.Count == 0 && maxSlots > 0)
+        {
+            for (int i = 0; i < maxSlots; i++)
+            {
+                slots.Add(new InventorySlot());
+            }
+        }
     }
 }

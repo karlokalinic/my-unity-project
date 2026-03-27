@@ -19,6 +19,7 @@ public class TurnBasedCombatUI : MonoBehaviour
     private Button defendBtn;
     private Button itemBtn;
     private Button fleeBtn;
+    private bool ownsInputContext;
 
     private void Awake()
     {
@@ -38,15 +39,20 @@ public class TurnBasedCombatUI : MonoBehaviour
 
     private void OnDisable()
     {
-        if (combatManager == null) return;
-        combatManager.CombatStarted -= OnCombatStarted;
-        combatManager.CombatEnded -= OnCombatEnded;
-        combatManager.PhaseChanged -= OnPhaseChanged;
-        combatManager.CombatLog -= OnCombatLog;
+        if (combatManager != null)
+        {
+            combatManager.CombatStarted -= OnCombatStarted;
+            combatManager.CombatEnded -= OnCombatEnded;
+            combatManager.PhaseChanged -= OnPhaseChanged;
+            combatManager.CombatLog -= OnCombatLog;
+        }
+
+        ReleaseUiContext();
     }
 
     private void OnCombatStarted()
     {
+        AcquireUiContext();
         panel.gameObject.SetActive(true);
         logText.text = "Boss encounter!\n";
         SetButtonsInteractable(true);
@@ -54,6 +60,7 @@ public class TurnBasedCombatUI : MonoBehaviour
 
     private void OnCombatEnded(bool victory)
     {
+        ReleaseUiContext();
         logText.text += victory ? "\n<color=#4f4>VICTORY!</color>" : "\n<color=#f44>DEFEATED</color>";
         SetButtonsInteractable(false);
         Invoke(nameof(HidePanel), 2.5f);
@@ -61,6 +68,7 @@ public class TurnBasedCombatUI : MonoBehaviour
 
     private void HidePanel()
     {
+        ReleaseUiContext();
         panel.gameObject.SetActive(false);
     }
 
@@ -184,5 +192,27 @@ public class TurnBasedCombatUI : MonoBehaviour
         GameObject go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(parent, false);
         return go.GetComponent<RectTransform>();
+    }
+
+    private void AcquireUiContext()
+    {
+        if (ownsInputContext)
+        {
+            return;
+        }
+
+        InputReader.PushContext(InputReader.InputContext.UI);
+        ownsInputContext = true;
+    }
+
+    private void ReleaseUiContext()
+    {
+        if (!ownsInputContext)
+        {
+            return;
+        }
+
+        InputReader.PopContext(InputReader.InputContext.Gameplay);
+        ownsInputContext = false;
     }
 }

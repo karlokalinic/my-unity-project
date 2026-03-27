@@ -7,6 +7,7 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class VerticalSliceObjectiveUI : MonoBehaviour
 {
+    private const string InspectMilestone = "inspect_exterior_note";
     private const string OldKeyMilestone = "pickup_exterior_key";
     private const string GateMilestone = "unlock_interior_gate";
     private const string ServiceKeyMilestone = "npc_reward_key";
@@ -17,7 +18,7 @@ public class VerticalSliceObjectiveUI : MonoBehaviour
     [SerializeField] private InventorySystem inventory;
 
     [Header("Objectives")]
-    [SerializeField] [Min(1)] private int requiredEnemyKills = 1;
+    [SerializeField] [Min(0)] private int requiredEnemyKills;
     [SerializeField] private float enemyRescanInterval = 1.25f;
 
     [Header("Style")]
@@ -34,6 +35,7 @@ public class VerticalSliceObjectiveUI : MonoBehaviour
     private readonly HashSet<EnemyController> defeatedEnemyIds = new HashSet<EnemyController>();
 
     private bool hasOldKey;
+    private bool inspectedNote;
     private bool gateUnlocked;
     private bool hasServiceKey;
     private bool consoleActivated;
@@ -105,6 +107,10 @@ public class VerticalSliceObjectiveUI : MonoBehaviour
         if (string.Equals(milestoneId, OldKeyMilestone, StringComparison.OrdinalIgnoreCase))
         {
             hasOldKey = true;
+        }
+        else if (string.Equals(milestoneId, InspectMilestone, StringComparison.OrdinalIgnoreCase))
+        {
+            inspectedNote = true;
         }
         else if (string.Equals(milestoneId, GateMilestone, StringComparison.OrdinalIgnoreCase))
         {
@@ -199,10 +205,11 @@ public class VerticalSliceObjectiveUI : MonoBehaviour
     private void EvaluateObjectiveState(bool announceChanges)
     {
         bool oldKeyBefore = hasOldKey;
+        bool inspectBefore = inspectedNote;
         bool gateBefore = gateUnlocked;
         bool serviceKeyBefore = hasServiceKey;
         bool consoleBefore = consoleActivated;
-        bool killGoalBefore = enemyKills >= requiredEnemyKills;
+        bool killGoalBefore = requiredEnemyKills <= 0 || enemyKills >= requiredEnemyKills;
         bool completedBefore = sliceCompleted;
 
         if (inventory != null)
@@ -213,17 +220,18 @@ public class VerticalSliceObjectiveUI : MonoBehaviour
 
         consoleActivated |= IsConsoleAlreadyUnlocked();
 
-        bool killGoalComplete = enemyKills >= requiredEnemyKills;
-        bool nowCompleted = hasOldKey && gateUnlocked && hasServiceKey && consoleActivated && killGoalComplete;
+        bool killGoalComplete = requiredEnemyKills <= 0 || enemyKills >= requiredEnemyKills;
+        bool nowCompleted = inspectedNote && hasOldKey && gateUnlocked && hasServiceKey && consoleActivated && killGoalComplete;
         sliceCompleted |= nowCompleted;
 
         if (announceChanges)
         {
+            AnnounceObjectiveChange(inspectBefore, inspectedNote, "Objective complete: inspect the field ledger.");
             AnnounceObjectiveChange(oldKeyBefore, hasOldKey, "Objective complete: secure the Old Key.");
             AnnounceObjectiveChange(gateBefore, gateUnlocked, "Objective complete: unlock the interior gate.");
             AnnounceObjectiveChange(serviceKeyBefore, hasServiceKey, "Objective complete: obtain the Service Key.");
             AnnounceObjectiveChange(consoleBefore, consoleActivated, "Objective complete: activate the service console.");
-            if (!killGoalBefore && killGoalComplete)
+            if (requiredEnemyKills > 0 && !killGoalBefore && killGoalComplete)
             {
                 HolstinFeedback.ShowMessage("Objective complete: hostile neutralized.", 1.7f);
             }
@@ -317,21 +325,41 @@ public class VerticalSliceObjectiveUI : MonoBehaviour
         }
 
         bool killGoalComplete = enemyKills >= requiredEnemyKills;
+        if (requiredEnemyKills <= 0)
+        {
+            killGoalComplete = true;
+        }
 
+        string inspectLine = FormatLine(inspectedNote, "Inspect Field Ledger");
         string oldKeyLine = FormatLine(hasOldKey, "Secure Old Key in Exterior");
         string gateLine = FormatLine(gateUnlocked, "Unlock Interior Gate");
         string serviceLine = FormatLine(hasServiceKey, "Acquire Service Key from NPC");
-        string killLine = FormatLine(killGoalComplete, $"Neutralize Hostiles ({Mathf.Min(enemyKills, requiredEnemyKills)}/{requiredEnemyKills})");
+        string killLine = requiredEnemyKills > 0
+            ? FormatLine(killGoalComplete, $"Neutralize Hostiles ({Mathf.Min(enemyKills, requiredEnemyKills)}/{requiredEnemyKills})")
+            : string.Empty;
         string consoleLine = FormatLine(consoleActivated, "Activate Underpass Service Console");
         string finalLine = sliceCompleted
             ? "<color=#9ef5aa>[DONE] Vertical slice loop complete.</color>"
             : "<color=#f0cf95>[LIVE] Complete all objectives to validate the slice.</color>";
 
+        if (requiredEnemyKills > 0)
+        {
+            objectiveText.text =
+                inspectLine + "\n" +
+                oldKeyLine + "\n" +
+                gateLine + "\n" +
+                serviceLine + "\n" +
+                killLine + "\n" +
+                consoleLine + "\n\n" +
+                finalLine;
+            return;
+        }
+
         objectiveText.text =
+            inspectLine + "\n" +
             oldKeyLine + "\n" +
             gateLine + "\n" +
             serviceLine + "\n" +
-            killLine + "\n" +
             consoleLine + "\n\n" +
             finalLine;
     }

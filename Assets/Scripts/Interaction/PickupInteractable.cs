@@ -9,6 +9,8 @@ public class PickupInteractable : InteractableBase
     [SerializeField] private string itemDisplayName = "Old Key";
     [SerializeField] [TextArea(2, 4)] private string pickupDescription = "A corroded key with a district stamp.";
     [SerializeField] private string infectionMilestoneOnPickup;
+    [SerializeField] private string requiredMilestoneId;
+    [SerializeField] [TextArea(1, 3)] private string requiredMilestoneMessage = "Inspect the nearby clue first.";
 
     [Header("Animation")]
     [SerializeField] private float pickupDuration = 0.45f;
@@ -25,7 +27,12 @@ public class PickupInteractable : InteractableBase
     private Collider[] cachedColliders;
     private PlayerInteraction activeInteractor;
 
-    public void ConfigureItem(string newItemId, string newItemDisplayName, string newDescription, string infectionMilestone = "")
+    public void ConfigureItem(
+        string newItemId,
+        string newItemDisplayName,
+        string newDescription,
+        string infectionMilestone = "",
+        string requiredMilestone = "")
     {
         if (!string.IsNullOrWhiteSpace(newItemId))
         {
@@ -43,10 +50,16 @@ public class PickupInteractable : InteractableBase
         }
 
         infectionMilestoneOnPickup = infectionMilestone;
+        requiredMilestoneId = requiredMilestone;
     }
 
     public override string GetPrompt(PlayerInteraction interactor, InventorySystem inventory)
     {
+        if (!HasRequiredMilestone())
+        {
+            return "Inspect nearby clue first";
+        }
+
         return $"[{InputReader.GetInteractLabel()}] Pick up {itemDisplayName}";
     }
 
@@ -54,6 +67,12 @@ public class PickupInteractable : InteractableBase
     {
         if (interactor == null || inventory == null || isPickingUp)
         {
+            return;
+        }
+
+        if (!HasRequiredMilestone())
+        {
+            interactor.ShowTransientMessage(requiredMilestoneMessage, 2.1f);
             return;
         }
 
@@ -89,6 +108,20 @@ public class PickupInteractable : InteractableBase
         inventory.AddItem(itemId, itemDisplayName, 1);
         interactor.ShowTransientMessage($"Picked up {itemDisplayName}\n{pickupDescription}", 2.8f);
         HolstinAudio.PlayOneShot(pickupSound, transform, pickupSoundVolume);
+
+        if (SliceState.TryGet(out SliceState sliceState))
+        {
+            sliceState.AcquireKeyItem(itemId);
+            if (!string.IsNullOrWhiteSpace(infectionMilestoneOnPickup))
+            {
+                sliceState.MarkMilestone(infectionMilestoneOnPickup);
+            }
+
+            if (string.Equals(itemId, "old_key", System.StringComparison.OrdinalIgnoreCase))
+            {
+                sliceState.SetCurrentObjective("unlock_interior_gate");
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(infectionMilestoneOnPickup))
         {
@@ -180,5 +213,15 @@ public class PickupInteractable : InteractableBase
                 colliderComponent.enabled = visible;
             }
         }
+    }
+
+    private bool HasRequiredMilestone()
+    {
+        if (string.IsNullOrWhiteSpace(requiredMilestoneId))
+        {
+            return true;
+        }
+
+        return SliceState.TryGet(out SliceState state) && state.HasMilestone(requiredMilestoneId);
     }
 }

@@ -9,9 +9,48 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 using System.Collections.Generic;
+using System.IO;
 
 public static partial class HolstinLevelDesignTemplates
 {
+    [MenuItem("Tools/Holstin Level Design Templates/Create Vertical Slice Consolidated Scene")]
+    public static void CreateVerticalSliceConsolidatedScene()
+    {
+        if (!EditorUtility.DisplayDialog(
+                "Create Vertical Slice Consolidated Scene",
+                "This creates and saves a slice-focused canonical scene with minimal default rig + explicit vertical-slice bootstrap wiring. Continue?",
+                "Create",
+                "Cancel"))
+        {
+            return;
+        }
+
+        if (!ConfirmCanCreateNewScene())
+        {
+            return;
+        }
+
+        EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+        CleanupDefaultScene();
+        ResetMaterialCache();
+        EnsureSceneRootGroups();
+        CreateDirectionalLight();
+        CreateSkyGround(new Vector3(0f, -0.1f, 0f), new Vector3(18f, 0.2f, 18f), "SceneGround");
+        EnsureCoreRig(new Vector3(-6f, 1.2f, -6f));
+        CreateFogCourtyardExterior(new Vector3(-18f, 0f, -6f));
+        CreateBoardingHouseInterior(new Vector3(14f, 0f, -2f));
+        CreateUnderpassTemplate(new Vector3(12f, -5.5f, 10f));
+        CreateConnectorStair(new Vector3(10f, -0.05f, 6f), 6, 1.02f, 0.2f, 1.8f, 0.2f, 1f, Quaternion.Euler(0f, 180f, 0f), "HouseToUnderpassSteps");
+        EnsureVerticalSliceBootstrap();
+        ApplyProductionAestheticPassInternal();
+
+        const string scenePath = "Assets/Scenes/VerticalSlice_Consolidated.unity";
+        Directory.CreateDirectory("Assets/Scenes");
+        EditorSceneManager.SaveScene(SceneManager.GetActiveScene(), scenePath, true);
+        AssetDatabase.Refresh();
+        FinalizeScene($"Vertical slice consolidated scene created at {scenePath}.");
+    }
+
     [MenuItem("Tools/Holstin Level Design Templates/Create Full Slice Scene")]
     public static void CreateFullSliceScene()
     {

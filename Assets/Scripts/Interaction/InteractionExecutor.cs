@@ -29,9 +29,13 @@ public class InteractionExecutor
             return;
         }
 
+        // LEGACY KEEP REMOVE_LATER:
+        // Emergency interaction path when scanner fails to resolve InteractableBase/InspectableItem.
         TryLegacyInteractRaycast(viewCamera, interactDistance, interactionMask, interactor, inspectViewer);
     }
 
+    // LEGACY KEEP REMOVE_LATER:
+    // Runtime emergency fallback raycast path. Primary path is InteractionScanner context selection.
     private static void TryLegacyInteractRaycast(
         Camera viewCamera,
         float interactDistance,

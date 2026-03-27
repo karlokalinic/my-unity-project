@@ -94,7 +94,9 @@ public class ItemConsumeInteractable : InteractableBase
             return;
         }
 
-        if (!inventory.HasItem(requiredItemId))
+        bool hasRequiredItem = inventory.HasItem(requiredItemId) ||
+                               (SliceState.TryGet(out SliceState state) && state.HasKeyItem(requiredItemId));
+        if (!hasRequiredItem)
         {
             interactor.ShowTransientMessage(missingItemMessage, 2.2f);
             HolstinAudio.PlayOneShot(failedUseSound, transform, soundVolume);
@@ -115,6 +117,12 @@ public class ItemConsumeInteractable : InteractableBase
 
         if (!string.IsNullOrWhiteSpace(infectionMilestoneOnSuccess))
         {
+            if (SliceState.TryGet(out SliceState sliceState))
+            {
+                sliceState.MarkMilestone(infectionMilestoneOnSuccess);
+                sliceState.SetCurrentObjective("vertical_slice_complete");
+            }
+
             InfectionDirector.NotifyMilestoneGlobal(infectionMilestoneOnSuccess);
         }
 

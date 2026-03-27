@@ -37,38 +37,14 @@ public static partial class HolstinLevelDesignTemplates
         PlayerMover mover       = EnsureComponent<PlayerMover>(player);
         PlayerInteraction inter = EnsureComponent<PlayerInteraction>(player);
 
-        // --- New RPG systems ---
-        EnsureComponent<CharacterStats>(player);
-        EnsureComponent<InventorySystem>(player);
-        EnsureComponent<SkillSystem>(player);
-        EnsureComponent<ReputationSystem>(player);
-        EnsureComponent<CurrencyWallet>(player);
-        EnsureComponent<Damageable>(player);
-        EnsureComponent<RealTimeCombat>(player);
-        EnsureComponent<ExperienceSystem>(player);
-        EnsureComponent<ChoiceHistoryTracker>(player);
-
-        ProceduralHumanoidRig humanoidRig = EnsureComponent<ProceduralHumanoidRig>(player);
-        humanoidRig.ConfigureRendererVisibility(true, true);
-        humanoidRig.EnsureBuilt();
-        EnsureComponent<ActiveRagdollMotor>(player);
-        EnsureComponent<DeathRagdollController>(player);
-        EnsureComponent<PlayerAnimationController>(player);
-        EnsureComponent<PlayerReachController>(player);
-        StyleProtagonistRagdoll(humanoidRig);
-
         Transform headAnchor = player.transform.Find("HeadAnchor");
         if (headAnchor == null) { headAnchor = new GameObject("HeadAnchor").transform; headAnchor.SetParent(player.transform); }
         headAnchor.localPosition = new Vector3(0f, 1.67f, 0.03f);
         headAnchor.localRotation = Quaternion.identity;
 
-        PlayerHeadAnchorDriver headAnchorDriver = EnsureComponent<PlayerHeadAnchorDriver>(player);
-        headAnchorDriver.Configure(humanoidRig, headAnchor, false, new Vector3(0f, 0.06f, 0.03f));
-
         HolstinCameraRig rig = Object.FindAnyObjectByType<HolstinCameraRig>();
         GameObject rigGO = rig != null ? rig.gameObject : new GameObject("HolstinCameraRig");
         if (rig == null) rig = rigGO.AddComponent<HolstinCameraRig>();
-        EnsureComponent<PlayModeCursorLock>(rigGO);
         if (sceneCoreRoot != null && rigGO.transform.parent != sceneCoreRoot)
             rigGO.transform.SetParent(sceneCoreRoot, true);
 
@@ -115,28 +91,67 @@ public static partial class HolstinLevelDesignTemplates
 
         context.Configure(rig, promptUI, viewer, mover, dialoguePanel);
         context.ResolveMissingReferences();
+        inter.ConfigureRuntimeReferences(null, promptUI, camGO.transform.Find("PickupAnchor"));
+    }
 
-        // --- Scene-level gameplay singletons ---
-        if (Object.FindAnyObjectByType<DifficultyManager>() == null)
+    // Explicit opt-in extension path for wider RPG feature scaffolding.
+    // Not used by default template generation.
+    private static void EnsureExtendedRpgSystems(GameObject player, bool includeSceneLevelManagers = false, bool includeRuntimeUi = false)
+    {
+        if (player == null)
         {
-            GameObject diffGO = new GameObject("DifficultyManager");
-            diffGO.AddComponent<DifficultyManager>();
-            if (sceneGameplayRoot != null) diffGO.transform.SetParent(sceneGameplayRoot, true);
+            return;
         }
 
-        if (Object.FindAnyObjectByType<TurnBasedCombatManager>() == null)
+        EnsureComponent<CharacterStats>(player);
+        EnsureComponent<InventorySystem>(player);
+        EnsureComponent<SkillSystem>(player);
+        EnsureComponent<ReputationSystem>(player);
+        EnsureComponent<CurrencyWallet>(player);
+        EnsureComponent<Damageable>(player);
+        EnsureComponent<RealTimeCombat>(player);
+        EnsureComponent<ExperienceSystem>(player);
+        EnsureComponent<ChoiceHistoryTracker>(player);
+
+        ProceduralHumanoidRig humanoidRig = EnsureComponent<ProceduralHumanoidRig>(player);
+        if (humanoidRig != null)
         {
-            GameObject tbmGO = new GameObject("TurnBasedCombatManager");
-            tbmGO.AddComponent<TurnBasedCombatManager>();
-            if (sceneGameplayRoot != null) tbmGO.transform.SetParent(sceneGameplayRoot, true);
+            humanoidRig.ConfigureRendererVisibility(true, true);
+            humanoidRig.EnsureBuilt();
+            StyleProtagonistRagdoll(humanoidRig);
         }
 
-        // --- Runtime UI singletons ---
-        EnsureRuntimeUI<HealthStaminaHUD>("HealthStaminaHUD");
-        EnsureRuntimeUI<InventoryPanelUI>("InventoryPanelUI");
-        EnsureRuntimeUI<TurnBasedCombatUI>("TurnBasedCombatUI");
-        EnsureRuntimeUI<ShopWindowUI>("ShopWindowUI");
-        EnsureRuntimeUI<CombatReticleUI>("CombatReticleUI");
+        EnsureComponent<ActiveRagdollMotor>(player);
+        EnsureComponent<DeathRagdollController>(player);
+        EnsureComponent<PlayerAnimationController>(player);
+        EnsureComponent<PlayerReachController>(player);
+        EnsureComponent<PlayerHeadAnchorDriver>(player);
+
+        if (includeSceneLevelManagers)
+        {
+            if (Object.FindAnyObjectByType<DifficultyManager>() == null)
+            {
+                GameObject diffGO = new GameObject("DifficultyManager");
+                diffGO.AddComponent<DifficultyManager>();
+                if (sceneGameplayRoot != null) diffGO.transform.SetParent(sceneGameplayRoot, true);
+            }
+
+            if (Object.FindAnyObjectByType<TurnBasedCombatManager>() == null)
+            {
+                GameObject tbmGO = new GameObject("TurnBasedCombatManager");
+                tbmGO.AddComponent<TurnBasedCombatManager>();
+                if (sceneGameplayRoot != null) tbmGO.transform.SetParent(sceneGameplayRoot, true);
+            }
+        }
+
+        if (includeRuntimeUi)
+        {
+            EnsureRuntimeUI<HealthStaminaHUD>("HealthStaminaHUD");
+            EnsureRuntimeUI<InventoryPanelUI>("InventoryPanelUI");
+            EnsureRuntimeUI<TurnBasedCombatUI>("TurnBasedCombatUI");
+            EnsureRuntimeUI<ShopWindowUI>("ShopWindowUI");
+            EnsureRuntimeUI<CombatReticleUI>("CombatReticleUI");
+        }
     }
 
     private static void CleanupLegacyPlayerPrimitiveComponents(GameObject player)

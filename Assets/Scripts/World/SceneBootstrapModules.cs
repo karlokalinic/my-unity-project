@@ -10,8 +10,8 @@ using UnityEngine.InputSystem.UI;
 
 /// <summary>
 /// Light-weight installers that break the VerticalSliceScenaBootstrap orchestration
-/// into focused modules. Each module delegates to the existing bootstrap utilities,
-/// keeping behavior identical while reducing the responsibility of the entrypoint.
+/// into focused modules. Each module delegates to bootstrap utilities while keeping
+/// default setup constrained to a vertical-slice-safe baseline.
 /// </summary>
 internal sealed class SceneCoreInstaller
 {
@@ -49,11 +49,6 @@ internal sealed class SceneCoreInstaller
         VerticalSliceScenaBootstrap.ReparentByName("HolstinSceneContext", host.CoreRoot);
         VerticalSliceScenaBootstrap.ReparentByName("InteractionPromptUI", host.UiRoot);
         VerticalSliceScenaBootstrap.ReparentByName("DialoguePanelUI", host.UiRoot);
-        VerticalSliceScenaBootstrap.ReparentByName("HealthStaminaHUD", host.UiRoot);
-        VerticalSliceScenaBootstrap.ReparentByName("InventoryPanelUI", host.UiRoot);
-        VerticalSliceScenaBootstrap.ReparentByName("TurnBasedCombatUI", host.UiRoot);
-        VerticalSliceScenaBootstrap.ReparentByName("ShopWindowUI", host.UiRoot);
-        VerticalSliceScenaBootstrap.ReparentByName("CombatReticleUI", host.UiRoot);
         VerticalSliceScenaBootstrap.ReparentByName("VerticalSliceObjectiveUI", host.UiRoot);
 
         VerticalSliceScenaBootstrap.ReparentByName("SceneGround", host.WorldRoot);
@@ -155,7 +150,7 @@ internal sealed class SceneCoreInstaller
         }
 #endif
 
-        InteractionPromptUI promptUI = Object.FindAnyObjectByType<InteractionPromptUI>();
+        InteractionPromptUI promptUI = FindWithEmergencyFallback(host.PromptUiReference, "InteractionPromptUI");
         if (promptUI == null)
         {
             GameObject promptObject = new GameObject(
@@ -173,7 +168,7 @@ internal sealed class SceneCoreInstaller
             promptUI.transform.SetParent(host.UiRoot, true);
         }
 
-        DialoguePanelUI dialoguePanel = Object.FindAnyObjectByType<DialoguePanelUI>();
+        DialoguePanelUI dialoguePanel = FindWithEmergencyFallback(host.DialoguePanelReference, "DialoguePanelUI");
         if (dialoguePanel == null)
         {
             GameObject dialogueObject = new GameObject(
@@ -191,7 +186,7 @@ internal sealed class SceneCoreInstaller
             dialoguePanel.transform.SetParent(host.UiRoot, true);
         }
 
-        HolstinSceneContext sceneContext = Object.FindAnyObjectByType<HolstinSceneContext>();
+        HolstinSceneContext sceneContext = FindWithEmergencyFallback(host.SceneContextReference, "HolstinSceneContext");
         if (sceneContext == null)
         {
             GameObject contextObject = new GameObject("HolstinSceneContext");
@@ -203,7 +198,7 @@ internal sealed class SceneCoreInstaller
             sceneContext.transform.SetParent(host.CoreRoot, true);
         }
 
-        PlayerMover playerMover = Object.FindAnyObjectByType<PlayerMover>();
+        PlayerMover playerMover = FindWithEmergencyFallback(host.PlayerMoverReference, "PlayerMover");
         if (playerMover == null)
         {
             return;
@@ -226,19 +221,26 @@ internal sealed class SceneCoreInstaller
             interaction = playerMover.gameObject.AddComponent<PlayerInteraction>();
         }
 
-        HolstinCameraRig cameraRig = Object.FindAnyObjectByType<HolstinCameraRig>();
+        HolstinCameraRig cameraRig = FindWithEmergencyFallback(host.CameraRigReference, "HolstinCameraRig");
         if (cameraRig != null && cameraRig.transform.parent != host.CoreRoot)
         {
             cameraRig.transform.SetParent(host.CoreRoot, true);
         }
 
-        if (cameraRig != null && cameraRig.GetComponent<PlayModeCursorLock>() == null)
+        Camera cameraComponent = host.CameraReference != null
+            ? host.CameraReference
+            : (Camera.main != null ? Camera.main : FindWithEmergencyFallback<Camera>(null, "Camera"));
+
+        InspectItemViewer inspectViewer = FindWithEmergencyFallback(host.InspectItemViewerReference, "InspectItemViewer");
+        if (inspectViewer == null && cameraRig != null)
         {
-            cameraRig.gameObject.AddComponent<PlayModeCursorLock>();
+            inspectViewer = cameraRig.GetComponent<InspectItemViewer>();
+            if (inspectViewer == null)
+            {
+                inspectViewer = cameraRig.gameObject.AddComponent<InspectItemViewer>();
+            }
         }
 
-        Camera cameraComponent = Camera.main != null ? Camera.main : Object.FindAnyObjectByType<Camera>();
-        InspectItemViewer inspectViewer = Object.FindAnyObjectByType<InspectItemViewer>();
         if (cameraComponent != null)
         {
             Transform pickupAnchor = VerticalSliceScenaBootstrap.EnsureChildObject(cameraComponent.transform, "PickupAnchor").transform;
@@ -247,6 +249,14 @@ internal sealed class SceneCoreInstaller
 
             playerMover.SetCameraForwardSource(cameraComponent.transform);
             interaction.ConfigureRuntimeReferences(inventory, promptUI, pickupAnchor);
+
+            if (inspectViewer != null)
+            {
+                Transform inspectPreviewRoot = VerticalSliceScenaBootstrap.EnsureChildObject(cameraComponent.transform, "InspectPreviewRoot").transform;
+                inspectPreviewRoot.localPosition = Vector3.zero;
+                inspectPreviewRoot.localRotation = Quaternion.identity;
+                inspectViewer.SetPreviewRoot(inspectPreviewRoot);
+            }
         }
 
         if (cameraComponent != null && cameraRig != null && inspectViewer != null)
@@ -261,59 +271,50 @@ internal sealed class SceneCoreInstaller
         }
         checkpointManager.Configure(inventory, playerMover.GetComponent<CharacterController>(), playerMover);
 
-        if (playerMover.GetComponent<RealTimeCombat>() == null)
-        {
-            playerMover.gameObject.AddComponent<RealTimeCombat>();
-        }
-
-        StarterLoadout starterLoadout = playerMover.GetComponent<StarterLoadout>();
-        if (starterLoadout == null)
-        {
-            starterLoadout = playerMover.gameObject.AddComponent<StarterLoadout>();
-        }
-#if UNITY_EDITOR
-        ItemDefinition pistol = VerticalSliceScenaBootstrap.FindItemAssetById("wpn_pistol");
-        ItemDefinition rifle = VerticalSliceScenaBootstrap.FindItemAssetById("wpn_rifle");
-        ItemDefinition shotgun = VerticalSliceScenaBootstrap.FindItemAssetById("wpn_shotgun");
-        ItemDefinition knife = VerticalSliceScenaBootstrap.FindItemAssetById("wpn_knife");
-
-        starterLoadout.Configure(
-            pistol != null ? pistol : knife,
-            new[] { pistol, rifle, shotgun, knife },
-            new[]
-            {
-                ("ammo_pistol", 60),
-                ("ammo_rifle", 32),
-                ("ammo_shell", 20)
-            });
-#endif
-
-        VerticalSliceScenaBootstrap.EnsureHumanoidActorSystems(playerMover.gameObject, true);
-
         sceneContext.Configure(cameraRig, promptUI, inspectViewer, playerMover, dialoguePanel);
         sceneContext.ResolveMissingReferences();
 
-        EnsureRuntimeUISingleton<HealthStaminaHUD>("HealthStaminaHUD");
-        EnsureRuntimeUISingleton<InventoryPanelUI>("InventoryPanelUI");
-        EnsureRuntimeUISingleton<TurnBasedCombatUI>("TurnBasedCombatUI");
-        EnsureRuntimeUISingleton<ShopWindowUI>("ShopWindowUI");
-        EnsureRuntimeUISingleton<CombatReticleUI>("CombatReticleUI");
-        EnsureRuntimeUISingleton<VerticalSliceObjectiveUI>("VerticalSliceObjectiveUI");
+        SliceState sliceState = FindWithEmergencyFallback(host.SliceStateReference, "SliceState");
+        if (sliceState == null)
+        {
+            GameObject stateObject = VerticalSliceScenaBootstrap.EnsureChildObject(host.GameplayRoot, "SliceState");
+            sliceState = stateObject.GetComponent<SliceState>();
+            if (sliceState == null)
+            {
+                sliceState = stateObject.AddComponent<SliceState>();
+            }
+        }
+
+        PressureManager pressureManager = FindWithEmergencyFallback(host.PressureManagerReference, "PressureManager");
+        if (pressureManager == null)
+        {
+            GameObject pressureObject = VerticalSliceScenaBootstrap.EnsureChildObject(host.GameplayRoot, "PressureManager");
+            pressureManager = pressureObject.GetComponent<PressureManager>();
+            if (pressureManager == null)
+            {
+                pressureManager = pressureObject.AddComponent<PressureManager>();
+            }
+        }
+
+        pressureManager.Configure(sliceState, true);
     }
 
-    private void EnsureRuntimeUISingleton<T>(string objectName) where T : MonoBehaviour
+    private static T FindWithEmergencyFallback<T>(T explicitReference, string label) where T : Object
     {
-        if (Object.FindAnyObjectByType<T>() != null)
+        if (explicitReference != null)
         {
-            return;
+            return explicitReference;
         }
 
-        GameObject go = new GameObject(objectName);
-        go.AddComponent<T>();
-        if (host.UiRoot != null)
+        T fallback = Object.FindAnyObjectByType<T>();
+        if (fallback != null)
         {
-            go.transform.SetParent(host.UiRoot, false);
+            Debug.LogWarning($"BOOTSTRAP_FALLBACK: '{label}' resolved through FindAnyObjectByType.");
+            return fallback;
         }
+
+        Debug.LogWarning($"BOOTSTRAP_FALLBACK: '{label}' missing and could not be resolved.");
+        return null;
     }
 }
 

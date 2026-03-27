@@ -43,6 +43,17 @@ public class InspectItemViewer : MonoBehaviour
             ? item.ItemName
             : $"{item.ItemName}\n\n{item.ItemDescription}";
         HolstinFeedback.ShowMessage($"{message}\n\nHold LMB to rotate. Press E, Esc, or move to return.", inspectMessageDuration);
+
+        if (!string.IsNullOrWhiteSpace(item.MilestoneOnInspect))
+        {
+            InfectionDirector.NotifyMilestoneGlobal(item.MilestoneOnInspect);
+        }
+
+        if (SliceState.TryGet(out SliceState sliceState))
+        {
+            sliceState.MarkMilestone(item.MilestoneOnInspect);
+            sliceState.SetCurrentObjective("pickup_exterior_key");
+        }
     }
 
     public void EndInspect()

@@ -56,11 +56,19 @@ public class PlayerMover : MonoBehaviour
         if (cameraRig == null)
         {
             cameraRig = FindAnyObjectByType<HolstinCameraRig>();
+            if (cameraRig != null)
+            {
+                Debug.LogWarning("BOOTSTRAP_FALLBACK: PlayerMover resolved HolstinCameraRig via FindAnyObjectByType.");
+            }
         }
 
         if (inspectViewer == null)
         {
             inspectViewer = FindAnyObjectByType<InspectItemViewer>();
+            if (inspectViewer != null)
+            {
+                Debug.LogWarning("BOOTSTRAP_FALLBACK: PlayerMover resolved InspectItemViewer via FindAnyObjectByType.");
+            }
         }
 
         playerInteraction = GetComponent<PlayerInteraction>();

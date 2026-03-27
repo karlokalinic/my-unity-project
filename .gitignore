@@ -40,3 +40,9 @@ Thumbs.db
 /Config/
 *.uasset
 *.umap
+
+# Guard against accidental nested fake Unity root created by bad projectPath usage
+/my-unity-project/
+
+# Local parking area for non-production assets/documents (never commit)
+/LOCAL/

@@ -72,6 +72,7 @@ public class NPCKeyGiverInteractable : InteractableBase
         {
             // Hard fallback for scenes missing dialogue UI/controller setup.
             string line = grantOnlyOnce && rewardGranted ? repeatConversation : firstConversation;
+            line = ApplyPressureDialogueVariant(line);
             interactor.ShowTransientMessage($"{npcName}:\n{line}", 3f);
             if (!(grantOnlyOnce && rewardGranted))
             {
@@ -121,6 +122,11 @@ public class NPCKeyGiverInteractable : InteractableBase
 
         if (choice != null && !string.IsNullOrWhiteSpace(choice.MilestoneId))
         {
+            if (SliceState.TryGet(out SliceState sliceState))
+            {
+                sliceState.MarkMilestone(choice.MilestoneId);
+            }
+
             InfectionDirector.NotifyMilestoneGlobal(choice.MilestoneId);
         }
 
@@ -152,6 +158,12 @@ public class NPCKeyGiverInteractable : InteractableBase
         inventory.AddItem(rewardItemId, rewardItemDisplayName, 1);
         HolstinAudio.PlayOneShot(rewardSound != null ? rewardSound : dialogueSound, transform, soundVolume);
         interactor.ShowTransientMessage($"Received: {rewardItemDisplayName}", 2.6f);
+
+        if (SliceState.TryGet(out SliceState sliceState))
+        {
+            sliceState.AcquireKeyItem(rewardItemId);
+            sliceState.SetCurrentObjective("console_service_unlock");
+        }
 
         if (!skipRewardMilestone && !string.IsNullOrWhiteSpace(infectionMilestoneOnReward))
         {
@@ -191,23 +203,43 @@ public class NPCKeyGiverInteractable : InteractableBase
         if (firstDialogue)
         {
             node.Choices[0].Text = $"I need the {rewardItemDisplayName}.";
-            node.Choices[0].ResponseLine = firstConversation;
+            node.Choices[0].ResponseLine = ApplyPressureDialogueVariant(firstConversation);
             node.Choices[0].MilestoneId = infectionMilestoneOnReward;
 
             node.Choices[1].Text = "Any quick advice?";
-            node.Choices[1].ResponseLine = "Stay calm, stay brief, and don't draw attention.";
+            node.Choices[1].ResponseLine = ApplyPressureDialogueVariant("Stay calm, stay brief, and don't draw attention.");
         }
         else
         {
             node.Choices[0].Text = "Do you have anything else for me?";
-            node.Choices[0].ResponseLine = repeatConversation;
+            node.Choices[0].ResponseLine = ApplyPressureDialogueVariant(repeatConversation);
 
             node.Choices[1].Text = "Any update?";
-            node.Choices[1].ResponseLine = "No updates. Keep moving.";
+            node.Choices[1].ResponseLine = ApplyPressureDialogueVariant("No updates. Keep moving.");
         }
 
         node.Choices[2].Text = "Leave conversation.";
         node.Choices[2].ResponseLine = "You step back from the conversation.";
         node.Choices[2].IsLeave = true;
+    }
+
+    private static string ApplyPressureDialogueVariant(string baseLine)
+    {
+        if (!PressureManager.TryGet(out PressureManager pressureManager))
+        {
+            return baseLine;
+        }
+
+        if (pressureManager.CurrentStage >= 3)
+        {
+            return $"{baseLine} We are out of time.";
+        }
+
+        if (pressureManager.CurrentStage >= 2)
+        {
+            return $"{baseLine} Move before pressure rises again.";
+        }
+
+        return baseLine;
     }
 }

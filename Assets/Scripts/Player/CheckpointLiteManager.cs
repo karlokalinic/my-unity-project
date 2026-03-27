@@ -64,6 +64,11 @@ public class CheckpointLiteManager : MonoBehaviour
         checkpointRotation = rotation;
         hasCheckpoint = true;
 
+        if (SliceState.TryGet(out SliceState state))
+        {
+            state.SaveCheckpoint(position, rotation, label ?? defaultCheckpointMessage);
+        }
+
         if (!retainInventoryOnRespawn && inventory != null)
         {
             checkpointInventorySnapshot = inventory.CreateSnapshot();
@@ -85,17 +90,22 @@ public class CheckpointLiteManager : MonoBehaviour
             InitializeDefaultCheckpoint();
         }
 
-        bool hadController = characterController != null && characterController.enabled;
-        if (characterController != null)
+        bool restoredFromSliceState = SliceState.TryGet(out SliceState state) &&
+                                      state.RestoreCheckpoint(transform, characterController);
+        if (!restoredFromSliceState)
         {
-            characterController.enabled = false;
-        }
+            bool hadController = characterController != null && characterController.enabled;
+            if (characterController != null)
+            {
+                characterController.enabled = false;
+            }
 
-        transform.SetPositionAndRotation(checkpointPosition, checkpointRotation);
+            transform.SetPositionAndRotation(checkpointPosition, checkpointRotation);
 
-        if (characterController != null)
-        {
-            characterController.enabled = hadController;
+            if (characterController != null)
+            {
+                characterController.enabled = hadController;
+            }
         }
 
         if (!retainInventoryOnRespawn && inventory != null)
@@ -157,6 +167,10 @@ public class CheckpointLiteManager : MonoBehaviour
         checkpointPosition = transform.position;
         checkpointRotation = transform.rotation;
         hasCheckpoint = true;
+        if (SliceState.TryGet(out SliceState state))
+        {
+            state.SaveCheckpoint(checkpointPosition, checkpointRotation, "Initial checkpoint");
+        }
 
         if (!retainInventoryOnRespawn && inventory != null)
         {

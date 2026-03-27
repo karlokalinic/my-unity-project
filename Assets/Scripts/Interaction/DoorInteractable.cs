@@ -72,7 +72,9 @@ public class DoorInteractable : InteractableBase
     {
         if (isLocked)
         {
-            if (inventory != null && inventory.HasItem(requiredItemId))
+            bool hasRequiredItem = (inventory != null && inventory.HasItem(requiredItemId)) ||
+                                   (SliceState.TryGet(out SliceState state) && state.HasKeyItem(requiredItemId));
+            if (hasRequiredItem)
             {
                 return $"[{InputReader.GetInteractLabel()}] Unlock door with {requiredItemDisplayName}";
             }
@@ -94,7 +96,9 @@ public class DoorInteractable : InteractableBase
 
         if (isLocked)
         {
-            if (inventory == null || !inventory.HasItem(requiredItemId))
+            bool hasRequiredItem = (inventory != null && inventory.HasItem(requiredItemId)) ||
+                                   (SliceState.TryGet(out SliceState state) && state.HasKeyItem(requiredItemId));
+            if (!hasRequiredItem)
             {
                 interactor.ShowTransientMessage(lockedMessage, 2.2f);
                 HolstinAudio.PlayOneShot(lockedAttemptSound, transform, soundVolume);
@@ -118,6 +122,12 @@ public class DoorInteractable : InteractableBase
 
         if (unlockedNow && !string.IsNullOrWhiteSpace(infectionMilestoneOnUnlock))
         {
+            if (SliceState.TryGet(out SliceState sliceState))
+            {
+                sliceState.MarkMilestone(infectionMilestoneOnUnlock);
+                sliceState.SetCurrentObjective("npc_reward_key");
+            }
+
             InfectionDirector.NotifyMilestoneGlobal(infectionMilestoneOnUnlock);
         }
 

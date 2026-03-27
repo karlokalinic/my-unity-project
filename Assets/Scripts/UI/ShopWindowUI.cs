@@ -24,6 +24,7 @@ public class ShopWindowUI : MonoBehaviour
     private readonly List<ShopRowWidget> rows = new List<ShopRowWidget>();
     private bool isOpen;
     private bool buyMode = true;
+    private bool ownsInputContext;
 
     private class ShopRowWidget
     {
@@ -58,6 +59,7 @@ public class ShopWindowUI : MonoBehaviour
         playerRep = rep;
         buyMode = true;
         isOpen = true;
+        AcquireUiContext();
         panel.gameObject.SetActive(true);
         titleText.text = shop != null ? shop.ShopName : "SHOP";
         RefreshContent();
@@ -68,6 +70,7 @@ public class ShopWindowUI : MonoBehaviour
         isOpen = false;
         panel.gameObject.SetActive(false);
         currentShop = null;
+        ReleaseUiContext();
     }
 
     public void SetBuyMode(bool buy)
@@ -320,5 +323,32 @@ public class ShopWindowUI : MonoBehaviour
         GameObject go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(parent, false);
         return go.GetComponent<RectTransform>();
+    }
+
+    private void OnDisable()
+    {
+        ReleaseUiContext();
+    }
+
+    private void AcquireUiContext()
+    {
+        if (ownsInputContext)
+        {
+            return;
+        }
+
+        InputReader.PushContext(InputReader.InputContext.UI);
+        ownsInputContext = true;
+    }
+
+    private void ReleaseUiContext()
+    {
+        if (!ownsInputContext)
+        {
+            return;
+        }
+
+        InputReader.PopContext(InputReader.InputContext.Gameplay);
+        ownsInputContext = false;
     }
 }

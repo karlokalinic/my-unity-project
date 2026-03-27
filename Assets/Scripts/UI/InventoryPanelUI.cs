@@ -18,6 +18,7 @@ public class InventoryPanelUI : MonoBehaviour
     private TextMeshProUGUI detailText;
     private readonly List<SlotWidget> slotWidgets = new List<SlotWidget>();
     private bool isOpen;
+    private bool ownsInputContext;
 
     private class SlotWidget
     {
@@ -56,7 +57,15 @@ public class InventoryPanelUI : MonoBehaviour
     {
         isOpen = !isOpen;
         panel.gameObject.SetActive(isOpen);
-        if (isOpen) RefreshSlots();
+        if (isOpen)
+        {
+            AcquireUiContext();
+            RefreshSlots();
+        }
+        else
+        {
+            ReleaseUiContext();
+        }
     }
 
     private void OnEnable()
@@ -67,6 +76,7 @@ public class InventoryPanelUI : MonoBehaviour
     private void OnDisable()
     {
         if (inventory != null) inventory.InventoryChanged -= OnChanged;
+        ReleaseUiContext();
     }
 
     private void OnChanged()
@@ -251,5 +261,27 @@ public class InventoryPanelUI : MonoBehaviour
         GameObject go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(parent, false);
         return go.GetComponent<RectTransform>();
+    }
+
+    private void AcquireUiContext()
+    {
+        if (ownsInputContext)
+        {
+            return;
+        }
+
+        InputReader.PushContext(InputReader.InputContext.UI);
+        ownsInputContext = true;
+    }
+
+    private void ReleaseUiContext()
+    {
+        if (!ownsInputContext)
+        {
+            return;
+        }
+
+        InputReader.PopContext(InputReader.InputContext.Gameplay);
+        ownsInputContext = false;
     }
 }

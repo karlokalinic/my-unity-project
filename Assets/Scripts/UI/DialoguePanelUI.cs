@@ -45,6 +45,7 @@ public class DialoguePanelUI : MonoBehaviour
     private DialogueNodeData activeChoiceNode;
     private Action<DialogueSelectionResult> selectionCallback;
     private int selectedOptionIndex;
+    private bool ownsInputContext;
 
     public bool IsShowing => visible;
     public event Action Closed;
@@ -91,6 +92,7 @@ public class DialoguePanelUI : MonoBehaviour
     public void ShowDialogue(string newSpeakerName, params string[] lines)
     {
         EnsureRuntimeReferences(true);
+        AcquireDialogueContext();
         queuedLines.Clear();
         mode = DialogueMode.Lines;
         activeChoiceNode = null;
@@ -122,6 +124,7 @@ public class DialoguePanelUI : MonoBehaviour
     public void ShowChoiceDialogue(DialogueNodeData node, Action<DialogueSelectionResult> onSelection)
     {
         EnsureRuntimeReferences(true);
+        AcquireDialogueContext();
         mode = DialogueMode.Choices;
         queuedLines.Clear();
         activeChoiceNode = node;
@@ -163,6 +166,7 @@ public class DialoguePanelUI : MonoBehaviour
     {
         visible = false;
         mode = DialogueMode.None;
+        ReleaseDialogueContext();
         queuedLines.Clear();
         activeChoiceNode = null;
         selectionCallback = null;
@@ -311,6 +315,7 @@ public class DialoguePanelUI : MonoBehaviour
         bool wasVisible = visible;
         visible = false;
         mode = DialogueMode.None;
+        ReleaseDialogueContext();
         queuedLines.Clear();
         activeChoiceNode = null;
         selectionCallback = null;
@@ -320,6 +325,33 @@ public class DialoguePanelUI : MonoBehaviour
         {
             Closed?.Invoke();
         }
+    }
+
+    private void OnDisable()
+    {
+        ReleaseDialogueContext();
+    }
+
+    private void AcquireDialogueContext()
+    {
+        if (ownsInputContext)
+        {
+            return;
+        }
+
+        InputReader.PushContext(InputReader.InputContext.Dialogue);
+        ownsInputContext = true;
+    }
+
+    private void ReleaseDialogueContext()
+    {
+        if (!ownsInputContext)
+        {
+            return;
+        }
+
+        InputReader.PopContext(InputReader.InputContext.Gameplay);
+        ownsInputContext = false;
     }
 
     private void EnsureRuntimeReferences(bool allowRebuild)

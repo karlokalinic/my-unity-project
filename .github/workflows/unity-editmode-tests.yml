@@ -1,0 +1,31 @@
+name: Unity EditMode Tests
+
+on:
+  pull_request:
+  push:
+    branches: [ work, main, master ]
+
+jobs:
+  editmode-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify Unity license secret exists
+        run: |
+          if [ -z "${{ secrets.UNITY_LICENSE }}" ]; then
+            echo "UNITY_LICENSE secret is not configured."
+            echo "Add UNITY_LICENSE to enable test gating."
+            exit 1
+          fi
+
+      - name: Run EditMode tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: .
+          unityVersion: 6000.4.0f1
+          testMode: editmode
+          githubToken: ${{ secrets.GITHUB_TOKEN }}

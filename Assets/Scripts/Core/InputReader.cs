@@ -1,8 +1,16 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public static class InputReader
 {
+    public enum InputContext
+    {
+        Gameplay,
+        UI,
+        Dialogue
+    }
+
     public const string InteractKeyLabel = "E";
     public const string AlternateInteractKeyLabel = "F";
     public const string RotateLeftKeyLabel = "Q";
@@ -17,14 +25,24 @@ public static class InputReader
     private static InputAction sprintAction;
     private static InputAction previousAction;
     private static InputAction nextAction;
-    private static InputAction navigateAction;
-    private static InputAction submitAction;
-    private static InputAction cancelAction;
+    private static InputAction uiNavigateAction;
+    private static InputAction uiSubmitAction;
+    private static InputAction uiCancelAction;
+    private static InputAction dialogueNavigateAction;
+    private static InputAction dialogueSubmitAction;
+    private static InputAction dialogueCancelAction;
+    private static InputActionAsset boundAsset;
+    private static InputActionMap playerActionMap;
+    private static InputActionMap uiActionMap;
+    private static InputActionMap dialogueActionMap;
+    private static InputContext currentContext = InputContext.Gameplay;
+    private static readonly Stack<InputContext> contextStack = new Stack<InputContext>();
 
     private static bool dialogueStickUpLatch;
     private static bool dialogueStickDownLatch;
     private static bool dialogueStickLeftLatch;
     private static bool dialogueStickRightLatch;
+    public static InputContext CurrentContext => currentContext;
 
     /// <summary>
     /// Bind Input Action references from a provided asset (Gameplay/UI/Dialogue maps).
@@ -37,20 +55,25 @@ public static class InputReader
             return;
         }
 
-        InputActionMap playerMap = asset.FindActionMap("Player", false);
-        InputActionMap uiMap = asset.FindActionMap("UI", false);
+        boundAsset = asset;
+        playerActionMap = asset.FindActionMap("Player", false);
+        uiActionMap = asset.FindActionMap("UI", false);
+        dialogueActionMap = asset.FindActionMap("Dialogue", false) ?? uiActionMap;
 
-        moveAction = playerMap?.FindAction("Move");
-        lookAction = playerMap?.FindAction("Look");
-        attackAction = playerMap?.FindAction("Attack");
-        interactAction = playerMap?.FindAction("Interact");
-        sprintAction = playerMap?.FindAction("Sprint");
-        previousAction = playerMap?.FindAction("Previous");
-        nextAction = playerMap?.FindAction("Next");
+        moveAction = playerActionMap?.FindAction("Move");
+        lookAction = playerActionMap?.FindAction("Look");
+        attackAction = playerActionMap?.FindAction("Attack");
+        interactAction = playerActionMap?.FindAction("Interact");
+        sprintAction = playerActionMap?.FindAction("Sprint");
+        previousAction = playerActionMap?.FindAction("Previous");
+        nextAction = playerActionMap?.FindAction("Next");
 
-        navigateAction = uiMap?.FindAction("Navigate");
-        submitAction = uiMap?.FindAction("Submit");
-        cancelAction = uiMap?.FindAction("Cancel");
+        uiNavigateAction = uiActionMap?.FindAction("Navigate");
+        uiSubmitAction = uiActionMap?.FindAction("Submit");
+        uiCancelAction = uiActionMap?.FindAction("Cancel");
+        dialogueNavigateAction = dialogueActionMap?.FindAction("Navigate");
+        dialogueSubmitAction = dialogueActionMap?.FindAction("Submit");
+        dialogueCancelAction = dialogueActionMap?.FindAction("Cancel");
 
         EnableIfPresent(moveAction);
         EnableIfPresent(lookAction);
@@ -59,13 +82,88 @@ public static class InputReader
         EnableIfPresent(sprintAction);
         EnableIfPresent(previousAction);
         EnableIfPresent(nextAction);
-        EnableIfPresent(navigateAction);
-        EnableIfPresent(submitAction);
-        EnableIfPresent(cancelAction);
+        EnableIfPresent(uiNavigateAction);
+        EnableIfPresent(uiSubmitAction);
+        EnableIfPresent(uiCancelAction);
+        EnableIfPresent(dialogueNavigateAction);
+        EnableIfPresent(dialogueSubmitAction);
+        EnableIfPresent(dialogueCancelAction);
+        contextStack.Clear();
+        SetContext(InputContext.Gameplay);
+    }
+
+    public static void PushContext(InputContext context)
+    {
+        contextStack.Push(currentContext);
+        SetContext(context);
+    }
+
+    public static void PopContext(InputContext fallback = InputContext.Gameplay)
+    {
+        SetContext(contextStack.Count > 0 ? contextStack.Pop() : fallback);
+    }
+
+    public static void ResetContextStack(InputContext context = InputContext.Gameplay)
+    {
+        contextStack.Clear();
+        SetContext(context);
+    }
+
+    public static void SetContext(InputContext context)
+    {
+        if (currentContext == context && boundAsset != null)
+        {
+            return;
+        }
+
+        if (currentContext == InputContext.Dialogue && context != InputContext.Dialogue)
+        {
+            ResetDialogueInputLatches();
+        }
+
+        currentContext = context;
+
+        if (boundAsset == null)
+        {
+            return;
+        }
+
+        if (context == InputContext.Gameplay)
+        {
+            playerActionMap?.Enable();
+            uiActionMap?.Disable();
+            if (dialogueActionMap != uiActionMap)
+            {
+                dialogueActionMap?.Disable();
+            }
+            return;
+        }
+
+        playerActionMap?.Disable();
+        if (context == InputContext.UI)
+        {
+            uiActionMap?.Enable();
+            if (dialogueActionMap != uiActionMap)
+            {
+                dialogueActionMap?.Disable();
+            }
+            return;
+        }
+
+        dialogueActionMap?.Enable();
+        if (uiActionMap != dialogueActionMap)
+        {
+            uiActionMap?.Disable();
+        }
     }
 
     public static Vector2 GetMoveVector()
     {
+        if (boundAsset != null)
+        {
+            return moveAction != null ? Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f) : Vector2.zero;
+        }
+
         if (moveAction != null)
         {
             Vector2 actionMove = moveAction.ReadValue<Vector2>();
@@ -100,6 +198,11 @@ public static class InputReader
 
     public static Vector2 GetLookDelta()
     {
+        if (boundAsset != null)
+        {
+            return lookAction != null ? lookAction.ReadValue<Vector2>() : Vector2.zero;
+        }
+
         if (lookAction != null)
         {
             Vector2 look = lookAction.ReadValue<Vector2>();
@@ -124,6 +227,11 @@ public static class InputReader
 
     public static bool SprintHeld()
     {
+        if (boundAsset != null)
+        {
+            return sprintAction != null && sprintAction.IsPressed();
+        }
+
         if (sprintAction != null)
         {
             return sprintAction.IsPressed();
@@ -135,6 +243,11 @@ public static class InputReader
 
     public static bool RotateLeftPressed()
     {
+        if (boundAsset != null)
+        {
+            return previousAction != null && previousAction.WasPressedThisFrame();
+        }
+
         if (previousAction != null && previousAction.WasPressedThisFrame())
         {
             return true;
@@ -146,6 +259,11 @@ public static class InputReader
 
     public static bool RotateRightPressed()
     {
+        if (boundAsset != null)
+        {
+            return nextAction != null && nextAction.WasPressedThisFrame();
+        }
+
         if (nextAction != null && nextAction.WasPressedThisFrame())
         {
             return true;
@@ -157,17 +275,32 @@ public static class InputReader
 
     public static bool AimHeld()
     {
+        if (boundAsset != null && currentContext != InputContext.Gameplay)
+        {
+            return false;
+        }
+
         return (Mouse.current != null && Mouse.current.rightButton.isPressed) ||
                (Gamepad.current != null && Gamepad.current.leftTrigger.ReadValue() > 0.35f);
     }
 
     public static bool AimTogglePressed()
     {
+        if (boundAsset != null && currentContext != InputContext.Gameplay)
+        {
+            return false;
+        }
+
         return Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
     }
 
     public static bool FireHeld()
     {
+        if (boundAsset != null)
+        {
+            return attackAction != null && attackAction.IsPressed();
+        }
+
         if (attackAction != null)
         {
             return attackAction.IsPressed();
@@ -179,6 +312,11 @@ public static class InputReader
 
     public static bool FirePressed()
     {
+        if (boundAsset != null)
+        {
+            return attackAction != null && attackAction.WasPressedThisFrame();
+        }
+
         if (attackAction != null && attackAction.WasPressedThisFrame())
         {
             return true;
@@ -190,17 +328,29 @@ public static class InputReader
 
     public static bool InspectRotateHeld()
     {
+        if (boundAsset != null && currentContext != InputContext.Gameplay)
+        {
+            return false;
+        }
+
         return Mouse.current != null && Mouse.current.leftButton.isPressed;
     }
 
     public static bool ReloadPressed()
     {
+        if (boundAsset != null && currentContext != InputContext.Gameplay) return false;
+
         return (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame) ||
                (Gamepad.current != null && Gamepad.current.buttonWest.wasPressedThisFrame);
     }
 
     public static bool InteractPressed()
     {
+        if (boundAsset != null)
+        {
+            return interactAction != null && interactAction.WasPressedThisFrame();
+        }
+
         if (interactAction != null && interactAction.WasPressedThisFrame())
         {
             return true;
@@ -212,7 +362,14 @@ public static class InputReader
 
     public static bool CancelPressed()
     {
-        if (cancelAction != null && cancelAction.WasPressedThisFrame())
+        if (boundAsset != null)
+        {
+            InputAction action = ResolveCancelAction();
+            return action != null && action.WasPressedThisFrame();
+        }
+
+        InputAction resolved = ResolveCancelAction();
+        if (resolved != null && resolved.WasPressedThisFrame())
         {
             return true;
         }
@@ -223,7 +380,14 @@ public static class InputReader
 
     public static bool DialogueSubmitPressed()
     {
-        if (submitAction != null && submitAction.WasPressedThisFrame())
+        if (boundAsset != null)
+        {
+            InputAction action = ResolveSubmitAction();
+            return action != null && action.WasPressedThisFrame();
+        }
+
+        InputAction resolved = ResolveSubmitAction();
+        if (resolved != null && resolved.WasPressedThisFrame())
         {
             return true;
         }
@@ -234,9 +398,16 @@ public static class InputReader
 
     public static Vector2 GetDialogueNavigateVector()
     {
-        if (navigateAction != null)
+        if (boundAsset != null)
         {
-            Vector2 nav = navigateAction.ReadValue<Vector2>();
+            InputAction action = ResolveNavigateAction();
+            return action != null ? action.ReadValue<Vector2>() : Vector2.zero;
+        }
+
+        InputAction resolved = ResolveNavigateAction();
+        if (resolved != null)
+        {
+            Vector2 nav = resolved.ReadValue<Vector2>();
             if (nav.sqrMagnitude > 0.0001f)
             {
                 return nav;
@@ -305,8 +476,8 @@ public static class InputReader
     }
 
     public static string GetInteractLabel() => GetBindingLabel(interactAction, InteractKeyLabel);
-    public static string GetDialogueSubmitLabel() => GetBindingLabel(submitAction ?? interactAction, DialogueSubmitKeyLabel);
-    public static string GetDialogueCancelLabel() => GetBindingLabel(cancelAction, DialogueLeaveKeyLabel);
+    public static string GetDialogueSubmitLabel() => GetBindingLabel(ResolveSubmitAction() ?? interactAction, DialogueSubmitKeyLabel);
+    public static string GetDialogueCancelLabel() => GetBindingLabel(ResolveCancelAction(), DialogueLeaveKeyLabel);
 
     private static string GetBindingLabel(InputAction action, string fallback)
     {
@@ -332,5 +503,34 @@ public static class InputReader
         {
             action.Enable();
         }
+    }
+
+    private static InputAction ResolveNavigateAction()
+    {
+        return currentContext == InputContext.Dialogue
+            ? dialogueNavigateAction ?? uiNavigateAction
+            : uiNavigateAction;
+    }
+
+    private static InputAction ResolveSubmitAction()
+    {
+        return currentContext == InputContext.Dialogue
+            ? dialogueSubmitAction ?? uiSubmitAction
+            : uiSubmitAction;
+    }
+
+    private static InputAction ResolveCancelAction()
+    {
+        return currentContext == InputContext.Dialogue
+            ? dialogueCancelAction ?? uiCancelAction
+            : uiCancelAction;
+    }
+
+    private static void ResetDialogueInputLatches()
+    {
+        dialogueStickUpLatch = false;
+        dialogueStickDownLatch = false;
+        dialogueStickLeftLatch = false;
+        dialogueStickRightLatch = false;
     }
 }

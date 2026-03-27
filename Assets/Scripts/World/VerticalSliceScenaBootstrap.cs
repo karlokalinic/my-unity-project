@@ -23,9 +23,13 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
 {
     [SerializeField] private string targetSceneName = "Scena";
     [SerializeField] private string secondaryTargetSceneName = "INTERAKCIJA";
+    [SerializeField] private string consolidatedTargetSceneName = "VerticalSlice_Consolidated";
     [SerializeField] private bool autoApplyInPlayMode = true;
     [SerializeField] private bool autoApplyInEditMode = true;
+    [SerializeField] private bool requireManualApplyInEditMode = true;
     [SerializeField] private bool logOperations;
+    [SerializeField] private bool includeCombatInstaller;
+    [SerializeField] private bool includeTutorialCombatEncounters;
 
     [SerializeField] private Transform coreRoot;
     [SerializeField] private Transform worldRoot;
@@ -37,6 +41,17 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
 #if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
     [SerializeField] private InputActionAsset inputActions;
 #endif
+
+    [Header("Explicit References (Primary)")]
+    [SerializeField] private PlayerMover playerMoverReference;
+    [SerializeField] private HolstinCameraRig cameraRigReference;
+    [SerializeField] private Camera cameraReference;
+    [SerializeField] private InteractionPromptUI promptUiReference;
+    [SerializeField] private DialoguePanelUI dialoguePanelReference;
+    [SerializeField] private InspectItemViewer inspectItemViewerReference;
+    [SerializeField] private HolstinSceneContext sceneContextReference;
+    [SerializeField] private SliceState sliceStateReference;
+    [SerializeField] private PressureManager pressureManagerReference;
 
     [Header("Template Layout")]
     [SerializeField] private bool enforceTemplateSeparation = true;
@@ -64,10 +79,14 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         }
 
 #if UNITY_EDITOR
-        if (autoApplyInEditMode && !queuedEditorApply)
+        if (autoApplyInEditMode && !requireManualApplyInEditMode && !queuedEditorApply)
         {
             queuedEditorApply = true;
             EditorApplication.delayCall += ApplyRetrofitDelayed;
+        }
+        else if (autoApplyInEditMode && requireManualApplyInEditMode && logOperations)
+        {
+            Debug.Log("VerticalSliceScenaBootstrap: edit-mode auto-apply is disabled. Use context menu 'Apply Vertical Slice Retrofit'.", this);
         }
 #endif
     }
@@ -96,12 +115,15 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         SceneCoreInstaller coreInstaller = new SceneCoreInstaller(this);
         SceneInteractionInstaller interactionInstaller = new SceneInteractionInstaller(this);
         SceneNarrativeInstaller narrativeInstaller = new SceneNarrativeInstaller(this);
-        SceneCombatInstaller combatInstaller = new SceneCombatInstaller(this);
 
         coreInstaller.Apply();
         interactionInstaller.Apply();
         narrativeInstaller.Apply();
-        combatInstaller.Apply();
+        if (includeCombatInstaller)
+        {
+            SceneCombatInstaller combatInstaller = new SceneCombatInstaller(this);
+            combatInstaller.Apply();
+        }
 
 #if UNITY_EDITOR
         RemoveMissingScriptsInActiveScene();
@@ -134,7 +156,8 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         }
 
         return SceneNameMatches(scene.name, targetSceneName) ||
-               SceneNameMatches(scene.name, secondaryTargetSceneName);
+               SceneNameMatches(scene.name, secondaryTargetSceneName) ||
+               SceneNameMatches(scene.name, consolidatedTargetSceneName);
     }
 
     private static bool SceneNameMatches(string sceneName, string targetName)
@@ -198,6 +221,16 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
     internal Vector3 ExteriorTemplateOrigin => exteriorTemplateOrigin;
     internal Vector3 InteriorTemplateOrigin => interiorTemplateOrigin;
     internal Vector3 UnderpassTemplateOrigin => underpassTemplateOrigin;
+    internal bool IncludeTutorialCombatEncounters => includeTutorialCombatEncounters;
+    internal PlayerMover PlayerMoverReference => playerMoverReference;
+    internal HolstinCameraRig CameraRigReference => cameraRigReference;
+    internal Camera CameraReference => cameraReference;
+    internal InteractionPromptUI PromptUiReference => promptUiReference;
+    internal DialoguePanelUI DialoguePanelReference => dialoguePanelReference;
+    internal InspectItemViewer InspectItemViewerReference => inspectItemViewerReference;
+    internal HolstinSceneContext SceneContextReference => sceneContextReference;
+    internal SliceState SliceStateReference => sliceStateReference;
+    internal PressureManager PressureManagerReference => pressureManagerReference;
 
     internal Vector3 ResolveTemplateOrigin(string rootName, Vector3 fallback)
     {
@@ -974,7 +1007,11 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         EnsureMidpointNpc(loopRoot, interiorOrigin);
         EnsureUnderpassConsole(loopRoot, underpassOrigin);
         EnsureCheckpointZones(loopRoot, exteriorOrigin, interiorOrigin, underpassOrigin);
-        EnsureCombatEncounters(loopRoot, exteriorOrigin, underpassOrigin);
+        EnsureInspectBeat(loopRoot, exteriorOrigin);
+        if (includeTutorialCombatEncounters)
+        {
+            EnsureCombatEncounters(loopRoot, exteriorOrigin, underpassOrigin);
+        }
         EnsureReachAnchorsForInteractables();
     }
 
@@ -1126,7 +1163,33 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
 
         PickupInteractable pickup = pickupRoot.GetComponent<PickupInteractable>();
         if (pickup == null) pickup = pickupRoot.AddComponent<PickupInteractable>();
-        pickup.ConfigureItem("old_key", "Old Key", "Service key recovered from exterior checkpoint crates.", "pickup_exterior_key");
+        pickup.ConfigureItem(
+            "old_key",
+            "Old Key",
+            "Service key recovered from exterior checkpoint crates.",
+            "pickup_exterior_key",
+            "inspect_exterior_note");
+    }
+
+    private void EnsureInspectBeat(Transform parent, Vector3 exteriorOrigin)
+    {
+        GameObject inspectRoot = EnsurePrimitiveObject(
+            PrimitiveType.Cube,
+            "VS_InspectLedger",
+            parent,
+            exteriorOrigin + new Vector3(1.8f, 0.96f, -1.8f),
+            new Vector3(0.48f, 0.08f, 0.33f));
+
+        InspectableItem inspectable = inspectRoot.GetComponent<InspectableItem>();
+        if (inspectable == null)
+        {
+            inspectable = inspectRoot.AddComponent<InspectableItem>();
+        }
+
+        inspectable.Configure(
+            "Field Ledger",
+            "Inspection notes pin down the service key route. This should be your first beat.");
+        inspectable.ConfigureMilestone("inspect_exterior_note");
     }
 
     private void EnsureInteriorDoor(Transform parent, Vector3 interiorOrigin)
@@ -1751,4 +1814,3 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         return null;
     }
 }
-
