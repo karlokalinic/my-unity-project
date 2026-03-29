@@ -9,10 +9,10 @@ using Object = UnityEngine.Object;
 public static class HolstinArtPackTools
 {
     private const string DefaultPackPath = "Assets/Data/Art/HolstinArtPack.asset";
-    private const string ArtRootFolder = "Assets/Art";
-    private const string ArtPrefabsFolder = "Assets/Art/Prefabs";
+    private const string ArtRootFolder = "Assets/Game/Art";
+    private const string ArtPrefabsFolder = "Assets/Game/Art/Prefabs";
     private const string RecoveredPrefabsFolder = ArtPrefabsFolder + "/Recovered";
-    private const string ArtMaterialsFolder = "Assets/Art/Materials";
+    private const string ArtMaterialsFolder = "Assets/Game/Art/Materials";
 
     [MenuItem("Tools/Holstin/Art Direction/Create Default Art Pack Asset", false, 80)]
     public static void CreateDefaultArtPackAssetMenu()
@@ -129,7 +129,7 @@ public static class HolstinArtPackTools
             return;
         }
 
-        AssetPlaceholder[] placeholders = Object.FindObjectsByType<AssetPlaceholder>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        AssetPlaceholder[] placeholders = Object.FindObjectsByType<AssetPlaceholder>(FindObjectsInactive.Include);
         if (placeholders.Length == 0)
         {
             Debug.Log("No AssetPlaceholder objects found in the active scene.");
@@ -325,7 +325,7 @@ public static class HolstinArtPackTools
 
     private static void RemoveExistingLinkedInstances(AssetPlaceholder placeholder)
     {
-        HolstinArtInstanceLink[] links = Object.FindObjectsByType<HolstinArtInstanceLink>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        HolstinArtInstanceLink[] links = Object.FindObjectsByType<HolstinArtInstanceLink>(FindObjectsInactive.Include);
         for (int i = 0; i < links.Length; i++)
         {
             HolstinArtInstanceLink link = links[i];
@@ -416,7 +416,7 @@ public static class HolstinArtPackTools
             return 0;
         }
 
-        AssetPlaceholder[] placeholders = Object.FindObjectsByType<AssetPlaceholder>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        AssetPlaceholder[] placeholders = Object.FindObjectsByType<AssetPlaceholder>(FindObjectsInactive.Include);
         if (placeholders.Length == 0)
         {
             return 0;
@@ -570,7 +570,7 @@ public static class HolstinArtPackTools
             return 0;
         }
 
-        AssetPlaceholder[] placeholders = Object.FindObjectsByType<AssetPlaceholder>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        AssetPlaceholder[] placeholders = Object.FindObjectsByType<AssetPlaceholder>(FindObjectsInactive.Include);
         if (placeholders == null || placeholders.Length == 0)
         {
             return 0;
@@ -641,9 +641,9 @@ public static class HolstinArtPackTools
 
     private static List<SceneVisualCandidate> BuildSceneVisualCandidates()
     {
-        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsInactive.Include);
         List<SceneVisualCandidate> candidates = new List<SceneVisualCandidate>(renderers.Length);
-        HashSet<int> seenRoots = new HashSet<int>();
+        HashSet<GameObject> seenRoots = new HashSet<GameObject>();
 
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -659,8 +659,7 @@ public static class HolstinArtPackTools
                 continue;
             }
 
-            int rootId = root.GetInstanceID();
-            if (seenRoots.Contains(rootId))
+            if (seenRoots.Contains(root))
             {
                 continue;
             }
@@ -678,7 +677,7 @@ public static class HolstinArtPackTools
                 sourcePrefab = PrefabUtility.GetCorrespondingObjectFromSource(root)
             });
 
-            seenRoots.Add(rootId);
+            seenRoots.Add(root);
         }
 
         return candidates;

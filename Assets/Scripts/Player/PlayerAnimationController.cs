@@ -27,6 +27,12 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField] private float gaitFrequency = 8.2f;
     [SerializeField] private float poseLerpSpeed = 14f;
 
+    [Header("Idle Relax Pose")]
+    [SerializeField] private float idleUpperArmPitch = 8f;
+    [SerializeField] private float idleUpperArmRoll = 78f;
+    [SerializeField] private float idleLowerArmPitch = -16f;
+    [SerializeField] private float idleHandPitch = 6f;
+
     [Header("Reach")]
     [SerializeField] private float reachUpperArmPitch = -42f;
     [SerializeField] private float reachLowerArmPitch = -64f;
@@ -174,6 +180,11 @@ public class PlayerAnimationController : MonoBehaviour
         SetLocalRotation(leftHand, "LeftHand", Quaternion.identity);
         SetLocalRotation(rightHand, "RightHand", Quaternion.identity);
 
+        if (state == MotionState.Idle && reachWeight <= 0.0001f)
+        {
+            ApplyIdleRelaxPose(1f);
+        }
+
         if (reachWeight > 0.0001f && chestTarget != null && rightUpperArm != null && rightLowerArm != null && rightHand != null)
         {
             Vector3 localToTarget = chestTarget.InverseTransformPoint(reachWorldPoint);
@@ -190,6 +201,16 @@ public class PlayerAnimationController : MonoBehaviour
         }
 
         ApplyFireKickPose();
+    }
+
+    private void ApplyIdleRelaxPose(float blend)
+    {
+        BlendTowardPose(leftUpperArm, "LeftUpperArm", Quaternion.Euler(idleUpperArmPitch, 0f, idleUpperArmRoll), blend);
+        BlendTowardPose(rightUpperArm, "RightUpperArm", Quaternion.Euler(idleUpperArmPitch, 0f, -idleUpperArmRoll), blend);
+        BlendTowardPose(leftLowerArm, "LeftLowerArm", Quaternion.Euler(idleLowerArmPitch, 0f, 0f), blend);
+        BlendTowardPose(rightLowerArm, "RightLowerArm", Quaternion.Euler(idleLowerArmPitch, 0f, 0f), blend);
+        BlendTowardPose(leftHand, "LeftHand", Quaternion.Euler(idleHandPitch, 0f, 0f), blend);
+        BlendTowardPose(rightHand, "RightHand", Quaternion.Euler(idleHandPitch, 0f, 0f), blend);
     }
 
     private void ApplyFireKickPose()
@@ -288,6 +309,126 @@ public class PlayerAnimationController : MonoBehaviour
         CacheBaseRotation("RightLowerLeg", rightLowerLeg);
         CacheBaseRotation("LeftFoot", leftFoot);
         CacheBaseRotation("RightFoot", rightFoot);
+    }
+
+    private void CacheBaseRotation(string key, Transform bone)
+    {
+        if (bone == null)
+        {
+            return;
+        }
+
+        baseLocalRotations[key] = bone.localRotation;
+    }
+}
+
+[DisallowMultipleComponent]
+[RequireComponent(typeof(ProceduralHumanoidRig))]
+public class HumanoidIdlePoseController : MonoBehaviour
+{
+    [Header("References")]
+    [SerializeField] private ProceduralHumanoidRig rig;
+
+    [Header("Blend")]
+    [SerializeField] private float blendSpeed = 8f;
+
+    [Header("Relaxed Pose")]
+    [SerializeField] private float upperArmPitch = 8f;
+    [SerializeField] private float upperArmRoll = 78f;
+    [SerializeField] private float lowerArmPitch = -16f;
+    [SerializeField] private float handPitch = 6f;
+    [SerializeField] private float upperLegPitch = -4f;
+    [SerializeField] private float lowerLegPitch = 8f;
+
+    private readonly Dictionary<string, Quaternion> baseLocalRotations = new Dictionary<string, Quaternion>();
+
+    private Transform leftUpperArm;
+    private Transform rightUpperArm;
+    private Transform leftLowerArm;
+    private Transform rightLowerArm;
+    private Transform leftHand;
+    private Transform rightHand;
+    private Transform leftUpperLeg;
+    private Transform rightUpperLeg;
+    private Transform leftLowerLeg;
+    private Transform rightLowerLeg;
+
+    private void Awake()
+    {
+        if (rig == null)
+        {
+            rig = GetComponent<ProceduralHumanoidRig>();
+        }
+
+        EnsureBoneCache();
+    }
+
+    private void LateUpdate()
+    {
+        EnsureBoneCache();
+        ApplyPose();
+    }
+
+    private void EnsureBoneCache()
+    {
+        if (rig == null)
+        {
+            return;
+        }
+
+        rig.EnsureBuilt();
+        if (baseLocalRotations.Count > 0)
+        {
+            return;
+        }
+
+        leftUpperArm = rig.GetBone("LeftUpperArm", true);
+        rightUpperArm = rig.GetBone("RightUpperArm", true);
+        leftLowerArm = rig.GetBone("LeftLowerArm", true);
+        rightLowerArm = rig.GetBone("RightLowerArm", true);
+        leftHand = rig.GetBone("LeftHand", true);
+        rightHand = rig.GetBone("RightHand", true);
+        leftUpperLeg = rig.GetBone("LeftUpperLeg", true);
+        rightUpperLeg = rig.GetBone("RightUpperLeg", true);
+        leftLowerLeg = rig.GetBone("LeftLowerLeg", true);
+        rightLowerLeg = rig.GetBone("RightLowerLeg", true);
+
+        CacheBaseRotation("LeftUpperArm", leftUpperArm);
+        CacheBaseRotation("RightUpperArm", rightUpperArm);
+        CacheBaseRotation("LeftLowerArm", leftLowerArm);
+        CacheBaseRotation("RightLowerArm", rightLowerArm);
+        CacheBaseRotation("LeftHand", leftHand);
+        CacheBaseRotation("RightHand", rightHand);
+        CacheBaseRotation("LeftUpperLeg", leftUpperLeg);
+        CacheBaseRotation("RightUpperLeg", rightUpperLeg);
+        CacheBaseRotation("LeftLowerLeg", leftLowerLeg);
+        CacheBaseRotation("RightLowerLeg", rightLowerLeg);
+    }
+
+    private void ApplyPose()
+    {
+        float blend = Mathf.Clamp01(Time.deltaTime * Mathf.Max(0.01f, blendSpeed));
+        BlendTo(leftUpperArm, "LeftUpperArm", Quaternion.Euler(upperArmPitch, 0f, upperArmRoll), blend);
+        BlendTo(rightUpperArm, "RightUpperArm", Quaternion.Euler(upperArmPitch, 0f, -upperArmRoll), blend);
+        BlendTo(leftLowerArm, "LeftLowerArm", Quaternion.Euler(lowerArmPitch, 0f, 0f), blend);
+        BlendTo(rightLowerArm, "RightLowerArm", Quaternion.Euler(lowerArmPitch, 0f, 0f), blend);
+        BlendTo(leftHand, "LeftHand", Quaternion.Euler(handPitch, 0f, 0f), blend);
+        BlendTo(rightHand, "RightHand", Quaternion.Euler(handPitch, 0f, 0f), blend);
+        BlendTo(leftUpperLeg, "LeftUpperLeg", Quaternion.Euler(upperLegPitch, 0f, 0f), blend);
+        BlendTo(rightUpperLeg, "RightUpperLeg", Quaternion.Euler(upperLegPitch, 0f, 0f), blend);
+        BlendTo(leftLowerLeg, "LeftLowerLeg", Quaternion.Euler(lowerLegPitch, 0f, 0f), blend);
+        BlendTo(rightLowerLeg, "RightLowerLeg", Quaternion.Euler(lowerLegPitch, 0f, 0f), blend);
+    }
+
+    private void BlendTo(Transform bone, string key, Quaternion additivePose, float blend)
+    {
+        if (bone == null || !baseLocalRotations.TryGetValue(key, out Quaternion baseRotation))
+        {
+            return;
+        }
+
+        Quaternion target = baseRotation * additivePose;
+        bone.localRotation = Quaternion.Slerp(bone.localRotation, target, blend);
     }
 
     private void CacheBaseRotation(string key, Transform bone)

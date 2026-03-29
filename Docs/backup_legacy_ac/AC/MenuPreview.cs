@@ -1,0 +1,10 @@
+using UnityEngine;
+
+namespace AC
+{
+	[ExecuteInEditMode]
+	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_menu_preview.html")]
+	public class MenuPreview : MonoBehaviour
+	{
+	}
+}

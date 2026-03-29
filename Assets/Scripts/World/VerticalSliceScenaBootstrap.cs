@@ -405,15 +405,15 @@ public class VerticalSliceScenaBootstrap : MonoBehaviour
         SetLayerRecursive(visualRoot.transform, actorRoot.layer);
         HideActorRootRenderer(actorRoot);
         return true;
-#endif
-
+#else
         return false;
+#endif
     }
 
 #if UNITY_EDITOR
-    private static readonly string PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx";
-    private static readonly string NpcModelPath = "Assets/Ch02_nonPBR@Double Dagger Stab.fbx";
-    private static readonly string EnemyModelPath = "Assets/Ch11_nonPBR@Double Dagger Stab.fbx";
+    private static readonly string PlayerModelPath = "Assets/Game/Art/Characters/Source/Ch01_nonPBR@Double Dagger Stab.fbx";
+    private static readonly string NpcModelPath = "Assets/Game/Art/Characters/Source/Ch02_nonPBR@Double Dagger Stab.fbx";
+    private static readonly string EnemyModelPath = "Assets/Game/Art/Characters/Source/Ch11_nonPBR@Double Dagger Stab.fbx";
 
     private static GameObject ResolveDownloadedModelForActor(GameObject actorRoot, bool playerControlled)
     {

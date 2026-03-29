@@ -15,6 +15,7 @@ public class NPCKeyGiverInteractable : InteractableBase
     [SerializeField] private string rewardItemId = "service_key";
     [SerializeField] private string rewardItemDisplayName = "Service Key";
     [SerializeField] private bool grantOnlyOnce = true;
+    [SerializeField] private bool grantOnInteraction = true;
     [SerializeField] private string infectionMilestoneOnReward;
 
     [Header("Audio")]
@@ -66,6 +67,11 @@ public class NPCKeyGiverInteractable : InteractableBase
 
         EnsureDialogueDefaults();
         EnsureController();
+
+        if (grantOnInteraction && !(grantOnlyOnce && rewardGranted))
+        {
+            TryGrantReward(interactor, inventory);
+        }
 
         DialogueNodeData selectedNode = grantOnlyOnce && rewardGranted ? repeatNode : firstNode;
         if (dialogueController == null)
@@ -155,7 +161,7 @@ public class NPCKeyGiverInteractable : InteractableBase
         }
 
         rewardGranted = true;
-        inventory.AddItem(rewardItemId, rewardItemDisplayName, 1);
+        inventory.TryAddItemById(rewardItemId, 1, rewardItemDisplayName);
         HolstinAudio.PlayOneShot(rewardSound != null ? rewardSound : dialogueSound, transform, soundVolume);
         interactor.ShowTransientMessage($"Received: {rewardItemDisplayName}", 2.6f);
 

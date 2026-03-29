@@ -62,31 +62,26 @@ public class HolstinSceneContext : MonoBehaviour
         if (cameraRig == null)
         {
             cameraRig = FindAnyObjectByType<HolstinCameraRig>();
-            if (cameraRig != null) Debug.LogWarning("BOOTSTRAP_FALLBACK: HolstinSceneContext resolved CameraRig via FindAnyObjectByType.");
         }
 
         if (promptUI == null)
         {
             promptUI = FindAnyObjectByType<InteractionPromptUI>();
-            if (promptUI != null) Debug.LogWarning("BOOTSTRAP_FALLBACK: HolstinSceneContext resolved PromptUI via FindAnyObjectByType.");
         }
 
         if (inspectViewer == null)
         {
             inspectViewer = FindAnyObjectByType<InspectItemViewer>();
-            if (inspectViewer != null) Debug.LogWarning("BOOTSTRAP_FALLBACK: HolstinSceneContext resolved InspectViewer via FindAnyObjectByType.");
         }
 
         if (playerMover == null)
         {
             playerMover = FindAnyObjectByType<PlayerMover>();
-            if (playerMover != null) Debug.LogWarning("BOOTSTRAP_FALLBACK: HolstinSceneContext resolved PlayerMover via FindAnyObjectByType.");
         }
 
         if (dialoguePanel == null)
         {
             dialoguePanel = FindAnyObjectByType<DialoguePanelUI>();
-            if (dialoguePanel != null) Debug.LogWarning("BOOTSTRAP_FALLBACK: HolstinSceneContext resolved DialoguePanel via FindAnyObjectByType.");
         }
     }
 

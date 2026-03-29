@@ -16,7 +16,9 @@ public class InteractionScanner
         InventorySystem inventory,
         float interactRadius,
         LayerMask interactionMask,
+        LayerMask visibilityMask,
         float minimumFacingDot,
+        float maxVerticalDelta,
         out InteractableBase bestInteractable,
         out InspectableItem bestInspectable)
     {
@@ -43,8 +45,8 @@ public class InteractionScanner
             InteractableBase interactable = candidateCollider.GetComponentInParent<InteractableBase>();
             if (interactable != null && interactable.IsAvailable(interactor, inventory))
             {
-                float score = ScoreCandidate(playerTransform, viewCamera, candidateCollider.bounds.center, interactable.InteractionRadius, minimumFacingDot) + interactable.GetPriority(interactor) * 10f;
-                if (score > bestScore && PassesLineOfSight(viewCamera, interactionMask, interactable, candidateCollider))
+                float score = ScoreCandidate(playerTransform, viewCamera, candidateCollider.bounds.center, interactable.InteractionRadius, minimumFacingDot, maxVerticalDelta) + interactable.GetPriority(interactor) * 10f;
+                if (score > bestScore && PassesLineOfSight(viewCamera, visibilityMask, interactable, candidateCollider, playerTransform))
                 {
                     bestScore = score;
                     bestInteractable = interactable;
@@ -57,7 +59,7 @@ public class InteractionScanner
             InspectableItem inspectable = candidateCollider.GetComponentInParent<InspectableItem>();
             if (inspectable != null)
             {
-                float score = ScoreCandidate(playerTransform, viewCamera, candidateCollider.bounds.center, interactRadius, minimumFacingDot);
+                float score = ScoreCandidate(playerTransform, viewCamera, candidateCollider.bounds.center, interactRadius, minimumFacingDot, maxVerticalDelta);
                 if (score > bestScore)
                 {
                     bestScore = score;
@@ -73,9 +75,15 @@ public class InteractionScanner
         Camera viewCamera,
         Vector3 candidatePosition,
         float candidateRadius,
-        float minimumFacingDot)
+        float minimumFacingDot,
+        float maxVerticalDelta)
     {
         Vector3 toTarget = candidatePosition - playerTransform.position;
+        if (Mathf.Abs(toTarget.y) > Mathf.Max(0.1f, maxVerticalDelta))
+        {
+            return float.NegativeInfinity;
+        }
+
         float planarDistance = Vector3.ProjectOnPlane(toTarget, Vector3.up).magnitude;
         if (planarDistance > candidateRadius)
         {
@@ -94,9 +102,10 @@ public class InteractionScanner
 
     private static bool PassesLineOfSight(
         Camera viewCamera,
-        LayerMask interactionMask,
+        LayerMask visibilityMask,
         InteractableBase interactable,
-        Collider candidateCollider)
+        Collider candidateCollider,
+        Transform playerTransform)
     {
         if (!interactable.RequireLineOfSight || viewCamera == null)
         {
@@ -113,9 +122,28 @@ public class InteractionScanner
         }
 
         direction /= distance;
-        if (Physics.Raycast(origin, direction, out RaycastHit hit, distance + 0.1f, interactionMask, QueryTriggerInteraction.Ignore))
+        RaycastHit[] hits = Physics.RaycastAll(origin, direction, distance + 0.1f, visibilityMask, QueryTriggerInteraction.Ignore);
+        if (hits == null || hits.Length == 0)
         {
-            return hit.collider.transform == candidateCollider.transform || hit.collider.transform.IsChildOf(interactable.transform);
+            return true;
+        }
+
+        System.Array.Sort(hits, static (a, b) => a.distance.CompareTo(b.distance));
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            Transform hitTransform = hitCollider.transform;
+            if (playerTransform != null && hitTransform.IsChildOf(playerTransform))
+            {
+                continue;
+            }
+
+            return hitTransform == candidateCollider.transform || hitTransform.IsChildOf(interactable.transform);
         }
 
         return true;

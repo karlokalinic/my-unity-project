@@ -35,7 +35,7 @@ public static partial class HolstinLevelDesignTemplates
     private static void ApplyGlobalLookAndLighting()
     {
         EnsureDirectionalLight();
-        Light[] lights = Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Light[] lights = Object.FindObjectsByType<Light>(FindObjectsInactive.Include);
         for (int i = 0; i < lights.Length; i++)
         {
             Light lightComponent = lights[i];

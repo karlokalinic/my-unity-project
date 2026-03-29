@@ -30,6 +30,23 @@ public class CheckpointLiteManager : MonoBehaviour
         set => retainInventoryOnRespawn = value;
     }
 
+    public bool AutoRespawnOnFall
+    {
+        get => autoRespawnOnFall;
+        set => autoRespawnOnFall = value;
+    }
+
+    public float FallRespawnHeight
+    {
+        get => fallRespawnHeight;
+        set => fallRespawnHeight = value;
+    }
+
+    public void SetShowCheckpointMessages(bool enabled)
+    {
+        showCheckpointMessages = enabled;
+    }
+
     public void Configure(InventorySystem configuredInventory, CharacterController configuredController, PlayerMover configuredMover)
     {
         if (configuredInventory != null)
@@ -81,6 +98,15 @@ public class CheckpointLiteManager : MonoBehaviour
 
         string message = string.IsNullOrWhiteSpace(label) ? defaultCheckpointMessage : label;
         HolstinFeedback.ShowMessage(message, checkpointMessageDuration);
+    }
+
+    public void ConfigureFallAutoRespawn(bool enabled, float? height = null)
+    {
+        autoRespawnOnFall = enabled;
+        if (height.HasValue)
+        {
+            fallRespawnHeight = height.Value;
+        }
     }
 
     public void RespawnNow()

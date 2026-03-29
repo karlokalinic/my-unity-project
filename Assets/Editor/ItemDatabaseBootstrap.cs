@@ -15,6 +15,7 @@ public static class ItemDatabaseBootstrap
     {
         EnsureFolder("Assets/Data");
         EnsureFolder(BasePath);
+        NormalizeExistingItemAssetObjectNames();
 
         // --- Weapons ---
         CreateWeapon("wpn_pistol",    "Service Pistol",  ItemDefinition.WeaponType.Pistol,  15f, 0.4f,  40f, "ammo_pistol", 80, 30);
@@ -52,6 +53,43 @@ public static class ItemDatabaseBootstrap
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log($"[ItemDatabaseBootstrap] Generated starter items in {BasePath}");
+    }
+
+    [MenuItem("Tools/Holstin/Normalize Item Asset Object Names")]
+    public static void NormalizeExistingItemAssetObjectNames()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:ItemDefinition", new[] { BasePath });
+        int renamed = 0;
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            ItemDefinition item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+            if (item == null)
+            {
+                continue;
+            }
+
+            string expectedName = string.IsNullOrWhiteSpace(item.itemId)
+                ? System.IO.Path.GetFileNameWithoutExtension(path)
+                : item.itemId.Trim();
+
+            if (string.Equals(item.name, expectedName, System.StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            item.name = expectedName;
+            EditorUtility.SetDirty(item);
+            renamed++;
+        }
+
+        if (renamed > 0)
+        {
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        Debug.Log($"[ItemDatabaseBootstrap] Normalized item object names: {renamed}");
     }
 
     [MenuItem("Tools/Holstin/Apply Weapon Presets To Existing Items")]
@@ -193,6 +231,7 @@ public static class ItemDatabaseBootstrap
     private static ItemDefinition CreateBase(string id, string name, ItemDefinition.ItemCategory cat, bool stackable)
     {
         var item = ScriptableObject.CreateInstance<ItemDefinition>();
+        item.name = id;
         item.itemId = id;
         item.displayName = name;
         item.category = cat;
@@ -207,6 +246,7 @@ public static class ItemDatabaseBootstrap
         if (existing != null)
         {
             EditorUtility.CopySerialized(item, existing);
+            existing.name = id;
             EditorUtility.SetDirty(existing);
             Object.DestroyImmediate(item);
             return;

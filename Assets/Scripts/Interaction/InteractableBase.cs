@@ -29,6 +29,12 @@ public abstract class InteractableBase : MonoBehaviour
         return 0;
     }
 
+    public void ConfigureInteractionProfile(float radius, bool requireLineOfSightCheck)
+    {
+        interactionRadius = Mathf.Max(0.5f, radius);
+        requireLineOfSight = requireLineOfSightCheck;
+    }
+
     public virtual bool TryGetReachTarget(PlayerInteraction interactor, out Vector3 worldPoint)
     {
         ReachTargetAnchor explicitAnchor = GetComponentInChildren<ReachTargetAnchor>();

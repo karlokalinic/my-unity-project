@@ -17,6 +17,7 @@ public class StarterLoadout : MonoBehaviour
     [SerializeField] private bool grantOnlyIfInventoryEmpty = true;
 
     [Header("Items")]
+    [SerializeField] private string fallbackWeaponItemId = "wpn_pistol";
     [SerializeField] private ItemDefinition startingWeapon;
     [SerializeField] private ItemDefinition[] startingItems = Array.Empty<ItemDefinition>();
     [SerializeField] private AmmoGrant[] startingAmmo = Array.Empty<AmmoGrant>();
@@ -55,6 +56,37 @@ public class StarterLoadout : MonoBehaviour
         }
     }
 
+    public void ConfigureByItemIds(string weaponItemId, string[] itemIds, (string ammoId, int amount)[] ammo)
+    {
+        if (!string.IsNullOrWhiteSpace(weaponItemId))
+        {
+            fallbackWeaponItemId = weaponItemId;
+            startingWeapon = ItemDefinitionLookup.FindById(weaponItemId);
+        }
+
+        if (itemIds == null || itemIds.Length == 0)
+        {
+            startingItems = Array.Empty<ItemDefinition>();
+        }
+        else
+        {
+            var resolved = new ItemDefinition[itemIds.Length];
+            for (int i = 0; i < itemIds.Length; i++)
+            {
+                resolved[i] = ItemDefinitionLookup.FindById(itemIds[i]);
+            }
+            startingItems = resolved;
+        }
+
+        Configure(startingWeapon, startingItems, ammo);
+    }
+
+    public void ConfigureGrantBehavior(bool shouldGrantOnStart, bool onlyIfEmpty)
+    {
+        grantOnStart = shouldGrantOnStart;
+        grantOnlyIfInventoryEmpty = onlyIfEmpty;
+    }
+
     [ContextMenu("Grant Starter Loadout")]
     public void TryGrantLoadout()
     {
@@ -89,6 +121,8 @@ public class StarterLoadout : MonoBehaviour
             }
         }
 
+        ItemDefinition resolvedWeapon = ResolveWeaponDefinition();
+
         for (int i = 0; i < startingItems.Length; i++)
         {
             if (startingItems[i] != null)
@@ -105,15 +139,43 @@ public class StarterLoadout : MonoBehaviour
                 continue;
             }
 
-            // Ammo can live in legacy string inventory if there isn't an ItemDefinition slot entry yet.
-            inventory.AddItem(ammo.ammoItemId, ammo.ammoItemId, ammo.amount);
+            ItemDefinition ammoDefinition = ItemDefinitionLookup.FindById(ammo.ammoItemId);
+            if (ammoDefinition != null)
+            {
+                inventory.TryAddItem(ammoDefinition, ammo.amount);
+            }
+            else
+            {
+                // Ammo can live in legacy string inventory if there isn't an ItemDefinition slot entry yet.
+                inventory.AddItem(ammo.ammoItemId, ammo.ammoItemId, ammo.amount);
+            }
         }
 
-        if (startingWeapon != null)
+        if (resolvedWeapon != null)
         {
-            inventory.Equip(startingWeapon);
+            if (!inventory.HasItem(resolvedWeapon))
+            {
+                inventory.TryAddItem(resolvedWeapon, 1);
+            }
+
+            inventory.Equip(resolvedWeapon);
         }
 
         granted = true;
+    }
+
+    private ItemDefinition ResolveWeaponDefinition()
+    {
+        if (startingWeapon != null)
+        {
+            return startingWeapon;
+        }
+
+        if (!string.IsNullOrWhiteSpace(fallbackWeaponItemId))
+        {
+            startingWeapon = ItemDefinitionLookup.FindById(fallbackWeaponItemId);
+        }
+
+        return startingWeapon;
     }
 }

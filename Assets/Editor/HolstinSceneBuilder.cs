@@ -16,6 +16,7 @@ public class HolstinSceneBuilder : EditorWindow
         InteriorBoardingHouse,
         UnderpassCatacombs,
         InteractableSandbox,
+        GiganticTutorialShowcase,
         IsometricChoiceMega,
         FullVerticalSlice,
         TemplatePack,
@@ -176,6 +177,9 @@ public class HolstinSceneBuilder : EditorWindow
             case LayoutPreset.InteractableSandbox:
                 HolstinLevelDesignTemplates.CreateInteractableTestScene();
                 break;
+            case LayoutPreset.GiganticTutorialShowcase:
+                HolstinLevelDesignTemplates.CreateGiganticTutorialShowcaseScene();
+                break;
             case LayoutPreset.IsometricChoiceMega:
                 HolstinLevelDesignTemplates.CreateIsometricChoiceMegastructure();
                 break;
@@ -211,6 +215,10 @@ public class HolstinSceneBuilder : EditorWindow
             case LayoutPreset.InteractableSandbox:
                 return "Tutorial sandbox: 5 rooms testing inspect, pickup, door unlock, NPC dialogue, " +
                        "relay puzzle, combat, and console mechanics. Ideal for testing all interaction systems.";
+            case LayoutPreset.GiganticTutorialShowcase:
+                return "Gigantic showcase tutorial: connected exterior/interior/underpass + sandbox hub with " +
+                       "three sidequests chained to the first main objective, branching NPC dialogue, shop, " +
+                       "combat lane, inventory gates, and authored tutorial-tip zones.";
             case LayoutPreset.IsometricChoiceMega:
                 return "Branching choice megastructure: 9+ chambers with hub, branch doors, relay puzzles, " +
                        "mutually exclusive badge choices, world state reactions. Tests the choice system end-to-end.";

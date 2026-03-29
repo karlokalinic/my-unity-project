@@ -1,0 +1,279 @@
+# Character Asset Audit
+
+- Assets/Game/Art/Characters/Source/Ch01_nonPBR@Double Dagger Stab.fbx
+  - size_bytes: 55206848
+  - meshes: 5
+  - materials: 2
+  - clips: 2
+    - clip: __preview__mixamo.com
+    - clip: Double Dagger Stab
+    - mesh: Ch01_Body | verts=9978 tris=18800
+    - mesh: Ch01_Eyelashes | verts=653 tris=832
+    - mesh: Ch01_Pants | verts=3905 tris=7118
+    - mesh: Ch01_Shirt | verts=6456 tris=11716
+    - mesh: Ch01_Sneakers | verts=2634 tris=4352
+    - material: Ch01_body | has_albedo=False
+    - material: Ch01_hair | has_albedo=False
+- Assets/Game/Art/Characters/Source/Ch02_nonPBR@Double Dagger Stab.fbx
+  - size_bytes: 50376480
+  - meshes: 6
+  - materials: 2
+  - clips: 2
+    - clip: __preview__mixamo.com
+    - clip: Double Dagger Stab
+    - mesh: Ch02_Body | verts=10638 tris=19960
+    - mesh: Ch02_Cloth | verts=10094 tris=18730
+    - mesh: Ch02_Eyelashes | verts=603 tris=768
+    - mesh: Ch02_Hair | verts=8649 tris=9950
+    - mesh: Ch02_Sneakers | verts=2032 tris=3532
+    - mesh: Ch02_Socks | verts=341 tris=520
+    - material: Ch02_body | has_albedo=False
+    - material: Ch02_hair | has_albedo=False
+- Assets/Game/Art/Characters/Source/Ch11_nonPBR@Double Dagger Stab.fbx
+  - size_bytes: 62914304
+  - meshes: 1
+  - materials: 2
+  - clips: 2
+    - clip: __preview__mixamo.com
+    - clip: Double Dagger Stab
+    - mesh: Ch11 | verts=29105 tris=52666
+    - material: Ch11_body | has_albedo=False
+    - material: Ch11_body1 | has_albedo=False
+- Assets/Game/Art/Characters/CharMorph/2K/Antonia/Antonia_2K.fbx
+  - size_bytes: 5896924
+  - meshes: 3
+  - materials: 9
+  - clips: 0
+    - mesh: bra | verts=4326 tris=3736
+    - mesh: cm_antonia | verts=37957 tris=69300
+    - mesh: panties | verts=3206 tris=3088
+    - material: charmorph_pupil | has_albedo=False
+    - material: cm_antonia_cornea | has_albedo=False
+    - material: cm_antonia_iris | has_albedo=False
+    - material: cm_antonia_mouth | has_albedo=False
+    - material: cm_antonia_nails | has_albedo=False
+    - material: cm_antonia_sclera | has_albedo=False
+    - material: cm_antonia_skin | has_albedo=False
+    - material: underwear_material | has_albedo=True
+    - material: underwear_material.001 | has_albedo=True
+- Assets/Game/Art/Characters/CharMorph/2K/MB-Lab_Male/MB-Lab_Male_2K.fbx
+  - size_bytes: 3646092
+  - meshes: 1
+  - materials: 10
+  - clips: 0
+    - mesh: mb_male | verts=19895 tris=34148
+    - material: charmorph_censor | has_albedo=False
+    - material: charmorph_cornea | has_albedo=False
+    - material: charmorph_iris | has_albedo=False
+    - material: charmorph_nails_v2 | has_albedo=False
+    - material: charmorph_skin_v2 | has_albedo=False
+    - material: MBlab_eyelash | has_albedo=False
+    - material: MBlab_human_eyes | has_albedo=False
+    - material: MBlab_human_teeth | has_albedo=False
+    - material: MBlab_pupil | has_albedo=False
+    - material: MBLab_tongue | has_albedo=False
+- Assets/Game/Art/Characters/CharMorph/2K/Vitruvian/Vitruvian_2K.fbx
+  - size_bytes: 8429132
+  - meshes: 1
+  - materials: 7
+  - clips: 0
+    - mesh: cm_vitruvian | verts=42842 tris=74838
+    - material: charmorph_censor | has_albedo=False
+    - material: Iris | has_albedo=False
+    - material: Mouth | has_albedo=False
+    - material: Pupil | has_albedo=False
+    - material: Sclera_Cornea | has_albedo=False
+    - material: Tearline | has_albedo=False
+    - material: UDIM.Skin | has_albedo=False
+- Assets/Game/Art/Animations/Locomotion/UAL1_Standard.fbx
+  - size_bytes: 24838044
+  - meshes: 1
+  - materials: 2
+  - clips: 90
+    - clip: __preview__Armature|A_TPose
+    - clip: __preview__Armature|Crouch_Fwd_Loop
+    - clip: __preview__Armature|Crouch_Idle_Loop
+    - clip: __preview__Armature|Dance_Loop
+    - clip: __preview__Armature|Death01
+    - clip: __preview__Armature|Driving_Loop
+    - clip: __preview__Armature|Fixing_Kneeling
+    - clip: __preview__Armature|Hit_Chest
+    - clip: __preview__Armature|Hit_Head
+    - clip: __preview__Armature|Idle_Loop
+    - clip: __preview__Armature|Idle_Talking_Loop
+    - clip: __preview__Armature|Idle_Torch_Loop
+    - clip: __preview__Armature|Interact
+    - clip: __preview__Armature|Jog_Fwd_Loop
+    - clip: __preview__Armature|Jump_Land
+    - clip: __preview__Armature|Jump_Loop
+    - clip: __preview__Armature|Jump_Start
+    - clip: __preview__Armature|PickUp_Table
+    - clip: __preview__Armature|Pistol_Aim_Down
+    - clip: __preview__Armature|Pistol_Aim_Neutral
+    - clip: __preview__Armature|Pistol_Aim_Up
+    - clip: __preview__Armature|Pistol_Idle_Loop
+    - clip: __preview__Armature|Pistol_Reload
+    - clip: __preview__Armature|Pistol_Shoot
+    - clip: __preview__Armature|Punch_Cross
+    - clip: __preview__Armature|Punch_Jab
+    - clip: __preview__Armature|Push_Loop
+    - clip: __preview__Armature|Roll
+    - clip: __preview__Armature|Roll_RM
+    - clip: __preview__Armature|Sitting_Enter
+    - clip: __preview__Armature|Sitting_Exit
+    - clip: __preview__Armature|Sitting_Idle_Loop
+    - clip: __preview__Armature|Sitting_Talking_Loop
+    - clip: __preview__Armature|Spell_Simple_Enter
+    - clip: __preview__Armature|Spell_Simple_Exit
+    - clip: __preview__Armature|Spell_Simple_Idle_Loop
+    - clip: __preview__Armature|Spell_Simple_Shoot
+    - clip: __preview__Armature|Sprint_Loop
+    - clip: __preview__Armature|Swim_Fwd_Loop
+    - clip: __preview__Armature|Swim_Idle_Loop
+    - clip: __preview__Armature|Sword_Attack
+    - clip: __preview__Armature|Sword_Attack_RM
+    - clip: __preview__Armature|Sword_Idle
+    - clip: __preview__Armature|Walk_Formal_Loop
+    - clip: __preview__Armature|Walk_Loop
+    - clip: Armature|A_TPose
+    - clip: Armature|Crouch_Fwd_Loop
+    - clip: Armature|Crouch_Idle_Loop
+    - clip: Armature|Dance_Loop
+    - clip: Armature|Death01
+    - clip: Armature|Driving_Loop
+    - clip: Armature|Fixing_Kneeling
+    - clip: Armature|Hit_Chest
+    - clip: Armature|Hit_Head
+    - clip: Armature|Idle_Loop
+    - clip: Armature|Idle_Talking_Loop
+    - clip: Armature|Idle_Torch_Loop
+    - clip: Armature|Interact
+    - clip: Armature|Jog_Fwd_Loop
+    - clip: Armature|Jump_Land
+    - clip: Armature|Jump_Loop
+    - clip: Armature|Jump_Start
+    - clip: Armature|PickUp_Table
+    - clip: Armature|Pistol_Aim_Down
+    - clip: Armature|Pistol_Aim_Neutral
+    - clip: Armature|Pistol_Aim_Up
+    - clip: Armature|Pistol_Idle_Loop
+    - clip: Armature|Pistol_Reload
+    - clip: Armature|Pistol_Shoot
+    - clip: Armature|Punch_Cross
+    - clip: Armature|Punch_Jab
+    - clip: Armature|Push_Loop
+    - clip: Armature|Roll
+    - clip: Armature|Roll_RM
+    - clip: Armature|Sitting_Enter
+    - clip: Armature|Sitting_Exit
+    - clip: Armature|Sitting_Idle_Loop
+    - clip: Armature|Sitting_Talking_Loop
+    - clip: Armature|Spell_Simple_Enter
+    - clip: Armature|Spell_Simple_Exit
+    - clip: Armature|Spell_Simple_Idle_Loop
+    - clip: Armature|Spell_Simple_Shoot
+    - clip: Armature|Sprint_Loop
+    - clip: Armature|Swim_Fwd_Loop
+    - clip: Armature|Swim_Idle_Loop
+    - clip: Armature|Sword_Attack
+    - clip: Armature|Sword_Attack_RM
+    - clip: Armature|Sword_Idle
+    - clip: Armature|Walk_Formal_Loop
+    - clip: Armature|Walk_Loop
+    - mesh: Mannequin | verts=8462 tris=13744
+    - material: M_Joints | has_albedo=False
+    - material: M_Main | has_albedo=False
+- Assets/Game/Art/Animations/Locomotion/UAL2_Standard.fbx
+  - size_bytes: 24365116
+  - meshes: 1
+  - materials: 2
+  - clips: 86
+    - clip: __preview__Armature|A_TPose
+    - clip: __preview__Armature|Chest_Open
+    - clip: __preview__Armature|ClimbUp_1m_RM
+    - clip: __preview__Armature|Consume
+    - clip: __preview__Armature|Farm_Harvest
+    - clip: __preview__Armature|Farm_PlantSeed
+    - clip: __preview__Armature|Farm_Watering
+    - clip: __preview__Armature|Hit_Knockback
+    - clip: __preview__Armature|Hit_Knockback_RM
+    - clip: __preview__Armature|Idle_FoldArms_Loop
+    - clip: __preview__Armature|Idle_Lantern_Loop
+    - clip: __preview__Armature|Idle_No_Loop
+    - clip: __preview__Armature|Idle_Rail_Call
+    - clip: __preview__Armature|Idle_Rail_Loop
+    - clip: __preview__Armature|Idle_Shield_Break
+    - clip: __preview__Armature|Idle_Shield_Loop
+    - clip: __preview__Armature|Idle_TalkingPhone_Loop
+    - clip: __preview__Armature|LayToIdle
+    - clip: __preview__Armature|Melee_Hook
+    - clip: __preview__Armature|Melee_Hook_Rec
+    - clip: __preview__Armature|NinjaJump_Idle_Loop
+    - clip: __preview__Armature|NinjaJump_Land
+    - clip: __preview__Armature|NinjaJump_Start
+    - clip: __preview__Armature|OverhandThrow
+    - clip: __preview__Armature|Shield_Dash_RM
+    - clip: __preview__Armature|Shield_OneShot
+    - clip: __preview__Armature|Slide_Exit
+    - clip: __preview__Armature|Slide_Loop
+    - clip: __preview__Armature|Slide_Start
+    - clip: __preview__Armature|Sword_Block
+    - clip: __preview__Armature|Sword_Dash_RM
+    - clip: __preview__Armature|Sword_Regular_A
+    - clip: __preview__Armature|Sword_Regular_A_Rec
+    - clip: __preview__Armature|Sword_Regular_B
+    - clip: __preview__Armature|Sword_Regular_B_Rec
+    - clip: __preview__Armature|Sword_Regular_C
+    - clip: __preview__Armature|Sword_Regular_Combo
+    - clip: __preview__Armature|TreeChopping_Loop
+    - clip: __preview__Armature|Walk_Carry_Loop
+    - clip: __preview__Armature|Yes
+    - clip: __preview__Armature|Zombie_Idle_Loop
+    - clip: __preview__Armature|Zombie_Scratch
+    - clip: __preview__Armature|Zombie_Walk_Fwd_Loop
+    - clip: Armature|A_TPose
+    - clip: Armature|Chest_Open
+    - clip: Armature|ClimbUp_1m_RM
+    - clip: Armature|Consume
+    - clip: Armature|Farm_Harvest
+    - clip: Armature|Farm_PlantSeed
+    - clip: Armature|Farm_Watering
+    - clip: Armature|Hit_Knockback
+    - clip: Armature|Hit_Knockback_RM
+    - clip: Armature|Idle_FoldArms_Loop
+    - clip: Armature|Idle_Lantern_Loop
+    - clip: Armature|Idle_No_Loop
+    - clip: Armature|Idle_Rail_Call
+    - clip: Armature|Idle_Rail_Loop
+    - clip: Armature|Idle_Shield_Break
+    - clip: Armature|Idle_Shield_Loop
+    - clip: Armature|Idle_TalkingPhone_Loop
+    - clip: Armature|LayToIdle
+    - clip: Armature|Melee_Hook
+    - clip: Armature|Melee_Hook_Rec
+    - clip: Armature|NinjaJump_Idle_Loop
+    - clip: Armature|NinjaJump_Land
+    - clip: Armature|NinjaJump_Start
+    - clip: Armature|OverhandThrow
+    - clip: Armature|Shield_Dash_RM
+    - clip: Armature|Shield_OneShot
+    - clip: Armature|Slide_Exit
+    - clip: Armature|Slide_Loop
+    - clip: Armature|Slide_Start
+    - clip: Armature|Sword_Block
+    - clip: Armature|Sword_Dash_RM
+    - clip: Armature|Sword_Regular_A
+    - clip: Armature|Sword_Regular_A_Rec
+    - clip: Armature|Sword_Regular_B
+    - clip: Armature|Sword_Regular_B_Rec
+    - clip: Armature|Sword_Regular_C
+    - clip: Armature|Sword_Regular_Combo
+    - clip: Armature|TreeChopping_Loop
+    - clip: Armature|Walk_Carry_Loop
+    - clip: Armature|Yes
+    - clip: Armature|Zombie_Idle_Loop
+    - clip: Armature|Zombie_Scratch
+    - clip: Armature|Zombie_Walk_Fwd_Loop
+    - mesh: Mannequin | verts=8462 tris=13744
+    - material: M_Joints | has_albedo=False
+    - material: M_Main | has_albedo=False

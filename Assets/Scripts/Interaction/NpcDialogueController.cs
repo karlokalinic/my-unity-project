@@ -9,9 +9,17 @@ public class NpcDialogueController : MonoBehaviour
     [Header("Dialogue Camera")]
     [SerializeField] private Transform cameraAnchor;
     [SerializeField] private Transform lookAtTarget;
-    [SerializeField] private float dialogueShotFov = 38f;
+    [SerializeField] private float dialogueShotFov = 44f;
     [SerializeField] private float blendInSeconds = 0.45f;
     [SerializeField] private float blendOutSeconds = 0.32f;
+    [SerializeField] private bool useDynamicTwoShot = true;
+    [SerializeField] private float twoShotDistance = 3.35f;
+    [SerializeField] private float twoShotSideOffset = 1.55f;
+    [SerializeField] private float twoShotHeight = 1.45f;
+    [SerializeField] private float twoShotFocusLift = 0.08f;
+    [SerializeField] private float playerFocusHeight = 1.42f;
+    [SerializeField] private float npcFocusHeight = 1.44f;
+    [SerializeField] private float playerFaceLerpSpeed = 9f;
 
     [Header("Timeline (Optional)")]
     [SerializeField] private PlayableDirector enterTimeline;
@@ -47,8 +55,9 @@ public class NpcDialogueController : MonoBehaviour
         Action<DialogueSelectionResult> onSelection)
     {
         runningConversation = true;
+        HolstinCameraRig rig = ResolveCameraRig(interactor);
         EnsureCameraAnchor();
-        AlignAnchorRotation();
+        UpdateDialogueAnchor(interactor, rig);
 
         int pauseToken = GameplayPauseFacade.PushPause();
         if (interactor != null)
@@ -56,7 +65,6 @@ public class NpcDialogueController : MonoBehaviour
             interactor.SetBusy(true);
         }
 
-        HolstinCameraRig rig = ResolveCameraRig(interactor);
         yield return PlayEnterCinematic(rig);
 
         DialoguePanelUI panel = HolstinFeedback.ResolveDialoguePanel();
@@ -72,6 +80,8 @@ public class NpcDialogueController : MonoBehaviour
 
             while (panel != null && panel.IsShowing && !picked)
             {
+                UpdateDialogueAnchor(interactor, rig);
+                AlignInteractorToNpc(interactor);
                 yield return null;
             }
         }
@@ -192,6 +202,78 @@ public class NpcDialogueController : MonoBehaviour
         }
 
         cameraAnchor.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+    }
+
+    private void UpdateDialogueAnchor(PlayerInteraction interactor, HolstinCameraRig rig)
+    {
+        if (cameraAnchor == null)
+        {
+            return;
+        }
+
+        if (!useDynamicTwoShot || interactor == null)
+        {
+            AlignAnchorRotation();
+            return;
+        }
+
+        Vector3 playerFocus = interactor.transform.position + Vector3.up * playerFocusHeight;
+        Transform npcTransform = lookAtTarget != null ? lookAtTarget : transform;
+        Vector3 npcFocus = npcTransform.position + Vector3.up * npcFocusHeight;
+
+        Vector3 pair = npcFocus - playerFocus;
+        pair.y = 0f;
+        if (pair.sqrMagnitude < 0.01f)
+        {
+            AlignAnchorRotation();
+            return;
+        }
+
+        Vector3 pairForward = pair.normalized;
+        Vector3 side = Vector3.Cross(Vector3.up, pairForward).normalized;
+        Vector3 center = Vector3.Lerp(playerFocus, npcFocus, 0.5f);
+
+        if (rig != null && rig.CameraTransform != null)
+        {
+            Vector3 currentOffset = rig.CameraTransform.position - center;
+            if (Vector3.Dot(currentOffset, side) < 0f)
+            {
+                side = -side;
+            }
+        }
+
+        Vector3 shotPosition = center +
+                               (Vector3.up * twoShotHeight) +
+                               (side * twoShotSideOffset) -
+                               (pairForward * twoShotDistance);
+        cameraAnchor.position = shotPosition;
+
+        Vector3 lookPoint = center + Vector3.up * twoShotFocusLift;
+        Vector3 lookDirection = lookPoint - shotPosition;
+        if (lookDirection.sqrMagnitude > 0.0001f)
+        {
+            cameraAnchor.rotation = Quaternion.LookRotation(lookDirection.normalized, Vector3.up);
+        }
+    }
+
+    private void AlignInteractorToNpc(PlayerInteraction interactor)
+    {
+        if (interactor == null)
+        {
+            return;
+        }
+
+        Transform npcTransform = lookAtTarget != null ? lookAtTarget : transform;
+        Vector3 direction = npcTransform.position - interactor.transform.position;
+        direction.y = 0f;
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+        float t = 1f - Mathf.Exp(-Mathf.Max(0.01f, playerFaceLerpSpeed) * Time.deltaTime);
+        interactor.transform.rotation = Quaternion.Slerp(interactor.transform.rotation, targetRotation, t);
     }
 
     private static DialogueSelectionResult ResolveLeaveFallback(DialogueNodeData node)

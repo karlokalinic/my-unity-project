@@ -44,10 +44,21 @@ public class InventoryPanelUI : MonoBehaviour
 
     private bool TogglePressed()
     {
-        if (toggleKey == Key.None) return false;
+        if (InputReader.InventoryTogglePressed())
+        {
+            return true;
+        }
+
+        if (toggleKey == Key.None)
+        {
+            return false;
+        }
 
         Keyboard keyboard = Keyboard.current;
-        if (keyboard == null) return false;
+        if (keyboard == null)
+        {
+            return false;
+        }
 
         var keyControl = keyboard[toggleKey];
         return keyControl != null && keyControl.wasPressedThisFrame;
@@ -210,10 +221,21 @@ public class InventoryPanelUI : MonoBehaviour
         cb.highlightedColor = new Color(0.3f, 0.3f, 0.4f, 0.8f);
         btn.colors = cb;
 
+        RectTransform iconRt = MakeRect("Icon", rt);
+        iconRt.anchorMin = new Vector2(0f, 0f);
+        iconRt.anchorMax = new Vector2(0f, 1f);
+        iconRt.pivot = new Vector2(0f, 0.5f);
+        iconRt.anchoredPosition = new Vector2(4f, 0f);
+        iconRt.sizeDelta = new Vector2(24f, 24f);
+        Image icon = iconRt.gameObject.AddComponent<Image>();
+        icon.preserveAspect = true;
+        icon.enabled = false;
+        icon.raycastTarget = false;
+
         RectTransform labelRt = MakeRect("Label", rt);
         labelRt.anchorMin = Vector2.zero;
         labelRt.anchorMax = new Vector2(0.75f, 1f);
-        labelRt.offsetMin = new Vector2(6f, 0f);
+        labelRt.offsetMin = new Vector2(34f, 0f);
         labelRt.offsetMax = Vector2.zero;
         TextMeshProUGUI label = labelRt.gameObject.AddComponent<TextMeshProUGUI>();
         label.fontSize = 13f;
@@ -235,6 +257,7 @@ public class InventoryPanelUI : MonoBehaviour
         var widget = new SlotWidget
         {
             root = rt,
+            icon = icon,
             label = label,
             countText = countTxt,
             button = btn,

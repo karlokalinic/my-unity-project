@@ -1,0 +1,11 @@
+using System;
+using UnityEngine;
+
+namespace AC
+{
+	[Serializable]
+	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_interaction.html")]
+	public class Interaction : ActionList
+	{
+	}
+}

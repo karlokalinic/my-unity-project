@@ -428,6 +428,7 @@ public class RealTimeCombat : MonoBehaviour
         if (playerStats == null) playerStats = GetComponent<CharacterStats>();
         if (skillSystem == null) skillSystem = GetComponent<SkillSystem>();
         if (inventory == null) inventory = GetComponent<InventorySystem>();
+        if (inventory == null) inventory = gameObject.AddComponent<InventorySystem>();
         if (animationController == null) animationController = GetComponent<PlayerAnimationController>();
         if (cameraRig == null)
         {

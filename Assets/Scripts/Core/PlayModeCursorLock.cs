@@ -29,7 +29,7 @@ public class PlayModeCursorLock : MonoBehaviour
             manuallyUnlocked = !manuallyUnlocked;
         }
 
-        bool shouldLock = Application.isFocused && !manuallyUnlocked;
+        bool shouldLock = Application.isFocused && !manuallyUnlocked && !GameplayPauseFacade.IsPaused;
         ApplyCursorState(shouldLock);
     }
 
@@ -40,7 +40,7 @@ public class PlayModeCursorLock : MonoBehaviour
             return;
         }
 
-        bool shouldLock = hasFocus && !manuallyUnlocked;
+        bool shouldLock = hasFocus && !manuallyUnlocked && !GameplayPauseFacade.IsPaused;
         ApplyCursorState(shouldLock);
     }
 

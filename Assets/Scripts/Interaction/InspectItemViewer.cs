@@ -42,7 +42,7 @@ public class InspectItemViewer : MonoBehaviour
         string message = string.IsNullOrWhiteSpace(item.ItemDescription)
             ? item.ItemName
             : $"{item.ItemName}\n\n{item.ItemDescription}";
-        HolstinFeedback.ShowMessage($"{message}\n\nHold LMB to rotate. Press E, Esc, or move to return.", inspectMessageDuration);
+        HolstinFeedback.ShowMessage($"{message}\n\nHold LMB to rotate. Press {InputReader.GetInteractLabel()}, {InputReader.GetDialogueCancelLabel()}, or move to return.", inspectMessageDuration);
 
         if (!string.IsNullOrWhiteSpace(item.MilestoneOnInspect))
         {

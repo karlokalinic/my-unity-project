@@ -148,7 +148,8 @@ public class CombatReticleUI : MonoBehaviour
 
     private void Refresh()
     {
-        bool visible = combat != null && combat.ShouldShowCombatHud;
+        bool firstPerson = cameraRig != null && cameraRig.IsInFirstPerson && !GameplayPauseFacade.IsPaused;
+        bool visible = firstPerson;
 
         if (root != null && root.gameObject.activeSelf != visible)
         {
@@ -165,7 +166,6 @@ public class CombatReticleUI : MonoBehaviour
             return;
         }
 
-        bool firstPerson = cameraRig != null && cameraRig.IsInFirstPerson;
         float baseLineLength = firstPerson ? firstPersonLineLength : thirdPersonLineLength;
         float lineLength = baseLineLength + (shotPulse * 10f);
         float thickness = firstPerson ? 2f : 3f;
@@ -175,7 +175,7 @@ public class CombatReticleUI : MonoBehaviour
         if (verticalLineRect != null) verticalLineRect.sizeDelta = new Vector2(thickness, lineLength);
         if (centerDotRect != null) centerDotRect.sizeDelta = new Vector2(dotSize, dotSize);
 
-        Color baseColor = combat.IsReloading ? reloadColor : activeColor;
+        Color baseColor = combat != null && combat.IsReloading ? reloadColor : activeColor;
         Color color = Color.Lerp(baseColor, shotFlashColor, shotPulse);
         if (horizontalLine != null) horizontalLine.color = color;
         if (verticalLine != null) verticalLine.color = color;
@@ -183,7 +183,7 @@ public class CombatReticleUI : MonoBehaviour
         if (ammoText != null)
         {
             ammoText.color = color;
-            ammoText.text = combat.GetWeaponHudText();
+            ammoText.text = combat != null ? combat.GetWeaponHudText() : "NO WEAPON DATA";
         }
     }
 

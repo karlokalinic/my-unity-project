@@ -5,6 +5,10 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+#if ENABLE_INPUT_SYSTEM && !UNITY_DISABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
+
 public class DialoguePanelUI : MonoBehaviour
 {
     private const string DialoguePanelName = "DialoguePanel";
@@ -36,6 +40,7 @@ public class DialoguePanelUI : MonoBehaviour
     [SerializeField] private Color optionSelectedColor = new Color(0.22f, 0.2f, 0.12f, 0.98f);
     [SerializeField] private Color optionLeaveColor = new Color(0.44f, 0.16f, 0.16f, 0.92f);
     [SerializeField] private Color optionSelectedLeaveColor = new Color(0.68f, 0.2f, 0.2f, 0.98f);
+    [SerializeField] private float initialInputIgnoreSeconds = 0.2f;
 
     private readonly Queue<string> queuedLines = new Queue<string>();
     private readonly List<OptionWidget> optionWidgets = new List<OptionWidget>();
@@ -45,7 +50,9 @@ public class DialoguePanelUI : MonoBehaviour
     private DialogueNodeData activeChoiceNode;
     private Action<DialogueSelectionResult> selectionCallback;
     private int selectedOptionIndex;
+    private bool movementExitArmed;
     private bool ownsInputContext;
+    private float inputUnlockTime;
 
     public bool IsShowing => visible;
     public event Action Closed;
@@ -93,6 +100,7 @@ public class DialoguePanelUI : MonoBehaviour
     {
         EnsureRuntimeReferences(true);
         AcquireDialogueContext();
+        HidePromptLayerDuringDialogue();
         queuedLines.Clear();
         mode = DialogueMode.Lines;
         activeChoiceNode = null;
@@ -116,7 +124,9 @@ public class DialoguePanelUI : MonoBehaviour
         }
 
         speakerName = string.IsNullOrWhiteSpace(newSpeakerName) ? "Unknown" : newSpeakerName;
+        SetSpeakerVisible(true);
         visible = true;
+        inputUnlockTime = Time.unscaledTime + Mathf.Max(0.01f, initialInputIgnoreSeconds);
         ShowNextQueuedLine();
         RefreshChoiceVisibility();
     }
@@ -125,12 +135,15 @@ public class DialoguePanelUI : MonoBehaviour
     {
         EnsureRuntimeReferences(true);
         AcquireDialogueContext();
+        HidePromptLayerDuringDialogue();
         mode = DialogueMode.Choices;
         queuedLines.Clear();
         activeChoiceNode = node;
         selectionCallback = onSelection;
         selectedOptionIndex = 0;
+        movementExitArmed = !InputReader.MovementIntentPressed();
         visible = true;
+        inputUnlockTime = Time.unscaledTime + Mathf.Max(0.01f, initialInputIgnoreSeconds);
 
         if (activeChoiceNode == null)
         {
@@ -139,11 +152,7 @@ public class DialoguePanelUI : MonoBehaviour
         }
 
         speakerName = string.IsNullOrWhiteSpace(activeChoiceNode.SpeakerName) ? "Unknown" : activeChoiceNode.SpeakerName;
-        if (speakerText != null)
-        {
-            speakerText.text = speakerName;
-            speakerText.color = accentColor;
-        }
+        SetSpeakerVisible(false);
 
         if (bodyText != null)
         {
@@ -177,10 +186,17 @@ public class DialoguePanelUI : MonoBehaviour
             panelGroup.blocksRaycasts = false;
             panelGroup.interactable = false;
         }
+
+        SetSpeakerVisible(true);
     }
 
     private void UpdateLineDialogueMode()
     {
+        if (Time.unscaledTime < inputUnlockTime)
+        {
+            return;
+        }
+
         if (InputReader.CancelPressed())
         {
             CloseDialogue();
@@ -195,6 +211,24 @@ public class DialoguePanelUI : MonoBehaviour
 
     private void UpdateChoiceDialogueMode()
     {
+        if (Time.unscaledTime < inputUnlockTime)
+        {
+            return;
+        }
+
+        if (!movementExitArmed)
+        {
+            if (!InputReader.MovementIntentPressed())
+            {
+                movementExitArmed = true;
+            }
+        }
+        else if (InputReader.MovementIntentStarted())
+        {
+            CommitChoice(FindLeaveOrFallbackIndex());
+            return;
+        }
+
         Vector2 navigate = InputReader.GetDialogueNavigateVector();
         if (navigate.y > 0.1f)
         {
@@ -211,7 +245,7 @@ public class DialoguePanelUI : MonoBehaviour
             return;
         }
 
-        if (InputReader.CancelPressed())
+        if (InputReader.CancelPressed() || InteractFallbackPressed())
         {
             CommitChoice(FindLeaveOrFallbackIndex());
         }
@@ -319,12 +353,19 @@ public class DialoguePanelUI : MonoBehaviour
         queuedLines.Clear();
         activeChoiceNode = null;
         selectionCallback = null;
+        movementExitArmed = false;
         RefreshChoiceVisibility();
+        SetSpeakerVisible(true);
 
         if (wasVisible)
         {
             Closed?.Invoke();
         }
+    }
+
+    private static bool InteractFallbackPressed()
+    {
+        return InputReader.InteractPressed();
     }
 
     private void OnDisable()
@@ -358,9 +399,10 @@ public class DialoguePanelUI : MonoBehaviour
     {
         EnsureCanvasScaffolding();
         panelGroup = ResolvePanelGroup(allowRebuild);
+        RemoveLegacyPanelArtifacts(panelGroup);
         speakerText = ResolveTextElement(panelGroup, SpeakerTextName, allowRebuild, 30f, TextAlignmentOptions.Left, "Speaker", new Vector2(22f, -14f), new Vector2(-22f, -56f));
         bodyText = ResolveTextElement(panelGroup, BodyTextName, allowRebuild, 24f, TextAlignmentOptions.TopLeft, "Dialogue line.", new Vector2(22f, -62f), new Vector2(-22f, -124f));
-        hintText = ResolveTextElement(panelGroup, HintTextName, allowRebuild, 17f, TextAlignmentOptions.BottomRight, "[Enter] Confirm    [Esc] Leave", new Vector2(22f, 12f), new Vector2(-22f, 12f));
+        hintText = ResolveTextElement(panelGroup, HintTextName, allowRebuild, 17f, TextAlignmentOptions.TopRight, "[Enter] Confirm    [Esc] Leave", new Vector2(22f, -48f), new Vector2(-22f, -14f));
         optionsRoot = ResolveOptionsRoot(panelGroup, allowRebuild);
         EnsureChoiceWidgets(allowRebuild);
     }
@@ -378,10 +420,7 @@ public class DialoguePanelUI : MonoBehaviour
         rootRect.offsetMin = Vector2.zero;
         rootRect.offsetMax = Vector2.zero;
         rootRect.pivot = new Vector2(0.5f, 0.5f);
-        if (rootRect.localScale == Vector3.zero)
-        {
-            rootRect.localScale = Vector3.one;
-        }
+        rootRect.localScale = Vector3.one;
 
         Canvas canvas = GetComponent<Canvas>();
         if (canvas == null)
@@ -389,7 +428,7 @@ public class DialoguePanelUI : MonoBehaviour
             canvas = gameObject.AddComponent<Canvas>();
         }
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 24;
+        canvas.sortingOrder = 200;
 
         CanvasScaler scaler = GetComponent<CanvasScaler>();
         if (scaler == null)
@@ -451,6 +490,72 @@ public class DialoguePanelUI : MonoBehaviour
         }
 
         return group;
+    }
+
+    private void SetSpeakerVisible(bool visibleState)
+    {
+        if (speakerText == null)
+        {
+            return;
+        }
+
+        if (speakerText.gameObject.activeSelf != visibleState)
+        {
+            speakerText.gameObject.SetActive(visibleState);
+        }
+    }
+
+    private static void RemoveLegacyPanelArtifacts(CanvasGroup group)
+    {
+        if (group == null)
+        {
+            return;
+        }
+
+        for (int i = group.transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = group.transform.GetChild(i);
+            if (child == null)
+            {
+                continue;
+            }
+
+            string childName = child.name;
+            bool known = string.Equals(childName, SpeakerTextName, StringComparison.Ordinal) ||
+                         string.Equals(childName, BodyTextName, StringComparison.Ordinal) ||
+                         string.Equals(childName, HintTextName, StringComparison.Ordinal) ||
+                         string.Equals(childName, OptionsRootName, StringComparison.Ordinal);
+            if (known)
+            {
+                continue;
+            }
+
+            if (child.GetComponent<TextMeshProUGUI>() == null)
+            {
+                continue;
+            }
+
+            if (Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(child.gameObject);
+            }
+            else
+            {
+                UnityEngine.Object.DestroyImmediate(child.gameObject);
+            }
+        }
+    }
+
+    private static void HidePromptLayerDuringDialogue()
+    {
+        InteractionPromptUI prompt = HolstinFeedback.ResolvePromptUI();
+        if (prompt == null)
+        {
+            return;
+        }
+
+        prompt.HidePromptImmediate();
+        prompt.HideMessageImmediate();
     }
 
     private RectTransform ResolveOptionsRoot(CanvasGroup group, bool allowRebuild)

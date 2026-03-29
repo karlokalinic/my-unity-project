@@ -215,6 +215,24 @@ internal sealed class SceneCoreInstaller
             inventory = playerMover.gameObject.AddComponent<InventorySystem>();
         }
 
+        if (playerMover.GetComponent<PlayerInventory>() == null)
+        {
+            playerMover.gameObject.AddComponent<PlayerInventory>();
+        }
+
+        StarterLoadout starterLoadout = playerMover.GetComponent<StarterLoadout>();
+        if (starterLoadout == null)
+        {
+            starterLoadout = playerMover.gameObject.AddComponent<StarterLoadout>();
+        }
+
+        starterLoadout.ConfigureGrantBehavior(shouldGrantOnStart: true, onlyIfEmpty: false);
+        starterLoadout.ConfigureByItemIds(
+            weaponItemId: "wpn_pistol",
+            itemIds: new string[0],
+            ammo: new[] { ("ammo_pistol", 36) });
+        starterLoadout.TryGrantLoadout();
+
         PlayerInteraction interaction = playerMover.GetComponent<PlayerInteraction>();
         if (interaction == null)
         {
@@ -247,6 +265,7 @@ internal sealed class SceneCoreInstaller
             pickupAnchor.localPosition = new Vector3(0.2f, -0.15f, 0.62f);
             pickupAnchor.localRotation = Quaternion.identity;
 
+            playerMover.ConfigureRuntimeReferences(cameraRig, inspectViewer);
             playerMover.SetCameraForwardSource(cameraComponent.transform);
             interaction.ConfigureRuntimeReferences(inventory, promptUI, pickupAnchor);
 
@@ -307,14 +326,12 @@ internal sealed class SceneCoreInstaller
         }
 
         T fallback = Object.FindAnyObjectByType<T>();
-        if (fallback != null)
+        if (fallback == null)
         {
-            Debug.LogWarning($"BOOTSTRAP_FALLBACK: '{label}' resolved through FindAnyObjectByType.");
-            return fallback;
+            Debug.LogWarning($"BOOTSTRAP_FALLBACK: '{label}' missing and could not be resolved.");
         }
 
-        Debug.LogWarning($"BOOTSTRAP_FALLBACK: '{label}' missing and could not be resolved.");
-        return null;
+        return fallback;
     }
 }
 

@@ -15,7 +15,9 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private float interactDistance = 3f;
     [SerializeField] private float interactRadius = 2.3f;
     [SerializeField] private LayerMask interactionMask = ~0;
-    [SerializeField] private float minimumFacingDot = -0.2f;
+    [SerializeField] private LayerMask visibilityMask = ~0;
+    [SerializeField] private float minimumFacingDot = -1f;
+    [SerializeField] private float maxVerticalInteractionDelta = 1.25f;
     [SerializeField] private float interactionReachDuration = 0.26f;
 
     [Header("Fail-Safes")]
@@ -65,6 +67,24 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    public void ConfigureInteractionSettings(float? radius = null, float? facingDot = null, float? interactMaxDistance = null)
+    {
+        if (radius.HasValue)
+        {
+            interactRadius = Mathf.Max(0.5f, radius.Value);
+        }
+
+        if (facingDot.HasValue)
+        {
+            minimumFacingDot = Mathf.Clamp(facingDot.Value, -1f, 1f);
+        }
+
+        if (interactMaxDistance.HasValue)
+        {
+            interactDistance = Mathf.Max(0.5f, interactMaxDistance.Value);
+        }
+    }
+
     private void Awake()
     {
         if (HolstinSceneContext.TryGet(out HolstinSceneContext context))
@@ -98,19 +118,11 @@ public class PlayerInteraction : MonoBehaviour
         if (cameraRig == null)
         {
             cameraRig = FindAnyObjectByType<HolstinCameraRig>();
-            if (cameraRig != null)
-            {
-                Debug.LogWarning("BOOTSTRAP_FALLBACK: PlayerInteraction resolved HolstinCameraRig via FindAnyObjectByType.");
-            }
         }
 
         if (inspectViewer == null)
         {
             inspectViewer = FindAnyObjectByType<InspectItemViewer>();
-            if (inspectViewer != null)
-            {
-                Debug.LogWarning("BOOTSTRAP_FALLBACK: PlayerInteraction resolved InspectItemViewer via FindAnyObjectByType.");
-            }
         }
 
         if (inventory == null)
@@ -118,13 +130,14 @@ public class PlayerInteraction : MonoBehaviour
             inventory = GetComponent<InventorySystem>();
         }
 
+        if (inventory == null)
+        {
+            inventory = gameObject.AddComponent<InventorySystem>();
+        }
+
         if (promptUI == null)
         {
             promptUI = FindAnyObjectByType<InteractionPromptUI>();
-            if (promptUI != null)
-            {
-                Debug.LogWarning("BOOTSTRAP_FALLBACK: PlayerInteraction resolved InteractionPromptUI via FindAnyObjectByType.");
-            }
         }
 
         if (pickupAnchor == null)
@@ -199,7 +212,9 @@ public class PlayerInteraction : MonoBehaviour
             inventory,
             interactRadius,
             interactionMask,
+            visibilityMask,
             minimumFacingDot,
+            maxVerticalInteractionDelta,
             out currentInteractable,
             out currentInspectable);
 

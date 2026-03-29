@@ -212,7 +212,7 @@ public class InteractionPromptUI : MonoBehaviour
             sizeDelta = new Vector2(760f, 126f)
         });
 
-        contextText = ResolvePanelText(contextGroup, allowRebuild, 22f, TextAlignmentOptions.Center, "[E] Interact");
+        contextText = ResolvePanelText(contextGroup, allowRebuild, 22f, TextAlignmentOptions.Center, $"[{InputReader.GetInteractLabel()}] Interact");
         messageText = ResolvePanelText(messageGroup, allowRebuild, 20f, TextAlignmentOptions.Center, "System feedback");
 
         if (contextText != null)
@@ -247,10 +247,7 @@ public class InteractionPromptUI : MonoBehaviour
             rootRect = gameObject.AddComponent<RectTransform>();
         }
 
-        if (rootRect.localScale == Vector3.zero)
-        {
-            rootRect.localScale = Vector3.one;
-        }
+        rootRect.localScale = Vector3.one;
 
         rootRect.anchorMin = Vector2.zero;
         rootRect.anchorMax = Vector2.one;
@@ -265,6 +262,7 @@ public class InteractionPromptUI : MonoBehaviour
         }
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.pixelPerfect = false;
+        canvas.sortingOrder = 120;
 
         CanvasScaler scaler = GetComponent<CanvasScaler>();
         if (scaler == null)

@@ -11,6 +11,7 @@ public class NpcIdentity : MonoBehaviour
     [SerializeField] [TextArea(2, 4)] private string narrativeRole = "Knows something they should not.";
     [SerializeField] private Transform lookTarget;
     [SerializeField] private float turnSpeed = 3.5f;
+    private Rigidbody body;
 
     public string NpcName => npcName;
     public string FactionId => factionId;
@@ -24,6 +25,11 @@ public class NpcIdentity : MonoBehaviour
         factionId = faction;
     }
 
+    private void Awake()
+    {
+        body = GetComponent<Rigidbody>();
+    }
+
     private void Update()
     {
         if (lookTarget == null) return;
@@ -33,6 +39,21 @@ public class NpcIdentity : MonoBehaviour
         if (direction.sqrMagnitude < 0.01f) return;
 
         Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+        if (body != null && !body.isKinematic)
+        {
+            bool rotationFullyFrozen = (body.constraints & RigidbodyConstraints.FreezeRotationX) != 0 &&
+                                       (body.constraints & RigidbodyConstraints.FreezeRotationY) != 0 &&
+                                       (body.constraints & RigidbodyConstraints.FreezeRotationZ) != 0;
+            if (rotationFullyFrozen)
+            {
+                return;
+            }
+
+            Quaternion nextRotation = Quaternion.Slerp(body.rotation, targetRotation, turnSpeed * Time.deltaTime);
+            body.MoveRotation(nextRotation);
+            return;
+        }
+
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
     }
 }
