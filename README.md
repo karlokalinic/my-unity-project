@@ -13,6 +13,10 @@ Use these folders/files as the production source of truth:
 
 Do not open a nested/cache folder as the Unity project root (for example `...\my-unity-project\my-unity-project`), because it can produce package namespace compile errors from `Library/PackageCache/*`.
 
+## Unity Cloud / DevOps onboarding
+
+See [`UNITY_CLOUD_SETUP.md`](UNITY_CLOUD_SETUP.md) for the Unity Version Control migration path, Unity Gaming Services project linkage, Cloud Code SDK bootstrap, and recommended cloud-service rollout order.
+
 ## Non-production archive
 
 Non-production docs and scenes are intentionally excluded from GitHub.
