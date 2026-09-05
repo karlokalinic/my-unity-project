@@ -24,9 +24,13 @@
 *.pidb
 *.booproj
 
+# Cloud Code C# modules are real source projects and must be versioned.
+!CloudCode/**/*.csproj
+!CloudCode/**/*.sln
+!CloudCode/**/*.slnx
+
 # Extra local source control/tooling files
 .plastic/
-ignore.conf
 
 # Local backups
 Backups/
