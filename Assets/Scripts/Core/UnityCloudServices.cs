@@ -15,7 +15,7 @@ namespace Holstin.Core
     /// </summary>
     public static class UnityCloudServices
     {
-        private static readonly SemaphoreSlim InitializationGate = new(1, 1);
+        private static readonly SemaphoreSlim InitializationGate = new SemaphoreSlim(1, 1);
 
         public static bool IsReady =>
             UnityServices.State == ServicesInitializationState.Initialized &&
