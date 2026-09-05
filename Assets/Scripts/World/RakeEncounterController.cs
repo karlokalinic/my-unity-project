@@ -18,12 +18,30 @@ public sealed class RakeEncounterController : MonoBehaviour
         Complete
     }
 
-    private const string ResourcePath = "ThirdParty/TheRake/TheRake";
+    private enum EncounterPreset
+    {
+        Rake,
+        AbominableSnowman
+    }
+
     private const float RoomWidth = 3.8f;
     private const float RoomDepth = 6.4f;
     private const float RoomHeight = 3.2f;
     private const float DoorWidth = 1.1f;
     private const float DoorHeight = 2.18f;
+
+    [Header("Encounter Identity")]
+    [SerializeField] private string encounterId = "RakeEncounter";
+    [SerializeField] private string creatureDisplayName = "The Rake";
+    [SerializeField] private string resourcePath = "ThirdParty/TheRake/TheRake";
+    [SerializeField] private string assetCreditTag = "TheRake_SealifeFan3_CC_BY_4";
+    [SerializeField] private Vector3 roomOffset = new Vector3(4.7f, 0f, -7.65f);
+    [SerializeField] private Vector3 configuredDepthAxis = Vector3.back;
+    [SerializeField] private float doorOpenAngleY = 102f;
+    [SerializeField] private bool carveBoardingHouseBackWall;
+    [SerializeField] private float creatureHeight = 2.3f;
+    [SerializeField] private float creatureBulk = 1f;
+    [SerializeField] private Color fallbackCreatureColor = new Color(0.62f, 0.64f, 0.62f, 1f);
 
     [Header("Encounter")]
     [SerializeField] private float firstPersonDepth = 3.8f;
@@ -38,8 +56,11 @@ public sealed class RakeEncounterController : MonoBehaviour
     [SerializeField] private float flashlightIntensity = 4.2f;
     [SerializeField] private float flashlightSpotAngle = 34f;
 
+    private static RakeEncounterController cinematicOwner;
+    private static AudioClip sharedBreathingClip;
+    private static AudioClip sharedRevealSting;
+
     private PlayerMover playerMover;
-    private CharacterController playerController;
     private HolstinCameraRig cameraRig;
     private Camera viewCamera;
 
@@ -50,9 +71,9 @@ public sealed class RakeEncounterController : MonoBehaviour
 
     private Transform monsterRoot;
     private Vector3 monsterStartPosition;
-    private AnimationClip runClip;
+    private AnimationClip chargeClip;
     private GameObject monsterAnimationRoot;
-    private float runClipTime;
+    private float chargeClipTime;
 
     private Light encounterFlashlight;
     private AudioSource breathingSource;
@@ -64,7 +85,6 @@ public sealed class RakeEncounterController : MonoBehaviour
     private float blackoutElapsed;
     private float recoveryElapsed;
     private float currentCameraBlend;
-    private float deepestProgress;
 
     private Material roomMaterial;
     private Material creatureMaterial;
@@ -81,13 +101,56 @@ public sealed class RakeEncounterController : MonoBehaviour
             return;
         }
 
-        if (FindAnyObjectByType<RakeEncounterController>() != null)
+        EnsureRuntimeEncounter("RakeEncounter_Runtime", EncounterPreset.Rake);
+        EnsureRuntimeEncounter("AbominableSnowmanEncounter_Runtime", EncounterPreset.AbominableSnowman);
+    }
+
+    private static void EnsureRuntimeEncounter(string hostName, EncounterPreset preset)
+    {
+        if (GameObject.Find(hostName) != null)
         {
             return;
         }
 
-        GameObject host = new GameObject("RakeEncounter_Runtime");
-        host.AddComponent<RakeEncounterController>();
+        GameObject host = new GameObject(hostName);
+        RakeEncounterController controller = host.AddComponent<RakeEncounterController>();
+        controller.ConfigurePreset(preset);
+    }
+
+    private void ConfigurePreset(EncounterPreset preset)
+    {
+        switch (preset)
+        {
+            case EncounterPreset.AbominableSnowman:
+                encounterId = "AbominableSnowmanEncounter";
+                creatureDisplayName = "The Abominable Snowman";
+                resourcePath = "ThirdParty/AbominableSnowman/AbominableSnowman";
+                assetCreditTag = "AbominableSnowman_toro_ardido_modelos_3d";
+                roomOffset = new Vector3(4.7f, 0f, 7.65f);
+                configuredDepthAxis = Vector3.forward;
+                doorOpenAngleY = -102f;
+                carveBoardingHouseBackWall = true;
+                creatureHeight = 2.65f;
+                creatureBulk = 1.35f;
+                fallbackCreatureColor = new Color(0.72f, 0.74f, 0.76f, 1f);
+                flashlightIntensity = 4.0f;
+                cinematicFov = 55f;
+                break;
+
+            default:
+                encounterId = "RakeEncounter";
+                creatureDisplayName = "The Rake";
+                resourcePath = "ThirdParty/TheRake/TheRake";
+                assetCreditTag = "TheRake_SealifeFan3_CC_BY_4";
+                roomOffset = new Vector3(4.7f, 0f, -7.65f);
+                configuredDepthAxis = Vector3.back;
+                doorOpenAngleY = 102f;
+                carveBoardingHouseBackWall = false;
+                creatureHeight = 2.3f;
+                creatureBulk = 1f;
+                fallbackCreatureColor = new Color(0.62f, 0.64f, 0.62f, 1f);
+                break;
+        }
     }
 
     private void Start()
@@ -95,7 +158,7 @@ public sealed class RakeEncounterController : MonoBehaviour
         ResolveReferences();
         if (playerMover == null || cameraRig == null || viewCamera == null)
         {
-            Debug.LogWarning("Rake encounter disabled: required player/camera references are missing.", this);
+            Debug.LogWarning($"{creatureDisplayName} encounter disabled: required player/camera references are missing.", this);
             enabled = false;
             return;
         }
@@ -135,9 +198,10 @@ public sealed class RakeEncounterController : MonoBehaviour
 
     private void OnDisable()
     {
-        if (cameraRig != null)
+        if (cinematicOwner == this)
         {
-            cameraRig.ClearCinematicFirstPerson();
+            cameraRig?.ClearCinematicFirstPerson();
+            cinematicOwner = null;
         }
 
         if (playerMover != null && state == EncounterState.Blackout)
@@ -145,26 +209,14 @@ public sealed class RakeEncounterController : MonoBehaviour
             playerMover.enabled = true;
         }
 
-        if (breathingSource != null)
-        {
-            breathingSource.Stop();
-        }
+        breathingSource?.Stop();
     }
 
     private void ResolveReferences()
     {
         playerMover = FindAnyObjectByType<PlayerMover>();
         cameraRig = FindAnyObjectByType<HolstinCameraRig>();
-
-        if (playerMover != null)
-        {
-            playerController = playerMover.GetComponent<CharacterController>();
-        }
-
-        if (cameraRig != null)
-        {
-            viewCamera = cameraRig.ControlledCamera;
-        }
+        viewCamera = cameraRig != null ? cameraRig.ControlledCamera : null;
 
         if (viewCamera == null)
         {
@@ -177,32 +229,45 @@ public sealed class RakeEncounterController : MonoBehaviour
         GameObject interior = GameObject.Find("Template_Interior_BoardingHouse");
         Vector3 interiorOrigin = interior != null ? interior.transform.position : new Vector3(14f, 0f, -2f);
 
+        depthAxis = configuredDepthAxis.sqrMagnitude > 0.01f
+            ? Vector3.ProjectOnPlane(configuredDepthAxis, Vector3.up).normalized
+            : Vector3.back;
+
+        if (Mathf.Abs(depthAxis.z) < 0.9f)
+        {
+            depthAxis = depthAxis.z >= 0f ? Vector3.forward : Vector3.back;
+        }
+
         GameObject world = GameObject.Find("_World");
-        GameObject room = new GameObject("RakeEncounter_PitchBlackRoom");
+        GameObject room = new GameObject(encounterId + "_PitchBlackRoom");
         roomRoot = room.transform;
         if (world != null)
         {
             roomRoot.SetParent(world.transform, true);
         }
 
-        roomRoot.position = interiorOrigin + new Vector3(4.7f, 0f, -7.65f);
-        depthAxis = Vector3.back;
+        roomRoot.position = interiorOrigin + roomOffset;
+
+        if (carveBoardingHouseBackWall && interior != null)
+        {
+            EnsureOppositeWallOpening(interior, interiorOrigin, roomRoot.position.x);
+        }
 
         roomMaterial = CreateRuntimeMaterial(
-            "RakeRoom_Black",
+            encounterId + "_RoomBlack",
             new Color(0.0035f, 0.0035f, 0.0045f, 1f),
             0.08f,
             0f);
         creatureMaterial = CreateRuntimeMaterial(
-            "RakeFallback_Pale",
-            new Color(0.62f, 0.64f, 0.62f, 1f),
+            encounterId + "_FallbackCreature",
+            fallbackCreatureColor,
             0.12f,
             0f);
 
         float halfDepth = RoomDepth * 0.5f;
         float halfWidth = RoomWidth * 0.5f;
-        float backZ = halfDepth;
-        float farZ = -halfDepth;
+        float entranceZ = depthAxis.z < 0f ? halfDepth : -halfDepth;
+        float farZ = -entranceZ;
 
         CreateRoomCube("Floor", new Vector3(0f, -0.1f, 0f), new Vector3(RoomWidth, 0.2f, RoomDepth));
         CreateRoomCube("Ceiling", new Vector3(0f, RoomHeight + 0.1f, 0f), new Vector3(RoomWidth, 0.2f, RoomDepth));
@@ -212,33 +277,134 @@ public sealed class RakeEncounterController : MonoBehaviour
 
         float sideWidth = (RoomWidth - DoorWidth) * 0.5f;
         float sideCenter = (DoorWidth * 0.5f) + (sideWidth * 0.5f);
-        CreateRoomCube("DoorWallLeft", new Vector3(-sideCenter, RoomHeight * 0.5f, backZ), new Vector3(sideWidth, RoomHeight, 0.22f));
-        CreateRoomCube("DoorWallRight", new Vector3(sideCenter, RoomHeight * 0.5f, backZ), new Vector3(sideWidth, RoomHeight, 0.22f));
+        CreateRoomCube("DoorWallLeft", new Vector3(-sideCenter, RoomHeight * 0.5f, entranceZ), new Vector3(sideWidth, RoomHeight, 0.22f));
+        CreateRoomCube("DoorWallRight", new Vector3(sideCenter, RoomHeight * 0.5f, entranceZ), new Vector3(sideWidth, RoomHeight, 0.22f));
         CreateRoomCube(
             "DoorLintel",
-            new Vector3(0f, DoorHeight + ((RoomHeight - DoorHeight) * 0.5f), backZ),
+            new Vector3(0f, DoorHeight + ((RoomHeight - DoorHeight) * 0.5f), entranceZ),
             new Vector3(DoorWidth, RoomHeight - DoorHeight, 0.22f));
 
-        BuildPhysicalDoor(backZ);
-        BuildEntryTrigger(backZ);
+        BuildPhysicalDoor(entranceZ);
+        BuildEntryTrigger(entranceZ);
         BuildDarknessVolume();
 
-        entryPoint = roomRoot.TransformPoint(new Vector3(0f, 1f, backZ - 0.55f));
+        entryPoint = roomRoot.TransformPoint(new Vector3(0f, 1f, entranceZ + (depthAxis.z * 0.55f)));
 
-        monsterRoot = BuildMonster(roomRoot.TransformPoint(new Vector3(0f, 0f, farZ + 0.78f)));
+        float monsterZ = farZ - (depthAxis.z * 0.78f);
+        monsterRoot = BuildMonster(roomRoot.TransformPoint(new Vector3(0f, 0f, monsterZ)));
         monsterStartPosition = monsterRoot.position;
         monsterRoot.gameObject.SetActive(false);
     }
 
-    private void BuildPhysicalDoor(float backZ)
+    private void EnsureOppositeWallOpening(GameObject interior, Vector3 interiorOrigin, float doorwayCenterX)
     {
-        GameObject hingeObject = new GameObject("RakeRoom_DoorHinge");
+        Transform wall = interior.transform.Find("BackWall_Ground");
+        if (wall == null)
+        {
+            Debug.LogWarning($"{creatureDisplayName} encounter could not find BackWall_Ground; opposite doorway was not carved.", this);
+            return;
+        }
+
+        string patchRootName = encounterId + "_BackWallOpening";
+        Transform existingPatch = interior.transform.Find(patchRootName);
+        if (existingPatch != null)
+        {
+            return;
+        }
+
+        Renderer sourceRenderer = wall.GetComponent<Renderer>();
+        Collider sourceCollider = wall.GetComponent<Collider>();
+        Material sourceMaterial = sourceRenderer != null ? sourceRenderer.sharedMaterial : null;
+
+        if (sourceRenderer != null)
+        {
+            sourceRenderer.enabled = false;
+        }
+        if (sourceCollider != null)
+        {
+            sourceCollider.enabled = false;
+        }
+
+        Vector3 wallSize = wall.lossyScale;
+        Vector3 wallCenter = wall.position;
+        float wallMinX = wallCenter.x - wallSize.x * 0.5f;
+        float wallMaxX = wallCenter.x + wallSize.x * 0.5f;
+        float doorwayMinX = doorwayCenterX - DoorWidth * 0.5f;
+        float doorwayMaxX = doorwayCenterX + DoorWidth * 0.5f;
+
+        doorwayMinX = Mathf.Clamp(doorwayMinX, wallMinX + 0.2f, wallMaxX - DoorWidth - 0.2f);
+        doorwayMaxX = doorwayMinX + DoorWidth;
+
+        GameObject patchRootObject = new GameObject(patchRootName);
+        patchRootObject.transform.SetParent(interior.transform, true);
+        Transform patchRoot = patchRootObject.transform;
+
+        float bottomY = wallCenter.y - wallSize.y * 0.5f;
+        float leftWidth = doorwayMinX - wallMinX;
+        float rightWidth = wallMaxX - doorwayMaxX;
+        float topHeight = Mathf.Max(0.1f, wallSize.y - DoorHeight);
+
+        if (leftWidth > 0.05f)
+        {
+            CreateWallPatchCube(
+                "Left",
+                patchRoot,
+                new Vector3(wallMinX + leftWidth * 0.5f, wallCenter.y, wallCenter.z),
+                new Vector3(leftWidth, wallSize.y, wallSize.z),
+                sourceMaterial);
+        }
+
+        if (rightWidth > 0.05f)
+        {
+            CreateWallPatchCube(
+                "Right",
+                patchRoot,
+                new Vector3(doorwayMaxX + rightWidth * 0.5f, wallCenter.y, wallCenter.z),
+                new Vector3(rightWidth, wallSize.y, wallSize.z),
+                sourceMaterial);
+        }
+
+        CreateWallPatchCube(
+            "Lintel",
+            patchRoot,
+            new Vector3(
+                (doorwayMinX + doorwayMaxX) * 0.5f,
+                bottomY + DoorHeight + topHeight * 0.5f,
+                wallCenter.z),
+            new Vector3(DoorWidth, topHeight, wallSize.z),
+            sourceMaterial);
+    }
+
+    private static void CreateWallPatchCube(
+        string name,
+        Transform parent,
+        Vector3 worldPosition,
+        Vector3 worldScale,
+        Material material)
+    {
+        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube.name = name;
+        cube.transform.SetParent(parent, true);
+        cube.transform.position = worldPosition;
+        cube.transform.rotation = Quaternion.identity;
+        cube.transform.localScale = worldScale;
+
+        Renderer rendererComponent = cube.GetComponent<Renderer>();
+        if (rendererComponent != null && material != null)
+        {
+            rendererComponent.sharedMaterial = material;
+        }
+    }
+
+    private void BuildPhysicalDoor(float entranceZ)
+    {
+        GameObject hingeObject = new GameObject(encounterId + "_DoorHinge");
         Transform hinge = hingeObject.transform;
         hinge.SetParent(roomRoot, false);
-        hinge.localPosition = new Vector3(-DoorWidth * 0.5f, 0f, backZ - 0.03f);
+        hinge.localPosition = new Vector3(-DoorWidth * 0.5f, 0f, entranceZ + (depthAxis.z * 0.03f));
 
         GameObject leaf = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        leaf.name = "RakeRoom_DoorLeaf";
+        leaf.name = encounterId + "_DoorLeaf";
         leaf.transform.SetParent(hinge, false);
         leaf.transform.localPosition = new Vector3(DoorWidth * 0.5f, DoorHeight * 0.5f, 0f);
         leaf.transform.localScale = new Vector3(DoorWidth, DoorHeight, 0.12f);
@@ -247,7 +413,7 @@ public sealed class RakeEncounterController : MonoBehaviour
         if (rendererComponent != null)
         {
             rendererComponent.sharedMaterial = CreateRuntimeMaterial(
-                "RakeRoom_Door",
+                encounterId + "_Door",
                 new Color(0.045f, 0.035f, 0.025f, 1f),
                 0.18f,
                 0f);
@@ -258,15 +424,15 @@ public sealed class RakeEncounterController : MonoBehaviour
             hinge,
             DoorInteractable.DoorMotionType.Swing,
             Vector3.zero,
-            new Vector3(0f, 102f, 0f),
+            new Vector3(0f, doorOpenAngleY, 0f),
             0.72f);
     }
 
-    private void BuildEntryTrigger(float backZ)
+    private void BuildEntryTrigger(float entranceZ)
     {
-        GameObject triggerObject = new GameObject("RakeRoom_EntryTrigger");
+        GameObject triggerObject = new GameObject(encounterId + "_EntryTrigger");
         triggerObject.transform.SetParent(roomRoot, false);
-        triggerObject.transform.localPosition = new Vector3(0f, 1.25f, backZ - 0.82f);
+        triggerObject.transform.localPosition = new Vector3(0f, 1.25f, entranceZ + (depthAxis.z * 0.82f));
         entryTrigger = triggerObject.AddComponent<BoxCollider>();
         entryTrigger.isTrigger = true;
         entryTrigger.size = new Vector3(2.6f, 2.5f, 0.75f);
@@ -274,7 +440,7 @@ public sealed class RakeEncounterController : MonoBehaviour
 
     private void BuildDarknessVolume()
     {
-        GameObject volumeObject = new GameObject("RakeRoom_DarknessVolume");
+        GameObject volumeObject = new GameObject(encounterId + "_DarknessVolume");
         volumeObject.transform.SetParent(roomRoot, false);
         volumeObject.transform.localPosition = new Vector3(0f, RoomHeight * 0.5f, 0f);
 
@@ -289,7 +455,7 @@ public sealed class RakeEncounterController : MonoBehaviour
         volume.weight = 1f;
 
         VolumeProfile profile = ScriptableObject.CreateInstance<VolumeProfile>();
-        profile.name = "RakeRoom_RuntimeProfile";
+        profile.name = encounterId + "_RuntimeProfile";
 
         ColorAdjustments color = profile.Add<ColorAdjustments>(true);
         color.postExposure.Override(-3.15f);
@@ -309,10 +475,10 @@ public sealed class RakeEncounterController : MonoBehaviour
         volume.profile = profile;
     }
 
-    private GameObject CreateRoomCube(string name, Vector3 localPosition, Vector3 localScale)
+    private GameObject CreateRoomCube(string suffix, Vector3 localPosition, Vector3 localScale)
     {
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.name = name;
+        cube.name = encounterId + "_" + suffix;
         cube.transform.SetParent(roomRoot, false);
         cube.transform.localPosition = localPosition;
         cube.transform.localRotation = Quaternion.identity;
@@ -329,33 +495,41 @@ public sealed class RakeEncounterController : MonoBehaviour
 
     private Transform BuildMonster(Vector3 worldPosition)
     {
-        GameObject monster = new GameObject("RakeEncounter_Monster");
+        GameObject monster = new GameObject(encounterId + "_Monster");
         monster.transform.SetParent(roomRoot, true);
         monster.transform.position = worldPosition;
         monster.transform.rotation = Quaternion.LookRotation(-depthAxis, Vector3.up);
 
-        GameObject downloadedPrefab = Resources.Load<GameObject>(ResourcePath);
+        GameObject downloadedPrefab = Resources.Load<GameObject>(resourcePath);
         if (downloadedPrefab != null)
         {
             GameObject visual = Instantiate(downloadedPrefab, monster.transform);
-            visual.name = "TheRake_SealifeFan3_CC_BY_4";
+            visual.name = assetCreditTag;
             DisableImportedPhysics(visual);
-            FitVisualToHeight(visual.transform, 2.3f);
+            FitVisualToHeight(visual.transform, creatureHeight);
             AlignVisualFeet(visual.transform);
             monsterAnimationRoot = visual;
-            ResolveRunClip(visual);
+            ResolveChargeClip(visual);
+
+            if (chargeClip != null)
+            {
+                Animator animator = visual.GetComponentInChildren<Animator>(true);
+                if (animator != null)
+                {
+                    animator.enabled = false;
+                }
+            }
         }
         else
         {
             BuildFallbackCreature(monster.transform);
             monsterAnimationRoot = monster;
             Debug.LogWarning(
-                "The Rake cinematic is active with a procedural stand-in. " +
-                "Place the attributed Sealife Fan 3 model prefab at Resources/" + ResourcePath +
-                " to bind the exact animated asset.", this);
+                $"{creatureDisplayName} cinematic is active with a procedural physical stand-in. " +
+                $"Place the authorized model prefab/model at Resources/{resourcePath} to bind the requested animated asset.", this);
         }
 
-        AddCompoundCreatureCollision(monster);
+        AddCompoundCreatureCollision(monster, creatureHeight / 2.3f, creatureBulk);
 
         Rigidbody body = monster.AddComponent<Rigidbody>();
         body.isKinematic = true;
@@ -368,17 +542,19 @@ public sealed class RakeEncounterController : MonoBehaviour
 
     private void BuildFallbackCreature(Transform parent)
     {
-        CreateCreaturePrimitive(PrimitiveType.Capsule, "Torso", parent, new Vector3(0f, 1.25f, 0f), new Vector3(0.48f, 0.88f, 0.36f), Quaternion.identity);
-        CreateCreaturePrimitive(PrimitiveType.Sphere, "Head", parent, new Vector3(0f, 2.05f, 0.03f), new Vector3(0.38f, 0.46f, 0.42f), Quaternion.identity);
+        GameObject visualRootObject = new GameObject("FallbackVisual");
+        Transform visualRoot = visualRootObject.transform;
+        visualRoot.SetParent(parent, false);
+        visualRoot.localScale = new Vector3(creatureBulk, creatureHeight / 2.3f, creatureBulk);
 
-        CreateCreaturePrimitive(PrimitiveType.Capsule, "Arm_L", parent, new Vector3(-0.47f, 1.22f, 0f), new Vector3(0.18f, 0.86f, 0.18f), Quaternion.Euler(0f, 0f, -18f));
-        CreateCreaturePrimitive(PrimitiveType.Capsule, "Arm_R", parent, new Vector3(0.47f, 1.22f, 0f), new Vector3(0.18f, 0.86f, 0.18f), Quaternion.Euler(0f, 0f, 18f));
-
-        CreateCreaturePrimitive(PrimitiveType.Capsule, "Leg_L", parent, new Vector3(-0.19f, 0.52f, 0f), new Vector3(0.2f, 0.62f, 0.2f), Quaternion.Euler(7f, 0f, 0f));
-        CreateCreaturePrimitive(PrimitiveType.Capsule, "Leg_R", parent, new Vector3(0.19f, 0.52f, 0f), new Vector3(0.2f, 0.62f, 0.2f), Quaternion.Euler(-7f, 0f, 0f));
-
-        CreateCreaturePrimitive(PrimitiveType.Cube, "Claws_L", parent, new Vector3(-0.68f, 0.62f, -0.08f), new Vector3(0.08f, 0.72f, 0.08f), Quaternion.Euler(8f, 0f, -8f));
-        CreateCreaturePrimitive(PrimitiveType.Cube, "Claws_R", parent, new Vector3(0.68f, 0.62f, -0.08f), new Vector3(0.08f, 0.72f, 0.08f), Quaternion.Euler(8f, 0f, 8f));
+        CreateCreaturePrimitive(PrimitiveType.Capsule, "Torso", visualRoot, new Vector3(0f, 1.25f, 0f), new Vector3(0.48f, 0.88f, 0.36f), Quaternion.identity);
+        CreateCreaturePrimitive(PrimitiveType.Sphere, "Head", visualRoot, new Vector3(0f, 2.05f, 0.03f), new Vector3(0.38f, 0.46f, 0.42f), Quaternion.identity);
+        CreateCreaturePrimitive(PrimitiveType.Capsule, "Arm_L", visualRoot, new Vector3(-0.47f, 1.22f, 0f), new Vector3(0.18f, 0.86f, 0.18f), Quaternion.Euler(0f, 0f, -18f));
+        CreateCreaturePrimitive(PrimitiveType.Capsule, "Arm_R", visualRoot, new Vector3(0.47f, 1.22f, 0f), new Vector3(0.18f, 0.86f, 0.18f), Quaternion.Euler(0f, 0f, 18f));
+        CreateCreaturePrimitive(PrimitiveType.Capsule, "Leg_L", visualRoot, new Vector3(-0.19f, 0.52f, 0f), new Vector3(0.2f, 0.62f, 0.2f), Quaternion.Euler(7f, 0f, 0f));
+        CreateCreaturePrimitive(PrimitiveType.Capsule, "Leg_R", visualRoot, new Vector3(0.19f, 0.52f, 0f), new Vector3(0.2f, 0.62f, 0.2f), Quaternion.Euler(-7f, 0f, 0f));
+        CreateCreaturePrimitive(PrimitiveType.Cube, "Claws_L", visualRoot, new Vector3(-0.68f, 0.62f, -0.08f), new Vector3(0.08f, 0.72f, 0.08f), Quaternion.Euler(8f, 0f, -8f));
+        CreateCreaturePrimitive(PrimitiveType.Cube, "Claws_R", visualRoot, new Vector3(0.68f, 0.62f, -0.08f), new Vector3(0.08f, 0.72f, 0.08f), Quaternion.Euler(8f, 0f, 8f));
     }
 
     private void CreateCreaturePrimitive(
@@ -410,21 +586,24 @@ public sealed class RakeEncounterController : MonoBehaviour
         }
     }
 
-    private static void AddCompoundCreatureCollision(GameObject monster)
+    private static void AddCompoundCreatureCollision(GameObject monster, float heightScale, float bulkScale)
     {
+        float h = Mathf.Max(0.6f, heightScale);
+        float b = Mathf.Max(0.6f, bulkScale);
+
         CapsuleCollider torso = monster.AddComponent<CapsuleCollider>();
-        torso.center = new Vector3(0f, 1.25f, 0f);
-        torso.radius = 0.29f;
-        torso.height = 1.55f;
+        torso.center = new Vector3(0f, 1.25f * h, 0f);
+        torso.radius = 0.29f * b;
+        torso.height = 1.55f * h;
 
         SphereCollider head = monster.AddComponent<SphereCollider>();
-        head.center = new Vector3(0f, 2.05f, 0.02f);
-        head.radius = 0.25f;
+        head.center = new Vector3(0f, 2.05f * h, 0.02f);
+        head.radius = 0.25f * Mathf.Max(h, b);
 
-        AddLimbCollider(monster.transform, "PhysicalArm_L", new Vector3(-0.45f, 1.22f, 0f), new Vector3(0f, 0f, -18f), 1.35f, 0.10f);
-        AddLimbCollider(monster.transform, "PhysicalArm_R", new Vector3(0.45f, 1.22f, 0f), new Vector3(0f, 0f, 18f), 1.35f, 0.10f);
-        AddLimbCollider(monster.transform, "PhysicalLeg_L", new Vector3(-0.18f, 0.52f, 0f), new Vector3(7f, 0f, 0f), 1.05f, 0.12f);
-        AddLimbCollider(monster.transform, "PhysicalLeg_R", new Vector3(0.18f, 0.52f, 0f), new Vector3(-7f, 0f, 0f), 1.05f, 0.12f);
+        AddLimbCollider(monster.transform, "PhysicalArm_L", new Vector3(-0.45f * b, 1.22f * h, 0f), new Vector3(0f, 0f, -18f), 1.35f * h, 0.10f * b);
+        AddLimbCollider(monster.transform, "PhysicalArm_R", new Vector3(0.45f * b, 1.22f * h, 0f), new Vector3(0f, 0f, 18f), 1.35f * h, 0.10f * b);
+        AddLimbCollider(monster.transform, "PhysicalLeg_L", new Vector3(-0.18f * b, 0.52f * h, 0f), new Vector3(7f, 0f, 0f), 1.05f * h, 0.12f * b);
+        AddLimbCollider(monster.transform, "PhysicalLeg_R", new Vector3(0.18f * b, 0.52f * h, 0f), new Vector3(-7f, 0f, 0f), 1.05f * h, 0.12f * b);
     }
 
     private static void AddLimbCollider(
@@ -512,37 +691,56 @@ public sealed class RakeEncounterController : MonoBehaviour
         return hasBounds;
     }
 
-    private void ResolveRunClip(GameObject visual)
+    private void ResolveChargeClip(GameObject visual)
     {
-        AnimationClip[] clips = Resources.LoadAll<AnimationClip>(ResourcePath);
-        for (int i = 0; i < clips.Length; i++)
+        chargeClip = FindBestChargeClip(Resources.LoadAll<AnimationClip>(resourcePath));
+        if (chargeClip != null)
         {
-            if (clips[i] != null && clips[i].name.IndexOf("run", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                runClip = clips[i];
-                return;
-            }
+            return;
         }
 
         Animator animator = visual.GetComponentInChildren<Animator>(true);
         if (animator != null && animator.runtimeAnimatorController != null)
         {
-            AnimationClip[] controllerClips = animator.runtimeAnimatorController.animationClips;
-            for (int i = 0; i < controllerClips.Length; i++)
+            chargeClip = FindBestChargeClip(animator.runtimeAnimatorController.animationClips);
+        }
+    }
+
+    private static AnimationClip FindBestChargeClip(AnimationClip[] clips)
+    {
+        if (clips == null || clips.Length == 0)
+        {
+            return null;
+        }
+
+        string[] priorities = { "run", "sprint", "charge", "walk" };
+        for (int p = 0; p < priorities.Length; p++)
+        {
+            string token = priorities[p];
+            for (int i = 0; i < clips.Length; i++)
             {
-                AnimationClip candidate = controllerClips[i];
-                if (candidate != null && candidate.name.IndexOf("run", StringComparison.OrdinalIgnoreCase) >= 0)
+                AnimationClip candidate = clips[i];
+                if (candidate != null && candidate.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    runClip = candidate;
-                    return;
+                    return candidate;
                 }
             }
         }
+
+        for (int i = 0; i < clips.Length; i++)
+        {
+            if (clips[i] != null)
+            {
+                return clips[i];
+            }
+        }
+
+        return null;
     }
 
     private void CreateBlackoutOverlay()
     {
-        GameObject canvasObject = new GameObject("RakeEncounter_BlackoutCanvas", typeof(Canvas), typeof(CanvasScaler));
+        GameObject canvasObject = new GameObject(encounterId + "_BlackoutCanvas", typeof(Canvas), typeof(CanvasScaler));
         canvasObject.transform.SetParent(transform, false);
 
         Canvas canvas = canvasObject.GetComponent<Canvas>();
@@ -565,12 +763,21 @@ public sealed class RakeEncounterController : MonoBehaviour
 
     private void CreateAudio()
     {
+        if (sharedBreathingClip == null)
+        {
+            sharedBreathingClip = CreateBreathingClip();
+        }
+        if (sharedRevealSting == null)
+        {
+            sharedRevealSting = CreateRevealSting();
+        }
+
         breathingSource = gameObject.AddComponent<AudioSource>();
         breathingSource.playOnAwake = false;
         breathingSource.loop = true;
         breathingSource.spatialBlend = 0f;
         breathingSource.volume = 0f;
-        breathingSource.clip = CreateBreathingClip();
+        breathingSource.clip = sharedBreathingClip;
 
         stingSource = gameObject.AddComponent<AudioSource>();
         stingSource.playOnAwake = false;
@@ -601,7 +808,7 @@ public sealed class RakeEncounterController : MonoBehaviour
             samples[i] = Mathf.Clamp(chest + air, -0.16f, 0.16f);
         }
 
-        AudioClip clip = AudioClip.Create("RakeEncounter_Breathing", sampleCount, 1, sampleRate, false);
+        AudioClip clip = AudioClip.Create("PitchBlackEncounter_Breathing", sampleCount, 1, sampleRate, false);
         clip.SetData(samples, 0);
         return clip;
     }
@@ -624,7 +831,7 @@ public sealed class RakeEncounterController : MonoBehaviour
             samples[i] = Mathf.Clamp((low + noise * 0.42f) * envelope * 0.65f, -0.9f, 0.9f);
         }
 
-        AudioClip clip = AudioClip.Create("RakeEncounter_RevealSting", sampleCount, 1, sampleRate, false);
+        AudioClip clip = AudioClip.Create("PitchBlackEncounter_RevealSting", sampleCount, 1, sampleRate, false);
         clip.SetData(samples, 0);
         return clip;
     }
@@ -642,21 +849,27 @@ public sealed class RakeEncounterController : MonoBehaviour
             return;
         }
 
-        state = EncounterState.Exploring;
-        if (breathingSource != null && breathingSource.clip != null)
+        if (cinematicOwner != null && cinematicOwner != this)
         {
-            breathingSource.Play();
+            return;
         }
 
+        cinematicOwner = this;
+        state = EncounterState.Exploring;
+        breathingSource?.Play();
         EnsureFlashlight();
     }
 
     private void UpdateExploring()
     {
         float depth = Vector3.Dot(playerMover.transform.position - entryPoint, depthAxis);
-        float progress = Mathf.Clamp01(depth / Mathf.Max(0.1f, firstPersonDepth));
-        deepestProgress = Mathf.Max(deepestProgress, progress);
+        if (depth < -0.45f)
+        {
+            ResetToDormant();
+            return;
+        }
 
+        float progress = Mathf.Clamp01(depth / Mathf.Max(0.1f, firstPersonDepth));
         currentCameraBlend = SmoothStep(progress);
         ApplyCameraMotion(currentCameraBlend, 0f);
         UpdateFlashlight(progress, false);
@@ -673,11 +886,36 @@ public sealed class RakeEncounterController : MonoBehaviour
         }
     }
 
+    private void ResetToDormant()
+    {
+        cameraRig?.ClearCinematicFirstPerson();
+        currentCameraBlend = 0f;
+
+        if (breathingSource != null)
+        {
+            breathingSource.Stop();
+            breathingSource.volume = 0f;
+        }
+
+        if (encounterFlashlight != null)
+        {
+            Destroy(encounterFlashlight.gameObject);
+            encounterFlashlight = null;
+        }
+
+        if (cinematicOwner == this)
+        {
+            cinematicOwner = null;
+        }
+
+        state = EncounterState.Dormant;
+    }
+
     private void BeginCharge()
     {
         state = EncounterState.Charging;
         chargeElapsed = 0f;
-        runClipTime = 0f;
+        chargeClipTime = 0f;
 
         if (monsterRoot != null)
         {
@@ -685,9 +923,9 @@ public sealed class RakeEncounterController : MonoBehaviour
             monsterRoot.gameObject.SetActive(true);
         }
 
-        if (stingSource != null)
+        if (stingSource != null && sharedRevealSting != null)
         {
-            stingSource.PlayOneShot(CreateRevealSting(), 0.9f);
+            stingSource.PlayOneShot(sharedRevealSting, 0.9f);
         }
     }
 
@@ -710,11 +948,11 @@ public sealed class RakeEncounterController : MonoBehaviour
                 monsterRoot.rotation = Quaternion.LookRotation(face.normalized, Vector3.up);
             }
 
-            if (runClip != null)
+            if (chargeClip != null)
             {
-                runClipTime += Time.deltaTime;
-                float sampleTime = runClip.length > 0.001f ? runClipTime % runClip.length : 0f;
-                runClip.SampleAnimation(monsterAnimationRoot != null ? monsterAnimationRoot : monsterRoot.gameObject, sampleTime);
+                chargeClipTime += Time.deltaTime;
+                float sampleTime = chargeClip.length > 0.001f ? chargeClipTime % chargeClip.length : 0f;
+                chargeClip.SampleAnimation(monsterAnimationRoot != null ? monsterAnimationRoot : monsterRoot.gameObject, sampleTime);
             }
             else
             {
@@ -808,15 +1046,17 @@ public sealed class RakeEncounterController : MonoBehaviour
         SetBlackoutAlpha(0f);
         cameraRig.ClearCinematicFirstPerson();
 
-        if (breathingSource != null)
-        {
-            breathingSource.Stop();
-        }
+        breathingSource?.Stop();
 
         if (encounterFlashlight != null)
         {
             Destroy(encounterFlashlight.gameObject);
             encounterFlashlight = null;
+        }
+
+        if (cinematicOwner == this)
+        {
+            cinematicOwner = null;
         }
 
         state = EncounterState.Complete;
@@ -870,7 +1110,7 @@ public sealed class RakeEncounterController : MonoBehaviour
             return;
         }
 
-        GameObject lightObject = new GameObject("RakeEncounter_CheapFlashlight");
+        GameObject lightObject = new GameObject(encounterId + "_CheapFlashlight");
         lightObject.transform.SetParent(viewCamera.transform, false);
         lightObject.transform.localPosition = new Vector3(0.11f, -0.13f, 0.08f);
         lightObject.transform.localRotation = Quaternion.Euler(1.5f, -1.2f, 0f);
@@ -924,6 +1164,12 @@ public sealed class RakeEncounterController : MonoBehaviour
         if (shader == null)
         {
             shader = Shader.Find("Standard");
+        }
+
+        if (shader == null)
+        {
+            Debug.LogError("Pitch-black encounter could not resolve a compatible shader.");
+            return null;
         }
 
         Material material = new Material(shader);
