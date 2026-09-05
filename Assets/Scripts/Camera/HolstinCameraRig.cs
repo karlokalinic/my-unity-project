@@ -52,8 +52,17 @@ public class HolstinCameraRig : MonoBehaviour
     private float dialogueShotFov;
     private float currentObstructionDistance;
 
-    public bool IsInFirstPerson => aimBlend > 0.6f;
+    // Additive gameplay cinematics can drive the existing rig into first person without
+    // replacing the camera or stealing ownership from ordinary aim/dialogue systems.
+    private float cinematicFirstPersonBlend;
+    private Vector3 cinematicHeadLocalOffset;
+    private Vector3 cinematicEulerOffset;
+    private float cinematicFirstPersonFov = 58f;
+    private bool cinematicLookEnabled = true;
+
+    public bool IsInFirstPerson => Mathf.Max(aimBlend, cinematicFirstPersonBlend) > 0.6f;
     public bool IsInDialogueShot => dialogueBlend > 0.05f || dialogueBlendTarget > 0.05f;
+    public bool IsInCinematicFirstPerson => cinematicFirstPersonBlend > 0.01f;
     public Transform CameraTransform => cameraTransform;
     public Camera ControlledCamera => controlledCamera;
 
@@ -72,6 +81,29 @@ public class HolstinCameraRig : MonoBehaviour
         {
             currentYaw = yaw;
         }
+    }
+
+    public void SetCinematicFirstPerson(
+        float blend,
+        Vector3 headLocalOffset,
+        Vector3 eulerOffset,
+        float fieldOfView = 58f,
+        bool allowLookInput = true)
+    {
+        cinematicFirstPersonBlend = Mathf.Clamp01(blend);
+        cinematicHeadLocalOffset = headLocalOffset;
+        cinematicEulerOffset = eulerOffset;
+        cinematicFirstPersonFov = Mathf.Clamp(fieldOfView, 25f, 100f);
+        cinematicLookEnabled = allowLookInput;
+    }
+
+    public void ClearCinematicFirstPerson()
+    {
+        cinematicFirstPersonBlend = 0f;
+        cinematicHeadLocalOffset = Vector3.zero;
+        cinematicEulerOffset = Vector3.zero;
+        cinematicFirstPersonFov = 58f;
+        cinematicLookEnabled = true;
     }
 
     public void BeginDialogueShot(Transform anchor, float shotFov = 38f, float blendSeconds = 0.45f)
@@ -148,7 +180,8 @@ public class HolstinCameraRig : MonoBehaviour
         }
 
         bool wantsAim = holdRightMouseForAim ? InputReader.AimHeld() : aimLatched;
-        if (!wantsAim)
+        bool cinematicFirstPersonActive = cinematicFirstPersonBlend > 0.001f;
+        if (!wantsAim && !cinematicFirstPersonActive)
         {
             if (InputReader.RotateLeftPressed())
             {
@@ -170,7 +203,8 @@ public class HolstinCameraRig : MonoBehaviour
         float yawBlend = 1f - Mathf.Exp(-Mathf.Max(0.01f, rotationSmooth) * Time.deltaTime);
         currentYaw = Mathf.LerpAngle(currentYaw, targetYaw, yawBlend);
 
-        if (aimBlend <= 0.001f)
+        float effectiveFirstPersonBlend = Mathf.Max(aimBlend, cinematicFirstPersonBlend);
+        if (effectiveFirstPersonBlend <= 0.001f)
         {
             if (target != null)
             {
@@ -179,10 +213,14 @@ public class HolstinCameraRig : MonoBehaviour
             return;
         }
 
-        Vector2 look = InputReader.GetLookDelta();
-        lookYaw += look.x * mouseSensitivity;
-        lookPitch -= look.y * mouseSensitivity;
-        lookPitch = Mathf.Clamp(lookPitch, minPitch, maxPitch);
+        bool canReadLook = aimBlend > 0.001f || (cinematicFirstPersonBlend > 0.001f && cinematicLookEnabled);
+        if (canReadLook && !GameplayPauseFacade.IsPaused)
+        {
+            Vector2 look = InputReader.GetLookDelta();
+            lookYaw += look.x * mouseSensitivity;
+            lookPitch -= look.y * mouseSensitivity;
+            lookPitch = Mathf.Clamp(lookPitch, minPitch, maxPitch);
+        }
 
         if (rotateTargetWithAim && target != null)
         {
@@ -198,17 +236,29 @@ public class HolstinCameraRig : MonoBehaviour
 
         Vector3 isoOffset = Quaternion.Euler(0f, currentYaw, 0f) * new Vector3(0f, isoHeight, -isoDistance);
         Vector3 isoIdealPosition = focusPoint + isoOffset;
-        Vector3 isoSafePosition = (disableObstructionInIsometric && aimBlend < 0.5f)
+        float effectiveFirstPersonBlend = Mathf.Max(aimBlend, cinematicFirstPersonBlend);
+        Vector3 isoSafePosition = (disableObstructionInIsometric && effectiveFirstPersonBlend < 0.5f)
             ? isoIdealPosition
             : ResolveObstruction(focusPoint, isoIdealPosition);
         Quaternion isoRotation = Quaternion.LookRotation((focusPoint - isoIdealPosition).normalized, Vector3.up);
 
         Vector3 fpPosition = firstPersonAnchor != null ? firstPersonAnchor.position : focusPoint;
         Quaternion fpRotation = Quaternion.Euler(lookPitch, lookYaw, 0f);
+        float fpFov = firstPersonFov;
 
-        Vector3 basePosition = Vector3.Lerp(isoSafePosition, fpPosition, aimBlend);
-        Quaternion baseRotation = Quaternion.Slerp(isoRotation, fpRotation, aimBlend);
-        float baseFov = Mathf.Lerp(isoFov, firstPersonFov, aimBlend);
+        if (cinematicFirstPersonBlend > 0.0001f)
+        {
+            Transform offsetSpace = firstPersonAnchor != null ? firstPersonAnchor : target;
+            Vector3 cinematicPosition = fpPosition + offsetSpace.TransformVector(cinematicHeadLocalOffset);
+            Quaternion cinematicRotation = fpRotation * Quaternion.Euler(cinematicEulerOffset);
+            fpPosition = Vector3.Lerp(fpPosition, cinematicPosition, cinematicFirstPersonBlend);
+            fpRotation = Quaternion.Slerp(fpRotation, cinematicRotation, cinematicFirstPersonBlend);
+            fpFov = Mathf.Lerp(firstPersonFov, cinematicFirstPersonFov, cinematicFirstPersonBlend);
+        }
+
+        Vector3 basePosition = Vector3.Lerp(isoSafePosition, fpPosition, effectiveFirstPersonBlend);
+        Quaternion baseRotation = Quaternion.Slerp(isoRotation, fpRotation, effectiveFirstPersonBlend);
+        float baseFov = Mathf.Lerp(isoFov, fpFov, effectiveFirstPersonBlend);
 
         if (dialogueBlendTarget > 0f && dialogueAnchor == null)
         {
