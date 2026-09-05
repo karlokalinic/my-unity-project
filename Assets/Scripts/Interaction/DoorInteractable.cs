@@ -37,6 +37,7 @@ public class DoorInteractable : InteractableBase
     private bool isAnimating;
     private bool isLocked;
     private PlayerInteraction activeInteractor;
+    private Collider[] movingColliders;
 
     public void ConfigureLock(string requiredId, string requiredDisplayName, bool startsLockedAtRuntime, bool consumeKey, string unlockMilestone = "")
     {
@@ -56,6 +57,22 @@ public class DoorInteractable : InteractableBase
         infectionMilestoneOnUnlock = unlockMilestone;
     }
 
+    public void ConfigureMotion(
+        Transform part,
+        DoorMotionType type,
+        Vector3 openPositionOffset,
+        Vector3 openEuler,
+        float duration)
+    {
+        movingPart = part != null ? part : transform;
+        motionType = type;
+        openLocalPositionOffset = openPositionOffset;
+        openLocalEuler = openEuler;
+        animationDuration = Mathf.Max(0.05f, duration);
+        CaptureClosedPose();
+        CacheMovingColliders();
+    }
+
     private void Awake()
     {
         if (movingPart == null)
@@ -63,8 +80,8 @@ public class DoorInteractable : InteractableBase
             movingPart = transform;
         }
 
-        closedLocalPosition = movingPart.localPosition;
-        closedLocalRotation = movingPart.localRotation;
+        CaptureClosedPose();
+        CacheMovingColliders();
         isLocked = startsLocked;
     }
 
@@ -150,6 +167,9 @@ public class DoorInteractable : InteractableBase
         float elapsed = 0f;
         while (elapsed < duration)
         {
+            Vector3 previousPosition = movingPart.localPosition;
+            Quaternion previousRotation = movingPart.localRotation;
+
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
             float curveT = animationCurve != null ? animationCurve.Evaluate(t) : t;
@@ -165,6 +185,14 @@ public class DoorInteractable : InteractableBase
                 movingPart.localRotation = Quaternion.Slerp(fromRotation, targetRotation, curveT);
             }
 
+            if (IntersectsInteractor(interactor))
+            {
+                movingPart.localPosition = previousPosition;
+                movingPart.localRotation = previousRotation;
+                AbortAnimation(interactor);
+                yield break;
+            }
+
             yield return null;
         }
 
@@ -177,11 +205,80 @@ public class DoorInteractable : InteractableBase
             movingPart.localRotation = targetRotation;
         }
 
+        if (IntersectsInteractor(interactor))
+        {
+            movingPart.localPosition = fromPosition;
+            movingPart.localRotation = fromRotation;
+            AbortAnimation(interactor);
+            yield break;
+        }
+
         isOpen = !isOpen;
         isAnimating = false;
         interactor.SetBusy(false);
         activeInteractor = null;
         ForceRefreshPrompt(interactor, interactor.Inventory);
+    }
+
+    private void CaptureClosedPose()
+    {
+        if (movingPart == null)
+        {
+            return;
+        }
+
+        closedLocalPosition = movingPart.localPosition;
+        closedLocalRotation = movingPart.localRotation;
+    }
+
+    private void CacheMovingColliders()
+    {
+        movingColliders = movingPart != null
+            ? movingPart.GetComponentsInChildren<Collider>(true)
+            : null;
+    }
+
+    private bool IntersectsInteractor(PlayerInteraction interactor)
+    {
+        if (interactor == null || movingColliders == null || movingColliders.Length == 0)
+        {
+            return false;
+        }
+
+        CharacterController controller = interactor.GetComponent<CharacterController>();
+        if (controller == null || !controller.enabled)
+        {
+            return false;
+        }
+
+        Bounds actorBounds = controller.bounds;
+        for (int i = 0; i < movingColliders.Length; i++)
+        {
+            Collider doorCollider = movingColliders[i];
+            if (doorCollider == null || !doorCollider.enabled || doorCollider.isTrigger)
+            {
+                continue;
+            }
+
+            if (doorCollider.bounds.Intersects(actorBounds))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void AbortAnimation(PlayerInteraction interactor)
+    {
+        isAnimating = false;
+        if (interactor != null)
+        {
+            interactor.SetBusy(false);
+            ForceRefreshPrompt(interactor, interactor.Inventory);
+        }
+
+        activeInteractor = null;
     }
 
     private void OnDisable()
