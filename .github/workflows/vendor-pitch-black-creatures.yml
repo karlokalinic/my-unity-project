@@ -1,0 +1,206 @@
+name: Ingest pitch-black creature assets
+
+on:
+  push:
+    branches:
+      - feature/vendor-pitch-black-creatures
+    paths:
+      - .github/workflows/vendor-pitch-black-creatures.yml
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/vendor-pitch-black-creatures
+          fetch-depth: 0
+
+      - name: Download verified carrier images
+        shell: python
+        run: |
+          import pathlib, urllib.request
+          urls = [
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fe5215639-0373-46d9-b249-0cccba0adc47/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAALQUNF7LiaWThsi76hEeZ7_xEjTn9PSaK_Jbn16GxHr8&exp=1788705531&osig=AAAAAAAAAAAAAAAAAAAAACv_9JvR4V23kKC0EU6yfh4jiY9NPWPxSA-Jpeo1H8ja&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F6b8676b1-5dd8-4fc7-a2c1-e6b0ef24f577/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAADUzYYHg03Ok8nuAHzmvJwQMGOfFHshkAayiOaTKK8TF&exp=1788704971&osig=AAAAAAAAAAAAAAAAAAAAAPtXR7svtdufoDAjrcC1tdKNgG9Ic38Xo4AgKRxeq6TJ&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F935d1050-8533-42a5-a7e6-7fe3012284f6/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAALClfVWxa1294lFBdqbgTL-rhVEZtQO_frF-H7QtjnP4&exp=1788704725&osig=AAAAAAAAAAAAAAAAAAAAAMhwsHyzdn6mF7sOBUcJ949mMtNJFpLuO3RC8MabiFqG&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F3517bd6b-ca11-4af4-a36d-70e8236e1a65/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAJFR2TTC89FAvifRefhtiTBSAqoAPif2Fypa4po0Ae7J&exp=1788705015&osig=AAAAAAAAAAAAAAAAAAAAAGbWsJxksZp1tVKMV6e7AcbYyl4Dqs41PcwwAZ_9ZbJj&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fcb7b45d8-52ea-4b60-98e9-427eb68689ed/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAACMUNBsMvTUhfYhz7VK9kVRijhaoVZNCY_GEQTzEBCrY&exp=1788705164&osig=AAAAAAAAAAAAAAAAAAAAADJ6q507gMZur4Jahu4prZ5z7_enbA8_cgTkdHzpBE6a&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F7a73e5ec-320a-4479-b9e6-f8a690c006f2/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAANPHPBlCU6i21WA5WVaAYWzJfQvk6rWMx6GY-Cq9Psey&exp=1788705852&osig=AAAAAAAAAAAAAAAAAAAAAMhey_qYYceinQfx9PJCYyhCuNgdY3N_z_seYPo8NtQT&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fbacd2c99-08a5-4d3c-af55-a714568730b6/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAMfJSF48SaobBoBhdPdvJQBHN2hiGjS2DIIZ0ItoD2xY&exp=1788703546&osig=AAAAAAAAAAAAAAAAAAAAAKuvTrOpmyTA7iZvuYBEA6rk4JgTCqvgP75Lvkuy0qsK&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fbcd27d53-737b-4444-9db9-1e691da0b8b0/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAHw5lQgouPVsx363yY36hN9maesKpYVq1lzCQ0KDwrVf&exp=1788706997&osig=AAAAAAAAAAAAAAAAAAAAAN_162Zwym7y42G-UTakKZa3KHhyW2_vTZEfC7jdn9V0&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F9a614f5a-d0b0-4d01-9c04-aa875fb9ce71/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAIMEe6h2rqDPrMOV8M7UcAG5LsGpDrwcWU47Va7mEahK&exp=1788703907&osig=AAAAAAAAAAAAAAAAAAAAANVYZx0gB4bWO9A8VM9SBLOtJcKUBVGLJ7d9RTdZ9BuP&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F85610f85-cf3e-43b8-8624-f028c8738590/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAERFf3Gp7GuHIpLy44wwAE7nOXDx4itHqzzOjpJ-O16l&exp=1788705362&osig=AAAAAAAAAAAAAAAAAAAAAEoNdL-hBmp9Cn8AIe3d8bmGp9wT3ZWOhfwgg7NMepK_&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fd343780b-f9e6-4405-be4c-82b1bbd03983/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAJ9MGh6aXQh4c-RvI3ltmASM45YkNL7_zI1ujFZLSI-L&exp=1788704417&osig=AAAAAAAAAAAAAAAAAAAAALHVx88785-L70vRAt8I4E_J6Wo3YzeGtzSexIHiRgOD&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Ff99096dd-f96c-4633-9f0c-95fea676e000/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAAP7WRApngxsoohiyBCho8ghCGz_PumnAiF4dl2gWz1X&exp=1788704353&osig=AAAAAAAAAAAAAAAAAAAAADgfxTL7ckxjzo-KZnSnNOqBket4t30dxpYnvqoqTpJY&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fe2e7c99a-c8bd-4b84-9fdd-ef0c23cf4ab2/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAOwdVDkfDjD6OLy_XtXhBuRHgK2IHR0TRxi9TMgDf2d7&exp=1788705092&osig=AAAAAAAAAAAAAAAAAAAAAOEGQF9pcVsL3JGf7EZrkhjI5WwwtNtf-EjnqShKcR0G&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F971e3e89-7698-4138-9d45-0d5963f2e616/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAIYYwdnsKfq0Mjv9Nl8F-5LIF3puK1vL1Y2WDoExKlWY&exp=1788703838&osig=AAAAAAAAAAAAAAAAAAAAAFqr6IJOvQ_2R1GjUib2MIsf7Vwd-IggiJBksCuH52mX&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F404bd2e7-c6b0-487c-a302-eb10267e3a09/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAHy_pczY6nz4c8T_Rz2MerygQrGMpZ0VGp5Iku9ESQN2&exp=1788705441&osig=AAAAAAAAAAAAAAAAAAAAAHBIqdtUJyyo4w03RoOY8WRZ0XNF024kQ7K6B4QqxHzE&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fae0096d6-02ea-4aed-950a-97a71a4276ac/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAB1sJJnVtPNQxkTUqIY90hEON9gAt2PIt0CGPj6u7Agr&exp=1788706525&osig=AAAAAAAAAAAAAAAAAAAAALJ4ZubWFegawcKdYSSjnzNrwa_Guc5fTGb7IpYht187&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F9859e6c3-1352-4962-b4e9-2d3ffd472789/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAMoyiIcGa473KNaVjwrqm3_T2V1qfg7g4qdXVBfLt-fD&exp=1788703754&osig=AAAAAAAAAAAAAAAAAAAAALmEiHgZWxAVAaJhpaWS5XqkVVoTegbclJdfGLi9SLyD&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fd64e96e4-ed2f-4f7d-9395-d1250d5b5a42/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAJABQpvoHMXpQECZskrr1UPa_F1gSqu_RFYuGhJgsHbK&exp=1788703794&osig=AAAAAAAAAAAAAAAAAAAAAP91X0FLDMWcfhc_DJnpy1uBxxGQL09gcL4TLPwaPKND&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fb3ec97ec-3e75-4f86-8ca4-90cd37bf39e2/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAEBQFrzP6TyV6pZa3Jpw2Skd5qhqIRGcycqmPRc3Gs_d&exp=1788705951&osig=AAAAAAAAAAAAAAAAAAAAAPJz9dybQcOBQDXoxvueiNx-MIMG6ZdWbVZkXgmoFRWF&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F5096ef29-2498-47d3-9f1f-3fe48522505d/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAJbLs2Eq5Kkz3UIAHyRXbxv4-XlzR3qqubZWCeVqhoE1&exp=1788704773&osig=AAAAAAAAAAAAAAAAAAAAALiGvOoGhQjzhFBnSzp7KTiwmgcKF0SnAwKkEpMxBmBL&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F3301fc4a-e7ab-417a-b5de-8825f8e6189a/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAKb0VgfqX-1DxuEY0dv2LHh7sJd0WaOdyYJMZ2ORkqIJ&exp=1788705534&osig=AAAAAAAAAAAAAAAAAAAAAL2xPYfglWa45USBAmG51ZewtedspdZXqHmMLDfnVaXv&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F2c5c4eb2-7695-4e4c-817d-50668aa6c17e/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAABdg1qigY___q-S_UFs1Tb1LSrEE0AKztwYmCGovz-oy&exp=1788707035&osig=AAAAAAAAAAAAAAAAAAAAANWtRMHdu5BJ91COyVJeQsxRO1XDgsTWunBJP4KcneVk&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F0bbc95f4-bcf2-4271-a19d-9c1d338c7fc3/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAIX32VM_JaDdUdQ50HRXO5X07E4WEhRT5k3s6J7Fjy0q&exp=1788704695&osig=AAAAAAAAAAAAAAAAAAAAAKUooYqqzD3DN9FkvN_BUevOgoKOJRr_S_di9j5GS3Go&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2Fb310746e-8fc4-43e7-865e-e392f7c2fa72/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAGwreTGvMDWngeBPcbJnEFMSXZxOQ5ad8r8w-A8e4oN8&exp=1788706398&osig=AAAAAAAAAAAAAAAAAAAAAMua9cXYFXPlwvsD5zmvszyD0aauKVvrhI2Lh6JmC3vO&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F6f60243f-ce0b-41e9-a940-3799c2966e08/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAE5xhXjzq2gJPjH9-ewKOa2Bq2_QGXc3DT-Nlrx7XbwV&exp=1788703787&osig=AAAAAAAAAAAAAAAAAAAAAFJ0ldlDU-PCVRc8mEDU_JrI-JuGpmSrIl3LSsD3qjI0&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F5ab1068e-f155-4322-b700-f58e4af2ddf1/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAAU2rR4oDfYXbbYpZB5L-kc5nCfQ8Nzwl8slQKsZNrVG&exp=1788704648&osig=AAAAAAAAAAAAAAAAAAAAAKS8WGBRQC9ZCcoeCa74kt9kGkPdo5ojjo9xexAxTsCc&signer=media-rpc&x-canva-quality=thumbnail",
+            "https://media.canva.com/v2/image-resize/format:PNG/height:148/quality:100/uri:ifs%3A%2F%2FM%2F432ebddb-421a-4c1b-9628-5ec3507d54de/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAInmojUvFfPxa7yOO9n2wxfHDfEKbXG81gNVTSexgYVT&exp=1788706023&osig=AAAAAAAAAAAAAAAAAAAAAD6iLb0_e4BqiEyFZv_lCqRmUdL2iF1mcSYj6ZoDWdJZ&signer=media-rpc&x-canva-quality=thumbnail"
+          ]
+          out = pathlib.Path('/tmp/carriers')
+          out.mkdir(parents=True, exist_ok=True)
+          for i, url in enumerate(urls):
+              target = out / f'carrier_{i:02d}.png'
+              print(f'Downloading {i:02d}/{len(urls)-1:02d}')
+              req = urllib.request.Request(url, headers={'User-Agent': 'UnityLaptop-Asset-Ingest/1.0'})
+              with urllib.request.urlopen(req, timeout=60) as response, target.open('wb') as dst:
+                  dst.write(response.read())
+
+      - name: Reconstruct and verify authorized archive
+        shell: python
+        run: |
+          import pathlib, struct, zlib, hashlib, zipfile, shutil
+
+          EXPECTED_ARCHIVE_SHA = 'a0f4f7f30214208f22afa1703b351d6494489daacd0769ed20f45d9ee5b3ade7'
+          EXPECTED_PARTS = 27
+          W, H = 200, 148
+          rowbytes = W * 4
+
+          def decode_png(path):
+              data = path.read_bytes()
+              if data[:8] != b'\x89PNG\r\n\x1a\n':
+                  raise RuntimeError(f'{path.name}: invalid PNG signature')
+              pos, width, height, bit_depth, color_type = 8, None, None, None, None
+              idat = bytearray()
+              while pos < len(data):
+                  length = struct.unpack('>I', data[pos:pos+4])[0]
+                  kind = data[pos+4:pos+8]
+                  chunk = data[pos+8:pos+8+length]
+                  pos += 12 + length
+                  if kind == b'IHDR':
+                      width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack('>IIBBBBB', chunk)
+                      if (width, height, bit_depth, color_type, compression, filtering, interlace) != (W, H, 8, 6, 0, 0, 0):
+                          raise RuntimeError(f'{path.name}: unexpected PNG format {(width, height, bit_depth, color_type, compression, filtering, interlace)}')
+                  elif kind == b'IDAT':
+                      idat.extend(chunk)
+                  elif kind == b'IEND':
+                      break
+
+              raw = zlib.decompress(bytes(idat))
+              bpp = 4
+              rows = []
+              prev = bytearray(rowbytes)
+              offset = 0
+              for _ in range(H):
+                  filter_type = raw[offset]
+                  scan = bytearray(raw[offset+1:offset+1+rowbytes])
+                  offset += 1 + rowbytes
+                  recon = bytearray(rowbytes)
+                  for x in range(rowbytes):
+                      a = recon[x-bpp] if x >= bpp else 0
+                      b = prev[x]
+                      c = prev[x-bpp] if x >= bpp else 0
+                      val = scan[x]
+                      if filter_type == 0:
+                          pred = 0
+                      elif filter_type == 1:
+                          pred = a
+                      elif filter_type == 2:
+                          pred = b
+                      elif filter_type == 3:
+                          pred = (a + b) // 2
+                      elif filter_type == 4:
+                          p = a + b - c
+                          pa, pb, pc = abs(p-a), abs(p-b), abs(p-c)
+                          pred = a if pa <= pb and pa <= pc else (b if pb <= pc else c)
+                      else:
+                          raise RuntimeError(f'{path.name}: unsupported PNG filter {filter_type}')
+                      recon[x] = (val + pred) & 0xff
+                  rows.append(bytes(recon))
+                  prev = recon
+              return b''.join(rows)
+
+          pieces = [None] * EXPECTED_PARTS
+          for path in sorted(pathlib.Path('/tmp/carriers').glob('carrier_*.png')):
+              pixels = decode_png(path)
+              if pixels[:4] != b'ULPC':
+                  raise RuntimeError(f'{path.name}: carrier magic corrupted')
+              index, count, length = struct.unpack('>HHI', pixels[4:12])
+              expected_sha = pixels[12:44]
+              segment = pixels[44:44+length]
+              if count != EXPECTED_PARTS or index >= count:
+                  raise RuntimeError(f'{path.name}: invalid carrier index/count {index}/{count}')
+              actual_sha = hashlib.sha256(segment).digest()
+              if actual_sha != expected_sha:
+                  raise RuntimeError(f'{path.name}: carrier payload SHA-256 mismatch')
+              if pieces[index] is not None:
+                  raise RuntimeError(f'duplicate carrier segment {index}')
+              pieces[index] = segment
+
+          if any(piece is None for piece in pieces):
+              raise RuntimeError('one or more carrier segments are missing')
+
+          archive_bytes = b''.join(pieces)
+          actual_archive_sha = hashlib.sha256(archive_bytes).hexdigest()
+          if actual_archive_sha != EXPECTED_ARCHIVE_SHA:
+              raise RuntimeError(f'archive SHA mismatch: {actual_archive_sha}')
+
+          archive_path = pathlib.Path('/tmp/PitchBlackEncounterAssets.zip')
+          archive_path.write_bytes(archive_bytes)
+          staging = pathlib.Path('/tmp/pitchblack-extract')
+          if staging.exists():
+              shutil.rmtree(staging)
+          staging.mkdir(parents=True)
+
+          with zipfile.ZipFile(archive_path) as zf:
+              for member in zf.infolist():
+                  name = member.filename.replace('\\', '/')
+                  if member.is_dir():
+                      continue
+                  if not (name.startswith('TheRake/') or name.startswith('AbominableSnowman/')):
+                      continue
+                  if '..' in pathlib.PurePosixPath(name).parts:
+                      raise RuntimeError(f'unsafe archive member {name}')
+                  target = staging / name
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  with zf.open(member) as src, target.open('wb') as dst:
+                      shutil.copyfileobj(src, dst)
+
+          expected = {
+              'TheRake/TheRake.fbx': '72b266ef613d576d0fa801c7bff200b4ef30055cbfa985b1cb6170e1fa6358ed',
+              'AbominableSnowman/AbominableSnowman.glb': '21a54b05ab933cafd497411f6a6588393cd85d061cf6b21835772ee9b9fb6839',
+          }
+          for rel, sha in expected.items():
+              p = staging / rel
+              if not p.exists():
+                  raise RuntimeError(f'missing extracted asset {rel}')
+              actual = hashlib.sha256(p.read_bytes()).hexdigest()
+              if actual != sha:
+                  raise RuntimeError(f'{rel}: SHA mismatch {actual}')
+
+          destination = pathlib.Path('Assets/Resources/ThirdParty')
+          destination.mkdir(parents=True, exist_ok=True)
+          for family in ('TheRake', 'AbominableSnowman'):
+              target = destination / family
+              if target.exists():
+                  shutil.rmtree(target)
+              shutil.copytree(staging / family, target)
+
+          print(f'Authorized archive verified: {actual_archive_sha}')
+
+      - name: Commit native Unity assets and remove transport workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "UNITYLAPTOP Asset Ingest"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/vendor-pitch-black-creatures.yml
+          git add -f Assets/Resources/ThirdParty/TheRake Assets/Resources/ThirdParty/AbominableSnowman
+          git status --short
+          git commit -m "Vendor authorized Rake and Abominable Snowman assets"
+          git push origin HEAD:feature/vendor-pitch-black-creatures
