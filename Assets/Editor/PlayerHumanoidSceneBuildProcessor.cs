@@ -71,9 +71,12 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         }
 
         Transform existing = actorRoot.transform.Find(VisualRootName);
-        if (existing != null && existing.GetComponentInChildren<SkinnedMeshRenderer>(true) != null)
+        if (existing != null && HasUsableHumanoidVisual(existing))
         {
             DisableImportedPhysics(existing.gameObject);
+            SetLayerRecursive(existing, actorRoot.layer);
+            FitToHeight(existing, TargetPlayerHeight);
+            AlignFeetToControllerGround(actorRoot, existing);
             ConfigureRendering(existing.gameObject);
             EnsurePlayerDetailDrivers(actorRoot);
             return false;
@@ -94,15 +97,26 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         }
 
         GameObject visualRootObject = new GameObject(VisualRootName);
+        Scene actorScene = actorRoot.scene;
+        if (actorScene.IsValid() && actorScene.isLoaded && visualRootObject.scene != actorScene)
+        {
+            SceneManager.MoveGameObjectToScene(visualRootObject, actorScene);
+        }
         visualRootObject.transform.SetParent(actorRoot.transform, false);
         visualRootObject.transform.localPosition = Vector3.zero;
         visualRootObject.transform.localRotation = Quaternion.identity;
         visualRootObject.transform.localScale = Vector3.one;
 
-        GameObject modelInstance = PrefabUtility.InstantiatePrefab(modelAsset) as GameObject;
+        GameObject modelInstance = actorScene.IsValid() && actorScene.isLoaded
+            ? PrefabUtility.InstantiatePrefab(modelAsset, actorScene) as GameObject
+            : PrefabUtility.InstantiatePrefab(modelAsset) as GameObject;
         if (modelInstance == null)
         {
             modelInstance = UnityEngine.Object.Instantiate(modelAsset);
+            if (modelInstance != null && actorScene.IsValid() && actorScene.isLoaded && modelInstance.scene != actorScene)
+            {
+                SceneManager.MoveGameObjectToScene(modelInstance, actorScene);
+            }
         }
         if (modelInstance == null)
         {
@@ -123,6 +137,11 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         ConfigureRendering(visualRootObject);
         EnsurePlayerDetailDrivers(actorRoot);
 
+        if (!HasUsableHumanoidVisual(visualRootObject.transform))
+        {
+            throw new BuildFailedException("Canonical player model was injected but did not produce a valid Humanoid Animator + skinned renderer hierarchy.");
+        }
+
         return true;
     }
 
@@ -142,6 +161,17 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         }
 
         return false;
+    }
+
+    private static bool HasUsableHumanoidVisual(Transform visualRoot)
+    {
+        if (visualRoot == null || visualRoot.GetComponentInChildren<SkinnedMeshRenderer>(true) == null)
+        {
+            return false;
+        }
+
+        Animator animator = visualRoot.GetComponentInChildren<Animator>(true);
+        return animator != null && animator.avatar != null && animator.avatar.isValid && animator.avatar.isHuman;
     }
 
     private static void EnsurePlayerDetailDrivers(GameObject actorRoot)
