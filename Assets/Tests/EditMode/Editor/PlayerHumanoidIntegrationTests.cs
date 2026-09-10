@@ -138,6 +138,7 @@ public class PlayerHumanoidIntegrationTests
             Assert.IsNotNull(actor.GetComponent<PlayerAnimationController>());
             Assert.IsNotNull(actor.GetComponent<PlayerHumanoidVisualDriver>());
             Assert.IsNotNull(actor.GetComponent<PlayerMicroMotionDetailDriver>());
+            Assert.IsNotNull(actor.GetComponent<PlayerAnatomicalDetailDriver>());
             Assert.IsNotNull(actor.GetComponent<PlayerFootGroundingDetailDriver>());
             Assert.IsNotNull(actor.GetComponent<PlayerFacialMicroMotion>());
 
