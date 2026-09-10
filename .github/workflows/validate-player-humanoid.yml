@@ -45,6 +45,7 @@ jobs:
           visual = root / 'Assets/Scripts/Player/PlayerHumanoidVisualDriver.cs'
           micro = root / 'Assets/Scripts/Player/PlayerMicroMotionDetailDriver.cs'
           anatomy = root / 'Assets/Scripts/Player/PlayerAnatomicalDetailDriver.cs'
+          eye = root / 'Assets/Scripts/Player/PlayerEyeGazeDetailDriver.cs'
           foot = root / 'Assets/Scripts/Player/PlayerFootGroundingDetailDriver.cs'
           face = root / 'Assets/Scripts/Player/PlayerFacialMicroMotion.cs'
           head = root / 'Assets/Scripts/Player/PlayerHeadAnchorDriver.cs'
@@ -53,7 +54,7 @@ jobs:
           build_processor = root / 'Assets/Editor/PlayerHumanoidSceneBuildProcessor.cs'
           guard = root / 'Assets/Editor/CloudBuildGuard.cs'
 
-          required = [model, meta, scene, animation, visual, micro, anatomy, foot, face, head, ragdoll, bootstrap, build_processor, guard]
+          required = [model, meta, scene, animation, visual, micro, anatomy, eye, foot, face, head, ragdoll, bootstrap, build_processor, guard]
           for path in required:
               if not path.is_file():
                   raise SystemExit(f'Missing required player-humanoid file: {path}')
@@ -105,9 +106,17 @@ jobs:
               raise SystemExit('PlayerMicroMotionDetailDriver allocates or performs component lookup in LateUpdate.')
 
           anatomy_text = anatomy.read_text(encoding='utf-8')
-          for token in ('HumanBodyBones.Neck', 'HumanBodyBones.LeftShoulder', 'HumanBodyBones.RightShoulder', 'HumanBodyBones.LeftToes', 'ResolveToeOff', 'DefaultExecutionOrder(80)'):
+          for token in ('HumanBodyBones.Neck', 'HumanBodyBones.LeftShoulder', 'HumanBodyBones.RightShoulder', 'HumanBodyBones.LeftToes', 'ResolveToeOff', 'RequireComponent(typeof(PlayerEyeGazeDetailDriver))', 'DefaultExecutionOrder(80)'):
               if token not in anatomy_text:
                   raise SystemExit(f'Anatomical secondary-motion contract is incomplete: {token}')
+
+          eye_text = eye.read_text(encoding='utf-8')
+          for token in ('HumanBodyBones.LeftEye', 'HumanBodyBones.RightEye', 'saccadeIntervalRange', 'returnToCenterBias', 'RemovePreviousAdditives', 'DefaultExecutionOrder(140)'):
+              if token not in eye_text:
+                  raise SystemExit(f'Eye-gaze micro-detail contract is incomplete: {token}')
+          eye_late = re.search(r'private void LateUpdate\(\)\s*\{(.*?)\n    \}', eye_text, re.S)
+          if eye_late and ('new ' in eye_late.group(1) or 'GetComponent<' in eye_late.group(1)):
+              raise SystemExit('PlayerEyeGazeDetailDriver allocates or performs component lookup in LateUpdate.')
 
           foot_text = foot.read_text(encoding='utf-8')
           for token in ('RaycastNonAlloc', 'ResolveStanceWeight', 'maxAnkleTilt', 'swingFootGroundInfluence', 'DefaultExecutionOrder(120)'):
