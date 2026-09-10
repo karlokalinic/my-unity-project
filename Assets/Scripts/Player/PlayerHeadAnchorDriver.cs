@@ -9,7 +9,8 @@ public class PlayerHeadAnchorDriver : MonoBehaviour
     [SerializeField] private Transform headAnchor;
     [SerializeField] private bool followPhysicalHead;
     [SerializeField] private bool preferRenderedHumanoidHead = true;
-    [SerializeField] private Vector3 localOffset = new Vector3(0f, 0.055f, 0.085f);
+    [SerializeField] private Vector3 localOffset = new Vector3(0f, 0.06f, 0.03f);
+    [SerializeField] private Vector3 renderedHumanoidEyeOffset = new Vector3(0f, 0.055f, 0.085f);
 
     private Transform resolvedProceduralHead;
     private Transform resolvedVisualHead;
@@ -62,7 +63,7 @@ public class PlayerHeadAnchorDriver : MonoBehaviour
         {
             // Humanoid FBX bone axes are importer-defined. Use actor axes for eye placement
             // so the first-person camera cannot end up behind/inside the skull on a valid avatar.
-            worldOffset = transform.TransformVector(localOffset);
+            worldOffset = transform.TransformVector(renderedHumanoidEyeOffset);
         }
         else
         {
