@@ -44,6 +44,7 @@ jobs:
           animation = root / 'Assets/Scripts/Player/PlayerAnimationController.cs'
           visual = root / 'Assets/Scripts/Player/PlayerHumanoidVisualDriver.cs'
           micro = root / 'Assets/Scripts/Player/PlayerMicroMotionDetailDriver.cs'
+          anatomy = root / 'Assets/Scripts/Player/PlayerAnatomicalDetailDriver.cs'
           foot = root / 'Assets/Scripts/Player/PlayerFootGroundingDetailDriver.cs'
           face = root / 'Assets/Scripts/Player/PlayerFacialMicroMotion.cs'
           head = root / 'Assets/Scripts/Player/PlayerHeadAnchorDriver.cs'
@@ -52,7 +53,7 @@ jobs:
           build_processor = root / 'Assets/Editor/PlayerHumanoidSceneBuildProcessor.cs'
           guard = root / 'Assets/Editor/CloudBuildGuard.cs'
 
-          required = [model, meta, scene, animation, visual, micro, foot, face, head, ragdoll, bootstrap, build_processor, guard]
+          required = [model, meta, scene, animation, visual, micro, anatomy, foot, face, head, ragdoll, bootstrap, build_processor, guard]
           for path in required:
               if not path.is_file():
                   raise SystemExit(f'Missing required player-humanoid file: {path}')
@@ -96,19 +97,24 @@ jobs:
                   raise SystemExit(f'PlayerHumanoidVisualDriver is missing required integration token: {token}')
 
           micro_text = micro.read_text(encoding='utf-8')
-          for token in ('exertion', 'breathPhase', 'smoothedTurnRate', 'RemovePreviousAdditives', 'DefaultExecutionOrder(-50)'):
+          for token in ('exertion', 'breathPhase', 'smoothedTurnRate', 'RemovePreviousAdditives', 'unresolvedRigRetrySeconds', 'DefaultExecutionOrder(-50)'):
               if token not in micro_text:
                   raise SystemExit(f'Micro-motion contract is incomplete: {token}')
           micro_late = re.search(r'private void LateUpdate\(\)\s*\{(.*?)\n    \}', micro_text, re.S)
           if micro_late and ('new ' in micro_late.group(1) or 'GetComponent<' in micro_late.group(1)):
               raise SystemExit('PlayerMicroMotionDetailDriver allocates or performs component lookup in LateUpdate.')
 
+          anatomy_text = anatomy.read_text(encoding='utf-8')
+          for token in ('HumanBodyBones.Neck', 'HumanBodyBones.LeftShoulder', 'HumanBodyBones.RightShoulder', 'HumanBodyBones.LeftToes', 'ResolveToeOff', 'DefaultExecutionOrder(80)'):
+              if token not in anatomy_text:
+                  raise SystemExit(f'Anatomical secondary-motion contract is incomplete: {token}')
+
           foot_text = foot.read_text(encoding='utf-8')
           for token in ('RaycastNonAlloc', 'ResolveStanceWeight', 'maxAnkleTilt', 'swingFootGroundInfluence', 'DefaultExecutionOrder(120)'):
               if token not in foot_text:
                   raise SystemExit(f'Foot-grounding contract is incomplete: {token}')
           if 'Physics.Raycast(' in foot_text:
-              raise SystemExit('Foot grounding regressed to allocating/simple Raycast path instead of cached NonAlloc probing.')
+              raise SystemExit('Foot grounding regressed to simple Raycast path instead of cached NonAlloc probing.')
 
           face_text = face.read_text(encoding='utf-8')
           for token in ('blinkChannels', 'doubleBlinkChance', 'deathClosure', 'RestoreBaseWeights', 'DefaultExecutionOrder(160)'):
@@ -121,8 +127,11 @@ jobs:
               'PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx"',
               'EnsurePlayerVisualForBuild',
               'TargetPlayerHeight = 1.78f',
+              'PrefabUtility.InstantiatePrefab(modelAsset, actorScene)',
+              'HasUsableHumanoidVisual',
               'PlayerHumanoidVisualDriver',
               'PlayerMicroMotionDetailDriver',
+              'PlayerAnatomicalDetailDriver',
               'PlayerFootGroundingDetailDriver',
               'PlayerFacialMicroMotion'):
               if token not in processor_text:
