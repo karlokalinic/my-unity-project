@@ -215,9 +215,9 @@ public sealed class PlayerFacialMicroMotion : MonoBehaviour
             return false;
         }
 
-        return normalized.Contains("blink", StringComparison.Ordinal) ||
-               normalized.Contains("eyeclose", StringComparison.Ordinal) ||
-               normalized.Contains("eyelidclose", StringComparison.Ordinal);
+        return normalized.IndexOf("blink", StringComparison.Ordinal) >= 0 ||
+               normalized.IndexOf("eyeclose", StringComparison.Ordinal) >= 0 ||
+               normalized.IndexOf("eyelidclose", StringComparison.Ordinal) >= 0;
     }
 
     private static string NormalizeBlendShapeName(string value)
