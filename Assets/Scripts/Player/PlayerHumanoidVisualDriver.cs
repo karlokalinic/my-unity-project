@@ -21,8 +21,6 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
 
     private sealed class BoneLink
     {
-        public string rigBoneName;
-        public HumanBodyBones humanBone;
         public Transform targetBone;
         public Transform physicalBone;
         public Transform visualBone;
@@ -66,6 +64,7 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
     [SerializeField] private float ragdollBlendSpeed = 14f;
     [SerializeField] private float poseRotationResponse = 28f;
     [SerializeField] private float pelvisPositionResponse = 26f;
+    [SerializeField] private float unresolvedRetrySeconds = 1f;
 
     [Header("Rendering")]
     [SerializeField] private bool tuneCharacterMaterials = true;
@@ -75,11 +74,13 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
     private BoneLink[] links = Array.Empty<BoneLink>();
     private bool resolved;
     private bool ragdollMode;
+    private bool renderingTuned;
     private float ragdollBlend;
+    private float nextResolveAttemptTime;
     private Transform visualHead;
     private MaterialPropertyBlock materialBlock;
 
-    public bool IsHumanoidBound => resolved && humanoidAnimator != null && humanoidAnimator.avatar != null && humanoidAnimator.avatar.isHuman;
+    public bool IsHumanoidBound => resolved && humanoidAnimator != null && humanoidAnimator.avatar != null && humanoidAnimator.avatar.isValid && humanoidAnimator.avatar.isHuman;
     public Transform VisualHead => visualHead;
     public Animator HumanoidAnimator => humanoidAnimator;
 
@@ -105,6 +106,11 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
 
         if (!resolved)
         {
+            if (Time.unscaledTime < nextResolveAttemptTime)
+            {
+                return;
+            }
+
             ResolveNow();
             if (!resolved)
             {
@@ -182,7 +188,7 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
             ResolveNow();
         }
 
-        if (humanoidAnimator == null || humanoidAnimator.avatar == null || !humanoidAnimator.avatar.isHuman)
+        if (!IsHumanoidBound)
         {
             return false;
         }
@@ -195,6 +201,7 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
     {
         resolved = false;
         visualHead = null;
+        nextResolveAttemptTime = Time.unscaledTime + Mathf.Max(0.2f, unresolvedRetrySeconds);
 
         if (rig == null)
         {
@@ -246,10 +253,8 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
                 continue;
             }
 
-            BoneLink link = new BoneLink
+            builtLinks[i] = new BoneLink
             {
-                rigBoneName = map.rigBoneName,
-                humanBone = map.humanBone,
                 targetBone = target,
                 physicalBone = physical,
                 visualBone = visual,
@@ -262,9 +267,7 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
                 drivesPosition = string.Equals(map.rigBoneName, "Hips", StringComparison.OrdinalIgnoreCase)
             };
 
-            builtLinks[i] = link;
             resolvedCount++;
-
             if (map.humanBone == HumanBodyBones.Head)
             {
                 visualHead = visual;
@@ -273,10 +276,15 @@ public sealed class PlayerHumanoidVisualDriver : MonoBehaviour
 
         links = builtLinks;
         resolved = resolvedCount >= 14 && visualHead != null;
+        if (resolved)
+        {
+            nextResolveAttemptTime = float.PositiveInfinity;
+        }
 
-        if (resolved && tuneCharacterMaterials)
+        if (resolved && tuneCharacterMaterials && !renderingTuned)
         {
             TuneCharacterRendering();
+            renderingTuned = true;
         }
     }
 
