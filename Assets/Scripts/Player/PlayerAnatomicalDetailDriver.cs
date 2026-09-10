@@ -3,6 +3,7 @@ using UnityEngine;
 [DefaultExecutionOrder(80)]
 [DisallowMultipleComponent]
 [RequireComponent(typeof(PlayerHumanoidVisualDriver))]
+[RequireComponent(typeof(PlayerEyeGazeDetailDriver))]
 public sealed class PlayerAnatomicalDetailDriver : MonoBehaviour
 {
     private const float TwoPi = Mathf.PI * 2f;
