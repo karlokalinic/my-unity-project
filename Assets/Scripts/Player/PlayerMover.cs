@@ -31,6 +31,9 @@ public class PlayerMover : MonoBehaviour
 
     public float CurrentPlanarSpeed => planarVelocity.magnitude;
     public Vector3 CurrentPlanarVelocity => planarVelocity;
+    public float WalkSpeed => walkSpeed;
+    public float SprintSpeed => sprintSpeed;
+    public bool IsGrounded => controller != null && controller.enabled && controller.isGrounded;
 
     public void SetCameraForwardSource(Transform source)
     {
