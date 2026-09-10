@@ -11,12 +11,33 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
 {
     private const string RakeResourcePath = "ThirdParty/TheRake/TheRake";
     private const string SnowmanResourcePath = "ThirdParty/AbominableSnowman/AbominableSnowman";
+    private const string PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx";
+
+    private static readonly HumanBodyBones[] RequiredPlayerBones =
+    {
+        HumanBodyBones.Hips,
+        HumanBodyBones.Spine,
+        HumanBodyBones.Head,
+        HumanBodyBones.LeftUpperArm,
+        HumanBodyBones.LeftLowerArm,
+        HumanBodyBones.LeftHand,
+        HumanBodyBones.RightUpperArm,
+        HumanBodyBones.RightLowerArm,
+        HumanBodyBones.RightHand,
+        HumanBodyBones.LeftUpperLeg,
+        HumanBodyBones.LeftLowerLeg,
+        HumanBodyBones.LeftFoot,
+        HumanBodyBones.RightUpperLeg,
+        HumanBodyBones.RightLowerLeg,
+        HumanBodyBones.RightFoot
+    };
 
     public int callbackOrder => -1000;
 
     public void OnPreprocessBuild(BuildReport report)
     {
         ValidateEnabledBuildScenes();
+        ValidatePlayerHumanoidAsset();
         ValidatePitchBlackCreatureAssets();
         Debug.Log($"[CloudBuildGuard] Pre-build validation passed for {report.summary.platform}.");
     }
@@ -47,6 +68,81 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
         if (enabledCount == 0)
         {
             throw new BuildFailedException("No enabled scenes exist in EditorBuildSettings.");
+        }
+    }
+
+    private static void ValidatePlayerHumanoidAsset()
+    {
+        var importer = AssetImporter.GetAtPath(PlayerModelPath) as ModelImporter;
+        if (importer == null)
+        {
+            throw new BuildFailedException($"Player humanoid model importer is missing at '{PlayerModelPath}'.");
+        }
+
+        if (importer.animationType != ModelImporterAnimationType.Human || !importer.importAnimation)
+        {
+            throw new BuildFailedException("Player model must import as a Humanoid with animation enabled.");
+        }
+
+        if (!importer.importBlendShapes)
+        {
+            throw new BuildFailedException("Player model blend shapes are disabled; facial/body deformation fidelity would be lost.");
+        }
+
+        if (importer.optimizeGameObjects)
+        {
+            throw new BuildFailedException("Player model Optimize Game Objects must remain disabled because runtime skin drive requires accessible humanoid bones.");
+        }
+
+        if (importer.importCameras || importer.importLights || importer.isReadable)
+        {
+            throw new BuildFailedException("Player model import contains unnecessary camera/light/readable-mesh payload. WebGL character import contract is invalid.");
+        }
+
+        GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerModelPath);
+        if (modelAsset == null)
+        {
+            throw new BuildFailedException($"Player humanoid model did not import as a GameObject: '{PlayerModelPath}'.");
+        }
+
+        GameObject instance = null;
+        try
+        {
+            instance = UnityEngine.Object.Instantiate(modelAsset);
+            instance.name = "__PlayerHumanoidBuildValidation";
+            instance.hideFlags = HideFlags.HideAndDontSave;
+
+            SkinnedMeshRenderer[] skinnedRenderers = instance.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            if (skinnedRenderers == null || skinnedRenderers.Length == 0)
+            {
+                throw new BuildFailedException("Player humanoid contains no SkinnedMeshRenderer.");
+            }
+
+            Animator animator = instance.GetComponentInChildren<Animator>(true);
+            if (animator == null || animator.avatar == null || !animator.avatar.isValid || !animator.avatar.isHuman)
+            {
+                throw new BuildFailedException("Player FBX did not produce a valid Unity Humanoid Avatar.");
+            }
+
+            for (int i = 0; i < RequiredPlayerBones.Length; i++)
+            {
+                HumanBodyBones bone = RequiredPlayerBones[i];
+                if (animator.GetBoneTransform(bone) == null)
+                {
+                    throw new BuildFailedException($"Player Humanoid Avatar is missing required bone mapping '{bone}'.");
+                }
+            }
+
+            Debug.Log(
+                $"[CloudBuildGuard] Player humanoid validated: {skinnedRenderers.Length} skinned renderer(s), " +
+                $"valid Humanoid Avatar and {RequiredPlayerBones.Length} required bone mappings.");
+        }
+        finally
+        {
+            if (instance != null)
+            {
+                UnityEngine.Object.DestroyImmediate(instance);
+            }
         }
     }
 

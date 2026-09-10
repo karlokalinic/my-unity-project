@@ -1,0 +1,159 @@
+name: Validate player humanoid
+
+on:
+  push:
+    branches:
+      - main
+      - feature/realistic-player-humanoid
+  pull_request:
+    paths:
+      - 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx'
+      - 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx.meta'
+      - 'Assets/Scripts/Player/**'
+      - 'Assets/Scripts/Combat/DeathRagdollController.cs'
+      - 'Assets/Scripts/World/VerticalSliceScenaBootstrap.cs'
+      - 'Assets/Editor/PlayerHumanoidAssetPostprocessor.cs'
+      - 'Assets/Editor/PlayerHumanoidSceneBuildProcessor.cs'
+      - 'Assets/Editor/CloudBuildGuard.cs'
+      - 'Assets/Scenes/Scena.unity'
+      - 'Assets/Tests/EditMode/Editor/PlayerHumanoidIntegrationTests.cs'
+      - '.github/workflows/validate-player-humanoid.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-player-humanoid:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Validate player model, import contract and production build wiring
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import re
+
+          root = pathlib.Path('.')
+          model = root / 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx'
+          meta = root / 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx.meta'
+          scene = root / 'Assets/Scenes/Scena.unity'
+          animation = root / 'Assets/Scripts/Player/PlayerAnimationController.cs'
+          visual = root / 'Assets/Scripts/Player/PlayerHumanoidVisualDriver.cs'
+          micro = root / 'Assets/Scripts/Player/PlayerMicroMotionDetailDriver.cs'
+          anatomy = root / 'Assets/Scripts/Player/PlayerAnatomicalDetailDriver.cs'
+          eye = root / 'Assets/Scripts/Player/PlayerEyeGazeDetailDriver.cs'
+          foot = root / 'Assets/Scripts/Player/PlayerFootGroundingDetailDriver.cs'
+          face = root / 'Assets/Scripts/Player/PlayerFacialMicroMotion.cs'
+          head = root / 'Assets/Scripts/Player/PlayerHeadAnchorDriver.cs'
+          ragdoll = root / 'Assets/Scripts/Combat/DeathRagdollController.cs'
+          bootstrap = root / 'Assets/Scripts/World/VerticalSliceScenaBootstrap.cs'
+          build_processor = root / 'Assets/Editor/PlayerHumanoidSceneBuildProcessor.cs'
+          guard = root / 'Assets/Editor/CloudBuildGuard.cs'
+
+          required = [model, meta, scene, animation, visual, micro, anatomy, eye, foot, face, head, ragdoll, bootstrap, build_processor, guard]
+          for path in required:
+              if not path.is_file():
+                  raise SystemExit(f'Missing required player-humanoid file: {path}')
+
+          data = model.read_bytes()
+          if len(data) < 10_000_000:
+              raise SystemExit(f'Player FBX is unexpectedly small/truncated: {len(data)} bytes')
+          if not data.startswith(b'Kaydara FBX Binary'):
+              raise SystemExit('Player asset is not the expected binary FBX container.')
+
+          meta_text = meta.read_text(encoding='utf-8')
+          expected_meta = {
+              'importAnimation': '1',
+              'animationType': '2',
+              'importBlendShapes': '1',
+              'importCameras': '0',
+              'importLights': '0',
+              'optimizeGameObjects': '0',
+              'isReadable': '0',
+              'meshCompression': '0',
+          }
+          for key, expected in expected_meta.items():
+              match = re.search(rf'^\s*{re.escape(key)}:\s*(\S+)', meta_text, re.MULTILINE)
+              if not match or match.group(1) != expected:
+                  raise SystemExit(f'Player FBX import contract mismatch: {key} expected {expected}, got {match.group(1) if match else "missing"}')
+
+          if scene.stat().st_size < 100_000:
+              raise SystemExit('Production Scena looks missing or unexpectedly truncated.')
+
+          animation_text = animation.read_text(encoding='utf-8')
+          for token in ('VisualPelvisOffset', 'walkStrideLength', 'smoothedLocalAcceleration', 'GaitPhase', 'LocomotionWeight'):
+              if token not in animation_text:
+                  raise SystemExit(f'Realistic locomotion contract is missing: {token}')
+          update_match = re.search(r'private void Update\(\)\s*\{(.*?)\n    \}', animation_text, re.S)
+          if update_match and 'EnsureBuilt' in update_match.group(1):
+              raise SystemExit('PlayerAnimationController rebuilds the humanoid rig in Update.')
+
+          visual_text = visual.read_text(encoding='utf-8')
+          for token in ('HumanBodyBones.Hips', 'HumanBodyBones.Head', 'SetRagdollMode', 'StoreModelVisual', 'MaterialPropertyBlock'):
+              if token not in visual_text:
+                  raise SystemExit(f'PlayerHumanoidVisualDriver is missing required integration token: {token}')
+
+          micro_text = micro.read_text(encoding='utf-8')
+          for token in ('exertion', 'breathPhase', 'smoothedTurnRate', 'RemovePreviousAdditives', 'unresolvedRigRetrySeconds', 'DefaultExecutionOrder(-50)'):
+              if token not in micro_text:
+                  raise SystemExit(f'Micro-motion contract is incomplete: {token}')
+          micro_late = re.search(r'private void LateUpdate\(\)\s*\{(.*?)\n    \}', micro_text, re.S)
+          if micro_late and ('new ' in micro_late.group(1) or 'GetComponent<' in micro_late.group(1)):
+              raise SystemExit('PlayerMicroMotionDetailDriver allocates or performs component lookup in LateUpdate.')
+
+          anatomy_text = anatomy.read_text(encoding='utf-8')
+          for token in ('HumanBodyBones.Neck', 'HumanBodyBones.LeftShoulder', 'HumanBodyBones.RightShoulder', 'HumanBodyBones.LeftToes', 'ResolveToeOff', 'RequireComponent(typeof(PlayerEyeGazeDetailDriver))', 'DefaultExecutionOrder(80)'):
+              if token not in anatomy_text:
+                  raise SystemExit(f'Anatomical secondary-motion contract is incomplete: {token}')
+
+          eye_text = eye.read_text(encoding='utf-8')
+          for token in ('HumanBodyBones.LeftEye', 'HumanBodyBones.RightEye', 'saccadeIntervalRange', 'returnToCenterBias', 'RemovePreviousAdditives', 'DefaultExecutionOrder(140)'):
+              if token not in eye_text:
+                  raise SystemExit(f'Eye-gaze micro-detail contract is incomplete: {token}')
+          eye_late = re.search(r'private void LateUpdate\(\)\s*\{(.*?)\n    \}', eye_text, re.S)
+          if eye_late and ('new ' in eye_late.group(1) or 'GetComponent<' in eye_late.group(1)):
+              raise SystemExit('PlayerEyeGazeDetailDriver allocates or performs component lookup in LateUpdate.')
+
+          foot_text = foot.read_text(encoding='utf-8')
+          for token in ('RaycastNonAlloc', 'ResolveStanceWeight', 'maxAnkleTilt', 'swingFootGroundInfluence', 'DefaultExecutionOrder(120)'):
+              if token not in foot_text:
+                  raise SystemExit(f'Foot-grounding contract is incomplete: {token}')
+          if 'Physics.Raycast(' in foot_text:
+              raise SystemExit('Foot grounding regressed to simple Raycast path instead of cached NonAlloc probing.')
+
+          face_text = face.read_text(encoding='utf-8')
+          for token in ('blinkChannels', 'doubleBlinkChance', 'deathClosure', 'RestoreBaseWeights', 'DefaultExecutionOrder(160)'):
+              if token not in face_text:
+                  raise SystemExit(f'Facial micro-motion contract is incomplete: {token}')
+
+          processor_text = build_processor.read_text(encoding='utf-8')
+          for token in (
+              'IProcessSceneWithReport',
+              'PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx"',
+              'EnsurePlayerVisualForBuild',
+              'TargetPlayerHeight = 1.78f',
+              'PrefabUtility.InstantiatePrefab(modelAsset, actorScene)',
+              'HasUsableHumanoidVisual',
+              'PlayerHumanoidVisualDriver',
+              'PlayerMicroMotionDetailDriver',
+              'PlayerAnatomicalDetailDriver',
+              'PlayerFootGroundingDetailDriver',
+              'PlayerFacialMicroMotion'):
+              if token not in processor_text:
+                  raise SystemExit(f'Production build-time humanoid injection is incomplete: {token}')
+
+          if 'PlayerHumanoidVisualDriver' not in head.read_text(encoding='utf-8'):
+              raise SystemExit('Head anchor is not wired to the rendered humanoid.')
+          if 'SetRagdollMode(true)' not in ragdoll.read_text(encoding='utf-8'):
+              raise SystemExit('Death ragdoll does not hand visual skin ownership to physical bones.')
+          if 'PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx"' not in bootstrap.read_text(encoding='utf-8'):
+              raise SystemExit('Editor bootstrap no longer points at canonical player model.')
+          if 'ValidatePlayerHumanoidAsset();' not in guard.read_text(encoding='utf-8'):
+              raise SystemExit('Cloud build guard is not enforcing the player humanoid contract.')
+
+          print('Player humanoid source/import/build/detail integrity validation passed.')
+          PY

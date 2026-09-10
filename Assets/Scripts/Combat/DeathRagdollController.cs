@@ -16,6 +16,7 @@ public class DeathRagdollController : MonoBehaviour
     private CharacterStats stats;
     private ProceduralHumanoidRig rig;
     private ActiveRagdollMotor activeRagdollMotor;
+    private PlayerHumanoidVisualDriver humanoidVisualDriver;
     private CharacterController characterController;
     private NavMeshAgent navMeshAgent;
     private Animator animator;
@@ -25,6 +26,7 @@ public class DeathRagdollController : MonoBehaviour
     private bool cachedHideSourceRenderers;
     private bool cachedShowRagdollInLife;
     private bool hasCachedRendererVisibility;
+    private bool usingSkinnedHumanoidRagdoll;
 
     public bool RagdollActive => ragdollActive;
     public bool HasRig => rig != null || GetComponent<ProceduralHumanoidRig>() != null;
@@ -35,6 +37,7 @@ public class DeathRagdollController : MonoBehaviour
         stats = GetComponent<CharacterStats>();
         rig = GetComponent<ProceduralHumanoidRig>();
         activeRagdollMotor = GetComponent<ActiveRagdollMotor>();
+        humanoidVisualDriver = GetComponent<PlayerHumanoidVisualDriver>();
         characterController = GetComponent<CharacterController>();
         navMeshAgent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
@@ -94,12 +97,34 @@ public class DeathRagdollController : MonoBehaviour
             return;
         }
 
+        if (humanoidVisualDriver == null)
+        {
+            humanoidVisualDriver = GetComponent<PlayerHumanoidVisualDriver>();
+        }
+        if (humanoidVisualDriver != null)
+        {
+            humanoidVisualDriver.ResolveNow();
+        }
+
         rig.EnsureBuilt();
         cachedHideSourceRenderers = rig.HideSourceRenderers;
         cachedShowRagdollInLife = rig.ShowRagdollRenderersInLife;
         hasCachedRendererVisibility = true;
-        rig.ConfigureRendererVisibility(true, true);
-        rig.SetRagdollRenderersVisible(true);
+
+        usingSkinnedHumanoidRagdoll = humanoidVisualDriver != null && humanoidVisualDriver.IsHumanoidBound;
+        if (usingSkinnedHumanoidRagdoll)
+        {
+            // The physical ragdoll remains collision-authoritative, but the actual skinned player mesh
+            // follows those bones. Primitive ragdoll renderers stay hidden.
+            rig.ConfigureRendererVisibility(false, false);
+            rig.SetRagdollRenderersVisible(false);
+            humanoidVisualDriver.SetRagdollMode(true);
+        }
+        else
+        {
+            rig.ConfigureRendererVisibility(true, true);
+            rig.SetRagdollRenderersVisible(true);
+        }
 
         Vector3 inheritedVelocity = Vector3.zero;
         if (navMeshAgent != null && navMeshAgent.enabled)
@@ -179,6 +204,15 @@ public class DeathRagdollController : MonoBehaviour
             return;
         }
 
+        if (humanoidVisualDriver == null)
+        {
+            humanoidVisualDriver = GetComponent<PlayerHumanoidVisualDriver>();
+        }
+        if (humanoidVisualDriver != null)
+        {
+            humanoidVisualDriver.SetRagdollMode(false);
+        }
+
         if (hasCachedRendererVisibility)
         {
             rig.ConfigureRendererVisibility(cachedHideSourceRenderers, cachedShowRagdollInLife);
@@ -243,6 +277,7 @@ public class DeathRagdollController : MonoBehaviour
         }
 
         ragdollActive = false;
+        usingSkinnedHumanoidRagdoll = false;
         hasCachedRendererVisibility = false;
     }
 
