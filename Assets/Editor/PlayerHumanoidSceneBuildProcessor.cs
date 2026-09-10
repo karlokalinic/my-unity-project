@@ -75,7 +75,7 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         {
             DisableImportedPhysics(existing.gameObject);
             ConfigureRendering(existing.gameObject);
-            EnsureDriver(actorRoot);
+            EnsurePlayerDetailDrivers(actorRoot);
             return false;
         }
 
@@ -121,7 +121,7 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         FitToHeight(visualRootObject.transform, TargetPlayerHeight);
         AlignFeetToControllerGround(actorRoot, visualRootObject.transform);
         ConfigureRendering(visualRootObject);
-        EnsureDriver(actorRoot);
+        EnsurePlayerDetailDrivers(actorRoot);
 
         return true;
     }
@@ -144,15 +144,31 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         return false;
     }
 
-    private static void EnsureDriver(GameObject actorRoot)
+    private static void EnsurePlayerDetailDrivers(GameObject actorRoot)
     {
         if (actorRoot.GetComponent<ProceduralHumanoidRig>() == null)
         {
             actorRoot.AddComponent<ProceduralHumanoidRig>();
         }
+        if (actorRoot.GetComponent<PlayerAnimationController>() == null)
+        {
+            actorRoot.AddComponent<PlayerAnimationController>();
+        }
         if (actorRoot.GetComponent<PlayerHumanoidVisualDriver>() == null)
         {
             actorRoot.AddComponent<PlayerHumanoidVisualDriver>();
+        }
+        if (actorRoot.GetComponent<PlayerMicroMotionDetailDriver>() == null)
+        {
+            actorRoot.AddComponent<PlayerMicroMotionDetailDriver>();
+        }
+        if (actorRoot.GetComponent<PlayerFootGroundingDetailDriver>() == null)
+        {
+            actorRoot.AddComponent<PlayerFootGroundingDetailDriver>();
+        }
+        if (actorRoot.GetComponent<PlayerFacialMicroMotion>() == null)
+        {
+            actorRoot.AddComponent<PlayerFacialMicroMotion>();
         }
     }
 
