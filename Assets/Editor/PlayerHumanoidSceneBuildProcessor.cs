@@ -192,6 +192,10 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         {
             actorRoot.AddComponent<PlayerMicroMotionDetailDriver>();
         }
+        if (actorRoot.GetComponent<PlayerAnatomicalDetailDriver>() == null)
+        {
+            actorRoot.AddComponent<PlayerAnatomicalDetailDriver>();
+        }
         if (actorRoot.GetComponent<PlayerFootGroundingDetailDriver>() == null)
         {
             actorRoot.AddComponent<PlayerFootGroundingDetailDriver>();
