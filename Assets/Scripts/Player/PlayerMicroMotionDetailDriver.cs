@@ -104,7 +104,8 @@ public sealed class PlayerMicroMotionDetailDriver : MonoBehaviour
         float speed = playerMover != null ? playerMover.CurrentPlanarSpeed : 0f;
         bool sprinting = animationController != null && animationController.IsSprinting;
 
-        float locomotionDemand = Mathf.Clamp01(speed / 6.2f);
+        float referenceSpeed = playerMover != null ? Mathf.Max(0.2f, playerMover.SprintSpeed) : 6.2f;
+        float locomotionDemand = Mathf.Clamp01(speed / referenceSpeed);
         float targetExertion = sprinting ? 1f : locomotionDemand * 0.28f;
         float exertionRate = targetExertion > exertion ? exertionBuildRate : exertionRecoveryRate;
         exertion = Mathf.MoveTowards(exertion, targetExertion, Mathf.Max(0.001f, exertionRate) * deltaTime);
