@@ -1,0 +1,102 @@
+name: Validate pitch-black creature assets
+
+on:
+  push:
+    branches:
+      - main
+      - feature/vendor-pitch-black-creatures
+  pull_request:
+    paths:
+      - 'Assets/Resources/ThirdParty/**'
+      - 'Assets/Scripts/World/RakeEncounterController.cs'
+      - 'Assets/Editor/CloudBuildGuard.cs'
+      - 'Assets/Editor/PitchBlackCreatureAssetPostprocessor.cs'
+      - 'Packages/manifest.json'
+      - 'THIRD_PARTY_ATTRIBUTIONS.md'
+      - '.github/workflows/validate-pitch-black-assets.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Validate vendored assets and import contract
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import pathlib
+          import struct
+          import sys
+
+          root = pathlib.Path('.')
+          rake = root / 'Assets/Resources/ThirdParty/TheRake/TheRake.fbx'
+          snow = root / 'Assets/Resources/ThirdParty/AbominableSnowman/AbominableSnowman.glb'
+          manifest = root / 'Packages/manifest.json'
+
+          expected = {
+              rake: '72b266ef613d576d0fa801c7bff200b4ef30055cbfa985b1cb6170e1fa6358ed',
+              snow: '21a54b05ab933cafd497411f6a6588393cd85d061cf6b21835772ee9b9fb6839',
+          }
+
+          for path, digest in expected.items():
+              if not path.is_file():
+                  raise SystemExit(f'Missing required cinematic asset: {path}')
+              actual = hashlib.sha256(path.read_bytes()).hexdigest()
+              if actual != digest:
+                  raise SystemExit(f'Hash mismatch for {path}: {actual} != {digest}')
+
+          manifest_data = json.loads(manifest.read_text(encoding='utf-8'))
+          gltfast = manifest_data.get('dependencies', {}).get('com.unity.cloud.gltfast')
+          if gltfast != '6.20.0':
+              raise SystemExit(f'Expected com.unity.cloud.gltfast 6.20.0, got {gltfast!r}')
+
+          rake_bytes = rake.read_bytes()
+          if not rake_bytes.startswith(b'Kaydara FBX Binary'):
+              raise SystemExit('The Rake asset is not the expected binary FBX container.')
+          for token in (b'metarig|run', b'metarig|walk', b'metarig|idle'):
+              if token not in rake_bytes:
+                  raise SystemExit(f'The Rake FBX is missing animation take marker {token!r}.')
+
+          snow_bytes = snow.read_bytes()
+          if len(snow_bytes) < 20:
+              raise SystemExit('Snowman GLB is truncated.')
+          magic, version, total_length = struct.unpack_from('<III', snow_bytes, 0)
+          if magic != 0x46546C67 or version != 2 or total_length != len(snow_bytes):
+              raise SystemExit('Snowman GLB header/length is invalid.')
+
+          offset = 12
+          gltf = None
+          while offset + 8 <= len(snow_bytes):
+              chunk_length, chunk_type = struct.unpack_from('<II', snow_bytes, offset)
+              offset += 8
+              chunk = snow_bytes[offset:offset + chunk_length]
+              offset += chunk_length
+              if chunk_type == 0x4E4F534A:
+                  gltf = json.loads(chunk.decode('utf-8').rstrip('\x00 \t\r\n'))
+                  break
+
+          if gltf is None:
+              raise SystemExit('Snowman GLB has no JSON chunk.')
+          if not gltf.get('skins'):
+              raise SystemExit('Snowman GLB has no skin/skeleton.')
+          if not gltf.get('meshes'):
+              raise SystemExit('Snowman GLB has no mesh.')
+
+          animations = [a.get('name', '') for a in gltf.get('animations', [])]
+          if 'RUN (GORILLA)' not in animations:
+              raise SystemExit(f'Snowman GLB is missing RUN (GORILLA); found {animations!r}')
+
+          extras = gltf.get('asset', {}).get('extras', {})
+          if extras.get('license') != 'CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)':
+              raise SystemExit(f'Unexpected Snowman embedded license metadata: {extras.get("license")!r}')
+
+          print('Pitch-black creature asset integrity validation passed.')
+          PY
