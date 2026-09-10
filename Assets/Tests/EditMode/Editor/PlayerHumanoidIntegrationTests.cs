@@ -112,4 +112,74 @@ public class PlayerHumanoidIntegrationTests
             Object.DestroyImmediate(actor);
         }
     }
+
+    [Test]
+    public void BuildProcessor_InjectsScaledHumanoidAndAllDetailDrivers()
+    {
+        GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerModelPath);
+        Assert.IsNotNull(modelAsset);
+
+        GameObject actor = new GameObject("PlayerBuildInjectionTest");
+        try
+        {
+            CharacterController controller = actor.AddComponent<CharacterController>();
+            controller.height = 1.8f;
+            controller.radius = 0.34f;
+            controller.center = new Vector3(0f, 0.9f, 0f);
+            actor.AddComponent<PlayerMover>();
+
+            bool injected = PlayerHumanoidSceneBuildProcessor.EnsurePlayerVisualForBuild(actor, modelAsset);
+            Assert.IsTrue(injected);
+
+            Transform visualRoot = actor.transform.Find("StoreModelVisual");
+            Assert.IsNotNull(visualRoot);
+            Assert.Greater(visualRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length, 0);
+            Assert.IsNotNull(actor.GetComponent<ProceduralHumanoidRig>());
+            Assert.IsNotNull(actor.GetComponent<PlayerAnimationController>());
+            Assert.IsNotNull(actor.GetComponent<PlayerHumanoidVisualDriver>());
+            Assert.IsNotNull(actor.GetComponent<PlayerMicroMotionDetailDriver>());
+            Assert.IsNotNull(actor.GetComponent<PlayerFootGroundingDetailDriver>());
+            Assert.IsNotNull(actor.GetComponent<PlayerFacialMicroMotion>());
+
+            Collider[] importedColliders = visualRoot.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < importedColliders.Length; i++)
+            {
+                Assert.IsFalse(importedColliders[i].enabled, "Imported character colliders must not compete with gameplay physics.");
+            }
+
+            Assert.IsTrue(TryGetRendererBounds(visualRoot, out Bounds bounds));
+            Assert.That(bounds.size.y, Is.EqualTo(1.78f).Within(0.035f), "Build-injected humanoid world height drifted from the player scale contract.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(actor);
+        }
+    }
+
+    private static bool TryGetRendererBounds(Transform root, out Bounds bounds)
+    {
+        bounds = default;
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        bool hasBounds = false;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            if (!hasBounds)
+            {
+                bounds = renderer.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+
+        return hasBounds;
+    }
 }
