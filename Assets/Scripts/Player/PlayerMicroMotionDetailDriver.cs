@@ -34,6 +34,9 @@ public sealed class PlayerMicroMotionDetailDriver : MonoBehaviour
     [SerializeField] private float wristRelaxYaw = 1.3f;
     [SerializeField] private float armAsymmetry = 0.55f;
 
+    [Header("Recovery")]
+    [SerializeField] private float unresolvedRigRetrySeconds = 0.35f;
+
     private Transform hips;
     private Transform spine;
     private Transform chest;
@@ -60,6 +63,7 @@ public sealed class PlayerMicroMotionDetailDriver : MonoBehaviour
     private Vector3 previousLocalVelocity;
     private Vector3 smoothedLocalAcceleration;
     private bool bonesResolved;
+    private float resolveRetryTimer;
 
     public float Exertion => exertion;
 
@@ -72,6 +76,7 @@ public sealed class PlayerMicroMotionDetailDriver : MonoBehaviour
 
     private void OnEnable()
     {
+        resolveRetryTimer = 0f;
         ResetMotionHistory();
     }
 
@@ -81,8 +86,13 @@ public sealed class PlayerMicroMotionDetailDriver : MonoBehaviour
 
         if (!bonesResolved)
         {
-            ResolveReferences();
-            ResolveBones();
+            resolveRetryTimer -= Time.deltaTime;
+            if (resolveRetryTimer <= 0f)
+            {
+                resolveRetryTimer = Mathf.Max(0.1f, unresolvedRigRetrySeconds);
+                ResolveReferences();
+                ResolveBones();
+            }
         }
 
         if (!bonesResolved || (ragdollController != null && ragdollController.RagdollActive))
