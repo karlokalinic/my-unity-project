@@ -1,0 +1,108 @@
+name: Validate player humanoid
+
+on:
+  push:
+    branches:
+      - main
+      - feature/realistic-player-humanoid
+  pull_request:
+    paths:
+      - 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx'
+      - 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx.meta'
+      - 'Assets/Scripts/Player/**'
+      - 'Assets/Scripts/Combat/DeathRagdollController.cs'
+      - 'Assets/Scripts/World/VerticalSliceScenaBootstrap.cs'
+      - 'Assets/Editor/PlayerHumanoidAssetPostprocessor.cs'
+      - 'Assets/Editor/CloudBuildGuard.cs'
+      - 'Assets/Scenes/Scena.unity'
+      - 'Assets/Tests/EditMode/Editor/PlayerHumanoidIntegrationTests.cs'
+      - '.github/workflows/validate-player-humanoid.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-player-humanoid:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Validate player model, import contract, runtime wiring and production scene
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import re
+
+          root = pathlib.Path('.')
+          model = root / 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx'
+          meta = root / 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx.meta'
+          scene = root / 'Assets/Scenes/Scena.unity'
+          animation = root / 'Assets/Scripts/Player/PlayerAnimationController.cs'
+          driver = root / 'Assets/Scripts/Player/PlayerHumanoidVisualDriver.cs'
+          head = root / 'Assets/Scripts/Player/PlayerHeadAnchorDriver.cs'
+          ragdoll = root / 'Assets/Scripts/Combat/DeathRagdollController.cs'
+          bootstrap = root / 'Assets/Scripts/World/VerticalSliceScenaBootstrap.cs'
+          guard = root / 'Assets/Editor/CloudBuildGuard.cs'
+
+          required = [model, meta, scene, animation, driver, head, ragdoll, bootstrap, guard]
+          for path in required:
+              if not path.is_file():
+                  raise SystemExit(f'Missing required player-humanoid file: {path}')
+
+          data = model.read_bytes()
+          if len(data) < 10_000_000:
+              raise SystemExit(f'Player FBX is unexpectedly small/truncated: {len(data)} bytes')
+          if not data.startswith(b'Kaydara FBX Binary'):
+              raise SystemExit('Player asset is not the expected binary FBX container.')
+
+          meta_text = meta.read_text(encoding='utf-8')
+          expected_meta = {
+              'importAnimation': '1',
+              'animationType': '2',
+              'importBlendShapes': '1',
+              'importCameras': '0',
+              'importLights': '0',
+              'optimizeGameObjects': '0',
+              'isReadable': '0',
+              'meshCompression': '0',
+          }
+          for key, expected in expected_meta.items():
+              match = re.search(rf'^\s*{re.escape(key)}:\s*(\S+)', meta_text, re.MULTILINE)
+              if not match or match.group(1) != expected:
+                  raise SystemExit(f'Player FBX import contract mismatch: {key} expected {expected}, got {match.group(1) if match else "missing"}')
+
+          scene_text = scene.read_text(encoding='utf-8', errors='strict')
+          has_store_visual = 'StoreModelVisual' in scene_text
+          has_model_guid = 'db4613b255a40b14eb1d474afd4bf868' in scene_text
+          print(f'Scena serialized StoreModelVisual={has_store_visual}, playerModelGuid={has_model_guid}')
+          if not has_store_visual or not has_model_guid:
+              raise SystemExit('Production Scena does not serialize the real Ch01 player model under StoreModelVisual; WebGL cannot rely on editor-only model lookup.')
+
+          animation_text = animation.read_text(encoding='utf-8')
+          if 'VisualPelvisOffset' not in animation_text or 'walkStrideLength' not in animation_text or 'smoothedLocalAcceleration' not in animation_text:
+              raise SystemExit('Realistic procedural locomotion contract is incomplete.')
+          if 'rig.EnsureBuilt();' in re.sub(r'private void EnsureBoneCache\(\).*?\n    \}', '', animation_text, flags=re.S):
+              # We only prohibit rebuilding the rig directly in Update; cached setup may still call EnsureBuilt once.
+              update_match = re.search(r'private void Update\(\)\s*\{(.*?)\n    \}', animation_text, re.S)
+              if update_match and 'EnsureBuilt' in update_match.group(1):
+                  raise SystemExit('PlayerAnimationController rebuilds the humanoid rig in Update.')
+
+          driver_text = driver.read_text(encoding='utf-8')
+          for token in ('HumanBodyBones.Hips', 'HumanBodyBones.Head', 'SetRagdollMode', 'StoreModelVisual', 'MaterialPropertyBlock'):
+              if token not in driver_text:
+                  raise SystemExit(f'PlayerHumanoidVisualDriver is missing required integration token: {token}')
+
+          if 'PlayerHumanoidVisualDriver' not in head.read_text(encoding='utf-8'):
+              raise SystemExit('Head anchor is not wired to the rendered humanoid.')
+          if 'SetRagdollMode(true)' not in ragdoll.read_text(encoding='utf-8'):
+              raise SystemExit('Death ragdoll does not hand visual skin ownership to physical bones.')
+          if 'PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx"' not in bootstrap.read_text(encoding='utf-8'):
+              raise SystemExit('Bootstrap no longer points at canonical player model.')
+          if 'ValidatePlayerHumanoidAsset();' not in guard.read_text(encoding='utf-8'):
+              raise SystemExit('Cloud build guard is not enforcing the player humanoid contract.')
+
+          print('Player humanoid source/scene integrity validation passed.')
+          PY
