@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - feature/vendor-pitch-black-creatures
+      - hotfix/force-character-assets-webgl
   pull_request:
     paths:
       - 'Assets/Resources/ThirdParty/**'
       - 'Assets/Scripts/World/RakeEncounterController.cs'
+      - 'Assets/Scripts/Core/ProductionCharacterAssetProbe.cs'
       - 'Assets/Editor/CloudBuildGuard.cs'
       - 'Assets/Editor/PitchBlackCreatureAssetPostprocessor.cs'
       - 'Packages/manifest.json'
@@ -34,12 +36,12 @@ jobs:
           import json
           import pathlib
           import struct
-          import sys
 
           root = pathlib.Path('.')
           rake = root / 'Assets/Resources/ThirdParty/TheRake/TheRake.fbx'
           snow = root / 'Assets/Resources/ThirdParty/AbominableSnowman/AbominableSnowman.glb'
           manifest = root / 'Packages/manifest.json'
+          probe = root / 'Assets/Scripts/Core/ProductionCharacterAssetProbe.cs'
 
           expected = {
               rake: '72b266ef613d576d0fa801c7bff200b4ef30055cbfa985b1cb6170e1fa6358ed',
@@ -98,5 +100,19 @@ jobs:
           if extras.get('license') != 'CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)':
               raise SystemExit(f'Unexpected Snowman embedded license metadata: {extras.get("license")!r}')
 
-          print('Pitch-black creature asset integrity validation passed.')
+          if not probe.is_file():
+              raise SystemExit('Runtime production character probe is missing.')
+          probe_text = probe.read_text(encoding='utf-8')
+          required_probe_tokens = (
+              'ThirdParty/TheRake/TheRake',
+              'ThirdParty/AbominableSnowman/AbominableSnowman',
+              'StoreModelVisual',
+              'ONLINE_ASSET_READY',
+              'PlayerHumanoidVisualDriver',
+          )
+          for token in required_probe_tokens:
+              if token not in probe_text:
+                  raise SystemExit(f'Runtime production character probe is missing contract token: {token}')
+
+          print('Pitch-black creature asset integrity + runtime probe validation passed.')
           PY
