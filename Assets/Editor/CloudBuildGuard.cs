@@ -11,7 +11,8 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
 {
     private const string RakeResourcePath = "ThirdParty/TheRake/TheRake";
     private const string SnowmanResourcePath = "ThirdParty/AbominableSnowman/AbominableSnowman";
-    private const string PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx";
+    private const string PlayerModelPath = "Assets/Resources/Player/Ch01_nonPBR@Double Dagger Stab.fbx";
+    private const string PlayerResourcePath = "Player/Ch01_nonPBR@Double Dagger Stab";
 
     private static readonly HumanBodyBones[] RequiredPlayerBones =
     {
@@ -105,10 +106,18 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
             throw new BuildFailedException($"Player humanoid model did not import as a GameObject: '{PlayerModelPath}'.");
         }
 
+        GameObject runtimeResource = Resources.Load<GameObject>(PlayerResourcePath);
+        if (runtimeResource == null)
+        {
+            throw new BuildFailedException(
+                $"Player humanoid is not runtime-loadable at Resources/{PlayerResourcePath}. " +
+                "WebGL deployment is blocked because the visible player skin could be omitted.");
+        }
+
         GameObject instance = null;
         try
         {
-            instance = UnityEngine.Object.Instantiate(modelAsset);
+            instance = UnityEngine.Object.Instantiate(runtimeResource);
             instance.name = "__PlayerHumanoidBuildValidation";
             instance.hideFlags = HideFlags.HideAndDontSave;
 
@@ -134,8 +143,9 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
             }
 
             Debug.Log(
-                $"[CloudBuildGuard] Player humanoid validated: {skinnedRenderers.Length} skinned renderer(s), " +
-                $"valid Humanoid Avatar and {RequiredPlayerBones.Length} required bone mappings.");
+                $"[CloudBuildGuard] Player humanoid validated from Resources/{PlayerResourcePath}: " +
+                $"{skinnedRenderers.Length} skinned renderer(s), valid Humanoid Avatar and " +
+                $"{RequiredPlayerBones.Length} required bone mappings.");
         }
         finally
         {
@@ -164,7 +174,7 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
         {
             throw new BuildFailedException(
                 $"{label} cinematic asset did not import as a loadable GameObject at Resources/{resourcePath}. " +
-                "Cloud deployment is blocked instead of shipping the procedural stand-in.");
+                "Cloud deployment is blocked instead of shipping a procedural stand-in.");
         }
 
         if (prefab.GetComponentInChildren<SkinnedMeshRenderer>(true) == null)
