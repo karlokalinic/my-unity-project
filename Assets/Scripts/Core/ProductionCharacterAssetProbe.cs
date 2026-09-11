@@ -5,19 +5,19 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// One-shot production smoke probe for the real player and horror character assets.
-/// It does not own gameplay or render state; it only verifies the exact objects that
-/// must already exist in a shipping scene and emits an actionable browser/player log.
+/// It verifies runtime-loadable assets and the actual live player renderer after the
+/// runtime humanoid installer has had a chance to bind the canonical skin.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class ProductionCharacterAssetProbe : MonoBehaviour
 {
     private const string RakeResourcePath = "ThirdParty/TheRake/TheRake";
     private const string SnowmanResourcePath = "ThirdParty/AbominableSnowman/AbominableSnowman";
-    private const string PlayerVisualRootName = "StoreModelVisual";
 
     private static readonly string[] SupportedScenes =
     {
         "Scena",
+        "SampleScene",
         "INTERAKCIJA",
         "VerticalSlice_Consolidated"
     };
@@ -43,8 +43,7 @@ public sealed class ProductionCharacterAssetProbe : MonoBehaviour
 
     private IEnumerator Start()
     {
-        // Build-time injected scene objects have already been deserialized by this point,
-        // but one frame gives Awake/OnEnable based binding a chance to finish as well.
+        PlayerHumanoidRuntimeInstaller.EnsureAllPlayers();
         yield return null;
         ValidateProductionCharacters();
         Destroy(gameObject);
@@ -60,9 +59,10 @@ public sealed class ProductionCharacterAssetProbe : MonoBehaviour
         {
             Debug.Log(
                 $"[ProductionCharacterAssetProbe] ONLINE_ASSET_READY " +
+                $"playerResource={PlayerHumanoidRuntimeInstaller.PlayerResourcePath} " +
                 $"playerRenderers={playerRenderers} humanoidBound={humanoidBound} " +
                 $"rakeRenderers={rakeRenderers} rakeClips={rakeClips} " +
-                $"snowmanRenderers={snowRenderers} snowmanClips={snowClips}");
+                $"snowmanRenderers={snowmanRenderers} snowmanClips={snowmanClips}");
             return;
         }
 
@@ -110,6 +110,14 @@ public sealed class ProductionCharacterAssetProbe : MonoBehaviour
         skinnedRendererCount = 0;
         humanoidBound = false;
 
+        GameObject playerResource = Resources.Load<GameObject>(PlayerHumanoidRuntimeInstaller.PlayerResourcePath);
+        if (playerResource == null)
+        {
+            Debug.LogError(
+                $"[ProductionCharacterAssetProbe] Player runtime resource missing at Resources/{PlayerHumanoidRuntimeInstaller.PlayerResourcePath}.");
+            return false;
+        }
+
         PlayerMover player = FindAnyObjectByType<PlayerMover>();
         if (player == null)
         {
@@ -117,10 +125,12 @@ public sealed class ProductionCharacterAssetProbe : MonoBehaviour
             return false;
         }
 
-        Transform visualRoot = player.transform.Find(PlayerVisualRootName);
+        PlayerHumanoidRuntimeInstaller.EnsurePlayer(player.gameObject);
+
+        Transform visualRoot = player.transform.Find(PlayerHumanoidRuntimeInstaller.VisualRootName);
         if (visualRoot == null)
         {
-            Debug.LogError("[ProductionCharacterAssetProbe] Player is missing build-injected StoreModelVisual.");
+            Debug.LogError("[ProductionCharacterAssetProbe] Player is missing runtime StoreModelVisual.");
             return false;
         }
 
@@ -134,11 +144,22 @@ public sealed class ProductionCharacterAssetProbe : MonoBehaviour
             humanoidBound = driver.IsHumanoidBound;
         }
 
-        if (skinnedRendererCount <= 0 || !humanoidBound)
+        bool hasVisibleSkin = false;
+        for (int i = 0; renderers != null && i < renderers.Length; i++)
+        {
+            SkinnedMeshRenderer renderer = renderers[i];
+            if (renderer != null && renderer.enabled && renderer.gameObject.activeInHierarchy)
+            {
+                hasVisibleSkin = true;
+                break;
+            }
+        }
+
+        if (skinnedRendererCount <= 0 || !humanoidBound || !hasVisibleSkin)
         {
             Debug.LogError(
                 $"[ProductionCharacterAssetProbe] Player humanoid binding incomplete: " +
-                $"skinnedRenderers={skinnedRendererCount}, humanoidBound={humanoidBound}.");
+                $"skinnedRenderers={skinnedRendererCount}, humanoidBound={humanoidBound}, visibleSkin={hasVisibleSkin}.");
             return false;
         }
 

@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
 {
-    internal const string PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx";
+    internal const string PlayerModelPath = "Assets/Resources/Player/Ch01_nonPBR@Double Dagger Stab.fbx";
     private const string VisualRootName = "StoreModelVisual";
     private const float TargetPlayerHeight = 1.78f;
 
@@ -192,6 +192,10 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         {
             actorRoot.AddComponent<PlayerMicroMotionDetailDriver>();
         }
+        if (actorRoot.GetComponent<PlayerEyeGazeDetailDriver>() == null)
+        {
+            actorRoot.AddComponent<PlayerEyeGazeDetailDriver>();
+        }
         if (actorRoot.GetComponent<PlayerAnatomicalDetailDriver>() == null)
         {
             actorRoot.AddComponent<PlayerAnatomicalDetailDriver>();
@@ -203,6 +207,10 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
         if (actorRoot.GetComponent<PlayerFacialMicroMotion>() == null)
         {
             actorRoot.AddComponent<PlayerFacialMicroMotion>();
+        }
+        if (actorRoot.GetComponent<PlayerHeadAnchorDriver>() == null)
+        {
+            actorRoot.AddComponent<PlayerHeadAnchorDriver>();
         }
     }
 
@@ -243,6 +251,7 @@ public sealed class PlayerHumanoidSceneBuildProcessor : IProcessSceneWithReport
                 continue;
             }
 
+            renderer.enabled = true;
             renderer.receiveShadows = true;
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
             renderer.allowOcclusionWhenDynamic = true;

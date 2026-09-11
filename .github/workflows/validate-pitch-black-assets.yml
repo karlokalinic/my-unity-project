@@ -6,10 +6,12 @@ on:
       - main
       - feature/vendor-pitch-black-creatures
       - hotfix/force-character-assets-webgl
+      - fix/runtime-humanoid-visible-webgl
   pull_request:
     paths:
       - 'Assets/Resources/ThirdParty/**'
       - 'Assets/Scripts/World/RakeEncounterController.cs'
+      - 'Assets/Scripts/World/HorrorCreaturePresenceInstaller.cs'
       - 'Assets/Scripts/Core/ProductionCharacterAssetProbe.cs'
       - 'Assets/Editor/CloudBuildGuard.cs'
       - 'Assets/Editor/PitchBlackCreatureAssetPostprocessor.cs'
@@ -28,7 +30,7 @@ jobs:
         with:
           lfs: false
 
-      - name: Validate vendored assets and import contract
+      - name: Validate vendored assets and visible runtime contract
         shell: bash
         run: |
           python3 - <<'PY'
@@ -42,6 +44,7 @@ jobs:
           snow = root / 'Assets/Resources/ThirdParty/AbominableSnowman/AbominableSnowman.glb'
           manifest = root / 'Packages/manifest.json'
           probe = root / 'Assets/Scripts/Core/ProductionCharacterAssetProbe.cs'
+          presence = root / 'Assets/Scripts/World/HorrorCreaturePresenceInstaller.cs'
 
           expected = {
               rake: '72b266ef613d576d0fa801c7bff200b4ef30055cbfa985b1cb6170e1fa6358ed',
@@ -106,13 +109,25 @@ jobs:
           required_probe_tokens = (
               'ThirdParty/TheRake/TheRake',
               'ThirdParty/AbominableSnowman/AbominableSnowman',
-              'StoreModelVisual',
               'ONLINE_ASSET_READY',
-              'PlayerHumanoidVisualDriver',
+              'PlayerHumanoidRuntimeInstaller',
           )
           for token in required_probe_tokens:
               if token not in probe_text:
                   raise SystemExit(f'Runtime production character probe is missing contract token: {token}')
 
-          print('Pitch-black creature asset integrity + runtime probe validation passed.')
+          if not presence.is_file():
+              raise SystemExit('Real horror-creature presence installer is missing.')
+          presence_text = presence.read_text(encoding='utf-8')
+          for token in (
+              'RakeEncounter_Monster',
+              'AbominableSnowmanEncounter_Monster',
+              'SkinnedMeshRenderer',
+              'monsterRoot.gameObject.SetActive(true)',
+              'REAL_MONSTERS_VISIBLE',
+              'No procedural monster visual was accepted as a substitute'):
+              if token not in presence_text:
+                  raise SystemExit(f'Visible real-monster runtime contract is missing: {token}')
+
+          print('Pitch-black creature asset integrity + visible runtime contract validation passed.')
           PY

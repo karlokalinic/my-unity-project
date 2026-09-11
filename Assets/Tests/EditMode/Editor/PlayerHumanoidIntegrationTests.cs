@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerHumanoidIntegrationTests
 {
-    private const string PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx";
+    private const string PlayerModelPath = "Assets/Resources/Player/Ch01_nonPBR@Double Dagger Stab.fbx";
 
     private static readonly HumanBodyBones[] EssentialBones =
     {
@@ -38,6 +38,20 @@ public class PlayerHumanoidIntegrationTests
         Assert.IsFalse(importer.importLights);
         Assert.IsFalse(importer.isReadable, "Readable CPU mesh data is unnecessary WebGL memory overhead.");
         Assert.AreEqual(ModelImporterMeshCompression.Off, importer.meshCompression, "Player mesh geometry should not be degraded by importer compression.");
+    }
+
+    [Test]
+    public void PlayerModel_IsGuaranteedRuntimeResource()
+    {
+        GameObject runtimeResource = Resources.Load<GameObject>(PlayerHumanoidRuntimeInstaller.PlayerResourcePath);
+        Assert.IsNotNull(runtimeResource, "WebGL must be able to load the real player humanoid directly from Resources.");
+        Assert.Greater(runtimeResource.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length, 0);
+
+        Animator animator = runtimeResource.GetComponentInChildren<Animator>(true);
+        Assert.IsNotNull(animator);
+        Assert.IsNotNull(animator.avatar);
+        Assert.IsTrue(animator.avatar.isValid);
+        Assert.IsTrue(animator.avatar.isHuman);
     }
 
     [Test]
@@ -114,6 +128,44 @@ public class PlayerHumanoidIntegrationTests
     }
 
     [Test]
+    public void RuntimeInstaller_ReplacesVisiblePrimitiveFallbackWithRealSkin()
+    {
+        GameObject actor = new GameObject("PlayerRuntimeInstallerTest");
+        try
+        {
+            CharacterController controller = actor.AddComponent<CharacterController>();
+            controller.height = 1.8f;
+            controller.radius = 0.34f;
+            controller.center = new Vector3(0f, 0.9f, 0f);
+            actor.AddComponent<PlayerMover>();
+
+            ProceduralHumanoidRig rig = actor.AddComponent<ProceduralHumanoidRig>();
+            rig.EnsureBuilt();
+            rig.SetRagdollRenderersVisible(true);
+
+            Assert.IsTrue(PlayerHumanoidRuntimeInstaller.EnsurePlayer(actor));
+
+            Transform visualRoot = actor.transform.Find(PlayerHumanoidRuntimeInstaller.VisualRootName);
+            Assert.IsNotNull(visualRoot);
+            Assert.Greater(visualRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length, 0);
+            Assert.IsTrue(actor.GetComponent<PlayerHumanoidVisualDriver>().IsHumanoidBound);
+
+            Transform ragdollRoot = rig.PhysicalRoot;
+            Assert.IsNotNull(ragdollRoot);
+            Renderer[] primitiveRenderers = ragdollRoot.GetComponentsInChildren<Renderer>(true);
+            Assert.Greater(primitiveRenderers.Length, 0);
+            for (int i = 0; i < primitiveRenderers.Length; i++)
+            {
+                Assert.IsFalse(primitiveRenderers[i].enabled, "Primitive ragdoll geometry must never remain visible while the real skin is alive.");
+            }
+        }
+        finally
+        {
+            Object.DestroyImmediate(actor);
+        }
+    }
+
+    [Test]
     public void BuildProcessor_InjectsScaledHumanoidAndAllDetailDrivers()
     {
         GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerModelPath);
@@ -138,9 +190,11 @@ public class PlayerHumanoidIntegrationTests
             Assert.IsNotNull(actor.GetComponent<PlayerAnimationController>());
             Assert.IsNotNull(actor.GetComponent<PlayerHumanoidVisualDriver>());
             Assert.IsNotNull(actor.GetComponent<PlayerMicroMotionDetailDriver>());
+            Assert.IsNotNull(actor.GetComponent<PlayerEyeGazeDetailDriver>());
             Assert.IsNotNull(actor.GetComponent<PlayerAnatomicalDetailDriver>());
             Assert.IsNotNull(actor.GetComponent<PlayerFootGroundingDetailDriver>());
             Assert.IsNotNull(actor.GetComponent<PlayerFacialMicroMotion>());
+            Assert.IsNotNull(actor.GetComponent<PlayerHeadAnchorDriver>());
 
             Collider[] importedColliders = visualRoot.GetComponentsInChildren<Collider>(true);
             for (int i = 0; i < importedColliders.Length; i++)

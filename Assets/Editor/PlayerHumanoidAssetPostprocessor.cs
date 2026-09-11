@@ -3,7 +3,7 @@ using UnityEditor;
 
 public sealed class PlayerHumanoidAssetPostprocessor : AssetPostprocessor
 {
-    internal const string PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx";
+    internal const string PlayerModelPath = "Assets/Resources/Player/Ch01_nonPBR@Double Dagger Stab.fbx";
 
     private void OnPreprocessModel()
     {

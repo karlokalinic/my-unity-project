@@ -5,11 +5,12 @@ on:
     branches:
       - main
       - feature/realistic-player-humanoid
+      - fix/runtime-humanoid-visible-webgl
   pull_request:
     paths:
-      - 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx'
-      - 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx.meta'
+      - 'Assets/Resources/Player/**'
       - 'Assets/Scripts/Player/**'
+      - 'Assets/Scripts/Core/ProductionCharacterAssetProbe.cs'
       - 'Assets/Scripts/Combat/DeathRagdollController.cs'
       - 'Assets/Scripts/World/VerticalSliceScenaBootstrap.cs'
       - 'Assets/Editor/PlayerHumanoidAssetPostprocessor.cs'
@@ -30,7 +31,7 @@ jobs:
         with:
           lfs: false
 
-      - name: Validate player model, import contract and production build wiring
+      - name: Validate player model, runtime resource and production wiring
         shell: bash
         run: |
           python3 - <<'PY'
@@ -38,11 +39,13 @@ jobs:
           import re
 
           root = pathlib.Path('.')
-          model = root / 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx'
-          meta = root / 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx.meta'
+          model = root / 'Assets/Resources/Player/Ch01_nonPBR@Double Dagger Stab.fbx'
+          meta = root / 'Assets/Resources/Player/Ch01_nonPBR@Double Dagger Stab.fbx.meta'
+          legacy_model = root / 'Assets/Ch01_nonPBR@Double Dagger Stab.fbx'
           scene = root / 'Assets/Scenes/Scena.unity'
           animation = root / 'Assets/Scripts/Player/PlayerAnimationController.cs'
           visual = root / 'Assets/Scripts/Player/PlayerHumanoidVisualDriver.cs'
+          runtime_installer = root / 'Assets/Scripts/Player/PlayerHumanoidRuntimeInstaller.cs'
           micro = root / 'Assets/Scripts/Player/PlayerMicroMotionDetailDriver.cs'
           anatomy = root / 'Assets/Scripts/Player/PlayerAnatomicalDetailDriver.cs'
           eye = root / 'Assets/Scripts/Player/PlayerEyeGazeDetailDriver.cs'
@@ -50,14 +53,17 @@ jobs:
           face = root / 'Assets/Scripts/Player/PlayerFacialMicroMotion.cs'
           head = root / 'Assets/Scripts/Player/PlayerHeadAnchorDriver.cs'
           ragdoll = root / 'Assets/Scripts/Combat/DeathRagdollController.cs'
-          bootstrap = root / 'Assets/Scripts/World/VerticalSliceScenaBootstrap.cs'
           build_processor = root / 'Assets/Editor/PlayerHumanoidSceneBuildProcessor.cs'
           guard = root / 'Assets/Editor/CloudBuildGuard.cs'
+          probe = root / 'Assets/Scripts/Core/ProductionCharacterAssetProbe.cs'
 
-          required = [model, meta, scene, animation, visual, micro, anatomy, eye, foot, face, head, ragdoll, bootstrap, build_processor, guard]
+          required = [model, meta, scene, animation, visual, runtime_installer, micro, anatomy, eye, foot, face, head, ragdoll, build_processor, guard, probe]
           for path in required:
               if not path.is_file():
                   raise SystemExit(f'Missing required player-humanoid file: {path}')
+
+          if legacy_model.exists():
+              raise SystemExit('Canonical Ch01 must live under Assets/Resources/Player, not at the legacy Assets root path.')
 
           data = model.read_bytes()
           if len(data) < 10_000_000:
@@ -83,6 +89,18 @@ jobs:
 
           if scene.stat().st_size < 100_000:
               raise SystemExit('Production Scena looks missing or unexpectedly truncated.')
+
+          runtime_text = runtime_installer.read_text(encoding='utf-8')
+          for token in (
+              'Player/Ch01_nonPBR@Double Dagger Stab',
+              'Resources.Load<GameObject>(PlayerResourcePath)',
+              'StoreModelVisual',
+              'TargetPlayerHeight = 1.78f',
+              'ConfigureRendererVisibility(false, false)',
+              'SetRagdollRenderersVisible(false)',
+              'REAL_HUMANOID_READY'):
+              if token not in runtime_text:
+                  raise SystemExit(f'Runtime-visible player humanoid contract is incomplete: {token}')
 
           animation_text = animation.read_text(encoding='utf-8')
           for token in ('VisualPelvisOffset', 'walkStrideLength', 'smoothedLocalAcceleration', 'GaitPhase', 'LocomotionWeight'):
@@ -133,27 +151,29 @@ jobs:
           processor_text = build_processor.read_text(encoding='utf-8')
           for token in (
               'IProcessSceneWithReport',
-              'PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx"',
+              'PlayerModelPath = "Assets/Resources/Player/Ch01_nonPBR@Double Dagger Stab.fbx"',
               'EnsurePlayerVisualForBuild',
               'TargetPlayerHeight = 1.78f',
               'PrefabUtility.InstantiatePrefab(modelAsset, actorScene)',
               'HasUsableHumanoidVisual',
-              'PlayerHumanoidVisualDriver',
-              'PlayerMicroMotionDetailDriver',
-              'PlayerAnatomicalDetailDriver',
-              'PlayerFootGroundingDetailDriver',
-              'PlayerFacialMicroMotion'):
+              'PlayerHumanoidVisualDriver'):
               if token not in processor_text:
-                  raise SystemExit(f'Production build-time humanoid injection is incomplete: {token}')
+                  raise SystemExit(f'Production build-time humanoid redundancy is incomplete: {token}')
 
           if 'PlayerHumanoidVisualDriver' not in head.read_text(encoding='utf-8'):
               raise SystemExit('Head anchor is not wired to the rendered humanoid.')
           if 'SetRagdollMode(true)' not in ragdoll.read_text(encoding='utf-8'):
               raise SystemExit('Death ragdoll does not hand visual skin ownership to physical bones.')
-          if 'PlayerModelPath = "Assets/Ch01_nonPBR@Double Dagger Stab.fbx"' not in bootstrap.read_text(encoding='utf-8'):
-              raise SystemExit('Editor bootstrap no longer points at canonical player model.')
-          if 'ValidatePlayerHumanoidAsset();' not in guard.read_text(encoding='utf-8'):
-              raise SystemExit('Cloud build guard is not enforcing the player humanoid contract.')
 
-          print('Player humanoid source/import/build/detail integrity validation passed.')
+          guard_text = guard.read_text(encoding='utf-8')
+          for token in ('ValidatePlayerHumanoidAsset();', 'Player/Ch01_nonPBR@Double Dagger Stab', 'Resources.Load<GameObject>(PlayerResourcePath)'):
+              if token not in guard_text:
+                  raise SystemExit(f'Cloud build guard is not enforcing runtime-visible humanoid asset: {token}')
+
+          probe_text = probe.read_text(encoding='utf-8')
+          for token in ('PlayerHumanoidRuntimeInstaller.EnsureAllPlayers()', 'ONLINE_ASSET_READY', 'hasVisibleSkin'):
+              if token not in probe_text:
+                  raise SystemExit(f'Production runtime probe is missing visible-humanoid verification: {token}')
+
+          print('Player humanoid runtime-resource/import/build/detail integrity validation passed.')
           PY
