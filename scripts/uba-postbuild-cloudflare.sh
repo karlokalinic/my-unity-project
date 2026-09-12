@@ -66,7 +66,7 @@ if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
 fi
 
 cd "${PROJECT_ROOT}"
-npm install --no-audit --no-fund
+npm install --no-package-lock --no-audit --no-fund
 npx wrangler --version
 log "Deploying canonical Unity WebGL revision ${REVISION} to Cloudflare Worker 'unitylaptop'."
 npx wrangler deploy --config cloudflare/wrangler.uba.toml
