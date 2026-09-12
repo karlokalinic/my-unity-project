@@ -1,0 +1,11 @@
+{
+  "name": "unitylaptop-production-deploy",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "check:cloudflare": "wrangler deploy --config cloudflare/wrangler.uba.toml --dry-run"
+  },
+  "devDependencies": {
+    "wrangler": "^4.34.0"
+  }
+}
