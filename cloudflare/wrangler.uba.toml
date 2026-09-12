@@ -1,0 +1,6 @@
+name = "unitylaptop"
+compatibility_date = "2026-09-04"
+workers_dev = true
+
+[assets]
+directory = "../.uba-cloudflare-webgl"

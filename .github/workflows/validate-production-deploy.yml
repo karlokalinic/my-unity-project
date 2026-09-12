@@ -1,0 +1,95 @@
+name: Validate production deployment
+
+on:
+  push:
+    branches:
+      - main
+      - infra/uba-cloudflare-production
+    paths:
+      - 'cloudflare/**'
+      - 'scripts/uba-postbuild-cloudflare.sh'
+      - 'Assets/Editor/CloudflareWebGLPostBuild.cs'
+      - 'package.json'
+      - 'ONLINE_CHATOPS.md'
+      - '.github/workflows/validate-production-deploy.yml'
+  pull_request:
+    paths:
+      - 'cloudflare/**'
+      - 'scripts/uba-postbuild-cloudflare.sh'
+      - 'Assets/Editor/CloudflareWebGLPostBuild.cs'
+      - 'package.json'
+      - 'ONLINE_CHATOPS.md'
+      - '.github/workflows/validate-production-deploy.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deployment-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate production ownership and revision proof contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/uba-postbuild-cloudflare.sh
+          python3 - <<'PY'
+          import pathlib
+          import re
+
+          root = pathlib.Path('.')
+          wrangler = (root / 'cloudflare/wrangler.uba.toml').read_text(encoding='utf-8')
+          shell = (root / 'scripts/uba-postbuild-cloudflare.sh').read_text(encoding='utf-8')
+          hook = (root / 'Assets/Editor/CloudflareWebGLPostBuild.cs').read_text(encoding='utf-8')
+
+          if not re.search(r'^name\s*=\s*"unitylaptop"\s*$', wrangler, re.MULTILINE):
+              raise SystemExit('Production Wrangler config must own Worker unitylaptop.')
+          if '../.uba-cloudflare-webgl' not in wrangler:
+              raise SystemExit('Production Wrangler config must deploy only staged UBA output.')
+
+          required_shell = (
+              'karlokalinic/my-unity-project',
+              'unitylaptop-build.json',
+              'sourceRevision',
+              'createUnityInstance',
+              'app.js?v=20260905-physics1',
+              '26214400',
+              'CLOUDFLARE_DEPLOY_OK',
+              'BUILD_REVISION',
+              'UCB_BUILD_NUMBER',
+          )
+          for token in required_shell:
+              if token not in shell:
+                  raise SystemExit(f'Production deploy script missing contract token: {token}')
+
+          required_hook = (
+              'IPostprocessBuildWithReport',
+              'BuildTarget.WebGL',
+              'IS_BUILDER',
+              'SCM_BRANCH',
+              'CLOUDFLARE_API_TOKEN',
+              'CLOUDFLARE_ACCOUNT_ID',
+              'uba-postbuild-cloudflare.sh',
+              'BuildFailedException',
+          )
+          for token in required_hook:
+              if token not in hook:
+                  raise SystemExit(f'Unity production post-build hook missing contract token: {token}')
+
+          print('Production Unity->Cloudflare ownership/revision contract passed.')
+          PY
+
+      - name: Wrangler dry-run against synthetic Unity staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .uba-cloudflare-webgl/Build
+          cat > .uba-cloudflare-webgl/index.html <<'HTML'
+          <!doctype html><html><body><script src="Build/test.loader.js"></script><script>createUnityInstance(document.body,{})</script></body></html>
+          HTML
+          printf 'console.log("loader");\n' > .uba-cloudflare-webgl/Build/test.loader.js
+          npm install --no-package-lock --no-audit --no-fund
+          npm run check:cloudflare

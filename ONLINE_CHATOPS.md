@@ -1,59 +1,56 @@
 # UnityLaptop Online ChatOps
 
-This repository uses one deployment path for chat-driven development:
+`karlokalinic/my-unity-project` is the only canonical gameplay/source repository.
 
-1. GitHub is the source of truth.
-2. Unity Build Automation watches the production branch.
-3. Every accepted change is compiled in Unity Cloud as WebGL.
-4. Build validation runs automatically before packaging.
-5. Successful WebGL builds are shared online.
+The production path is:
 
-No local Unity Hub step is part of this workflow.
+`GitHub main -> Unity Build Automation UnityLaptop-WebGL -> Unity WebGL player -> Cloudflare Worker unitylaptop -> public revision verification`
 
-## Unity Dashboard configuration
+Public target:
 
-Configure the existing Unity Cloud project in the web dashboard:
+`https://unitylaptop.karlolegend.workers.dev`
 
-- DevOps > Build Automation > connect source control to `karlokalinic/my-unity-project`.
-- Build configuration name: `UnityLaptop-WebGL`.
-- Branch: `main`.
-- Project subdirectory: leave empty because `Assets/`, `Packages/`, and `ProjectSettings/` are at repository root.
-- Unity version: auto-detect from `ProjectSettings/ProjectVersion.txt` (currently Unity 6000.4.0f1).
-- Platform: WebGL.
-- Auto-build: enabled.
-- Build Automation > Settings > General > Automatic build sharing: enabled.
-- Unit/EditMode tests: enable as part of the cloud build gate when available for the configuration.
-- Caching: workspace caching after the first successful build for fastest iteration.
+The legacy private repository `karlokalinic/UNITYLAPTOP` contains an old browser-native smoke mirror. It is not canonical gameplay source and its browser fallback must use Worker `unitylaptop-smoke`; it must never deploy browser `web/` assets to the production Worker `unitylaptop`.
 
-## Chat workflow
+## Unity Build Automation configuration
 
-A request such as `ADD XYZ` or `IMPLEMENT XYZ` is treated as a production change request.
+Production target:
 
-The implementation flow is:
+- repository: `karlokalinic/my-unity-project`
+- configuration: `UnityLaptop-WebGL`
+- branch: `main`
+- project subdirectory: repository root
+- Unity version: auto-detect from `ProjectSettings/ProjectVersion.txt` (`6000.4.0f1`)
+- platform: WebGL
+- auto-build: enabled
+- automatic build sharing may remain enabled, but Unity sharing is not the canonical public URL
+- builder must expose the standard Build Automation variables such as `IS_BUILDER`, `SCM_BRANCH`, `BUILD_REVISION`, `UCB_BUILD_NUMBER`, `PROJECT_DIRECTORY`, and the generated WebGL output
+- production environment must provide `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
 
-- inspect current production code and scene-generation code;
-- implement the change on a dedicated branch;
-- add/update tests where the behavior is testable without scene rendering;
-- preserve physical-world rules, serialized references, and deterministic scene setup;
-- run repository-level validation where possible;
-- merge only when the change is internally coherent;
-- Unity Build Automation picks up `main`, compiles, validates, and produces the WebGL build;
-- the successful cloud build becomes the playable preview for that commit.
+`Assets/Editor/CloudflareWebGLPostBuild.cs` is repository-owned deployment integration. On a Unity Build Automation WebGL build of `main`, it launches `scripts/uba-postbuild-cloudflare.sh`. Local/editor builds and non-main UBA branches do not deploy production.
+
+The shell deployer:
+
+1. accepts only an actual Unity-generated WebGL player (`createUnityInstance` / `.loader.js` fingerprint);
+2. explicitly rejects the known legacy browser fallback fingerprint (`app.js?v=20260905-physics1`);
+3. stages only the current Unity build output under `.uba-cloudflare-webgl`;
+4. blocks deployment if any single staged file exceeds Cloudflare Workers Static Assets' 25 MiB file limit;
+5. writes `unitylaptop-build.json` containing canonical repository, exact source revision, UBA build number and build timestamp;
+6. deploys the staging directory to Cloudflare Worker `unitylaptop`;
+7. repeatedly fetches the public Worker and succeeds only when both the Unity loader fingerprint and the exact revision marker are live.
+
+A production `main` UBA build is not considered successfully deployed if Cloudflare credentials are absent, Wrangler fails, the legacy fallback is encountered, a static asset violates the hosting limit, or the public revision marker does not match the build revision.
 
 ## Build safety
 
-`Assets/Editor/CloudBuildGuard.cs` executes before every Unity build and blocks deployment when:
+`Assets/Editor/CloudBuildGuard.cs` blocks Unity builds with invalid enabled scenes, missing scripts, invalid player Humanoid import/runtime resource binding, or invalid Rake/Snowman imports.
 
-- no enabled build scenes exist;
-- an enabled scene file is missing;
-- an enabled scene contains missing MonoBehaviour script references.
+`.github/workflows/validate-player-humanoid.yml`, `.github/workflows/validate-pitch-black-assets.yml`, and `.github/workflows/validate-production-deploy.yml` are source/contract gates. They do not substitute for an actual Unity compile, WebGL build or public deployment verification.
 
-The guard is deliberately platform-agnostic so the same repository remains buildable for native targets later, while WebGL remains the continuous preview target.
+## Deployment truth
 
-## Source control rule
+A release is complete only at:
 
-Do not create a second primary repository in UVCS. GitHub remains authoritative because it is the control plane used by chat-driven implementation, review, history, and automation. Unity Build Automation consumes GitHub directly.
+`SOURCE UPDATED -> UNITY BUILD PASSED -> CLOUDFLARE DEPLOY PASSED -> unitylaptop-build.json MATCHES SOURCE REVISION -> PUBLIC UNITY ENTRY POINT VERIFIED`
 
-## Cloud services
-
-UGS features such as Cloud Code, Remote Config, Cloud Save, Economy, or other server-side configuration should be deployed through file-based UGS CLI/REST workflows from versioned repository content once required by gameplay. They must not become a second source of truth maintained manually in the Dashboard.
+If any stage cannot be directly observed, report only the highest verified stage. Never treat the legacy browser smoke mirror as a Unity WebGL build.
