@@ -60,7 +60,7 @@ public sealed class CloudflareWebGLPostBuild : IPostprocessBuildWithReport
 
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
-            FileName = "/bin/bash",
+            FileName = "bash",
             Arguments = Quote(scriptPath),
             WorkingDirectory = projectRoot,
             UseShellExecute = false,
