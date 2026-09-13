@@ -12,6 +12,8 @@ Public target:
 
 The legacy private repository `karlokalinic/UNITYLAPTOP` contains an old browser-native smoke mirror. It is not canonical gameplay source and its browser fallback must use Worker `unitylaptop-smoke`; it must never deploy browser `web/` assets to the production Worker `unitylaptop`.
 
+Do not duplicate the production Unity compile with a GitHub Actions/GameCI workflow unless that runner has a complete supported Unity activation boundary. `UNITY_EMAIL` + `UNITY_PASSWORD` alone are not a valid Unity Personal CI activation path; GameCI Personal builds require a usable `UNITY_LICENSE` (`.ulf`), while serial licensing requires `UNITY_SERIAL` plus account credentials. Unity Build Automation remains the canonical license-bearing production builder.
+
 ## Unity Build Automation configuration
 
 Production target:
