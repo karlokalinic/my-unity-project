@@ -31,6 +31,14 @@ Required production target:
 - builder must expose the standard Build Automation variables such as `IS_BUILDER`, `SCM_BRANCH`, `BUILD_REVISION`, `UCB_BUILD_NUMBER`, `PROJECT_DIRECTORY`, and the generated WebGL output
 - production environment must provide `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
 
+### Production trigger boundary
+
+The normal production trigger is a commit to canonical `main`; an enabled `UnityLaptop-WebGL` configuration with auto-build enabled must detect that commit and build it without a local Unity installation.
+
+An optional explicit API trigger may be added through a Unity Build Automation service account. When GitHub is used for that purpose, standardize the repository secrets as `UNITY_SERVICE_ACCOUNT_KEY_ID` and `UNITY_SERVICE_ACCOUNT_SECRET_KEY`. The service account must have permission to read/trigger Build Automation for Unity project `c0f22441-2e8f-4181-b06c-e28a92df0ce6`. Never commit those credentials or a Unity bearer token.
+
+A GitHub push, successful source validation, or the existence of this documentation is not evidence that UBA ran. The production truth remains the actual UBA build record followed by the exact public revision marker.
+
 `Assets/Editor/CloudflareWebGLPostBuild.cs` is repository-owned deployment integration. On an authenticated Unity Build Automation WebGL build of `main`, it launches `scripts/uba-postbuild-cloudflare.sh`. Local/editor builds and non-main UBA branches do not deploy production.
 
 The shell deployer:
