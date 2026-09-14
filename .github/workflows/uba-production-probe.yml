@@ -1,0 +1,138 @@
+name: Probe Unity Build Automation production
+
+on:
+  push:
+    branches:
+      - ops/uba-production-probe-20260914
+    paths:
+      - '.github/workflows/uba-production-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe-and-trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      UNITY_PROJECT_ID: c0f22441-2e8f-4181-b06c-e28a92df0ce6
+      UNITY_BUILD_TARGET_NAME: UnityLaptop-WebGL
+      UBA_KEY_ID: ${{ secrets.UNITY_SERVICE_ACCOUNT_KEY_ID || secrets.UNITY_CLOUD_SERVICE_ACCOUNT_KEY_ID || secrets.UBA_SERVICE_ACCOUNT_KEY_ID || secrets.UNITY_CLOUD_KEY_ID || secrets.UNITY_API_KEY_ID }}
+      UBA_SECRET_KEY: ${{ secrets.UNITY_SERVICE_ACCOUNT_SECRET_KEY || secrets.UNITY_CLOUD_SERVICE_ACCOUNT_SECRET_KEY || secrets.UBA_SERVICE_ACCOUNT_SECRET_KEY || secrets.UNITY_CLOUD_SECRET_KEY || secrets.UNITY_API_SECRET_KEY }}
+    steps:
+      - name: Probe Unity Build Automation and request production build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          base = 'https://build-automation.services.api.unity.com/v2'
+          project_id = os.environ['UNITY_PROJECT_ID']
+          target_name = os.environ['UNITY_BUILD_TARGET_NAME']
+          key_id = os.environ.get('UBA_KEY_ID', '').strip()
+          secret = os.environ.get('UBA_SECRET_KEY', '').strip()
+
+          if not key_id or not secret:
+              print('UBA_SERVICE_ACCOUNT_NOT_CONFIGURED')
+              print('No supported Unity Build Automation service-account key/secret pair is present in this repository.')
+              sys.exit(0)
+
+          auth = base64.b64encode(f'{key_id}:{secret}'.encode()).decode()
+          headers = {
+              'Authorization': f'Basic {auth}',
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'User-Agent': 'UNITYLAPTOP-GitHub-ChatOps/1.0',
+          }
+
+          def request(method, path, body=None, allow=(200, 201, 202)):
+              data = None if body is None else json.dumps(body).encode()
+              req = urllib.request.Request(base + path, data=data, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      payload = response.read().decode('utf-8', errors='replace')
+                      if response.status not in allow:
+                          raise RuntimeError(f'{method} {path} returned HTTP {response.status}')
+                      return response.status, json.loads(payload) if payload.strip() else None
+              except urllib.error.HTTPError as exc:
+                  body_text = exc.read().decode('utf-8', errors='replace')[:1000]
+                  raise RuntimeError(f'{method} {path} failed HTTP {exc.code}: {body_text}') from exc
+
+          _, me = request('GET', '/users/me')
+          orgs = me.get('orgs') or []
+          print(f'UBA_AUTH_OK org_count={len(orgs)}')
+
+          selected = None
+          selected_org = None
+          for org in orgs:
+              org_id = str(org.get('id') or org.get('foreign_key') or '').strip()
+              if not org_id:
+                  continue
+              try:
+                  _, targets = request('GET', f'/orgs/{org_id}/projects/{project_id}/buildtargets')
+              except RuntimeError as exc:
+                  if 'HTTP 404' in str(exc) or 'HTTP 403' in str(exc):
+                      continue
+                  raise
+              for target in targets or []:
+                  if target.get('name') == target_name:
+                      selected = target
+                      selected_org = org_id
+                      break
+              if selected:
+                  break
+
+          if not selected:
+              raise SystemExit(f'UBA_TARGET_NOT_FOUND project={project_id} target={target_name}')
+
+          target_id = selected.get('buildtargetid') or selected.get('guid')
+          settings = selected.get('settings') or {}
+          scm = settings.get('scm') or {}
+          platform = selected.get('platform') or settings.get('platform')
+          enabled = selected.get('enabled')
+          auto_build = settings.get('autoBuild')
+          branch = scm.get('branch')
+          repo = scm.get('repo') or scm.get('url') or ''
+          print(
+              'UBA_TARGET_OK '
+              f'id={target_id} enabled={enabled} platform={platform} '
+              f'autoBuild={auto_build} branch={branch} repo={repo}'
+          )
+
+          if enabled is not True:
+              raise SystemExit('UBA_TARGET_DISABLED')
+          if str(platform).lower() != 'webgl':
+              raise SystemExit(f'UBA_TARGET_WRONG_PLATFORM platform={platform}')
+          if branch not in (None, '', 'main'):
+              raise SystemExit(f'UBA_TARGET_WRONG_BRANCH branch={branch}')
+
+          try:
+              _, envvars = request('GET', f'/orgs/{selected_org}/projects/{project_id}/buildtargets/{target_id}/envvars')
+          except RuntimeError as exc:
+              print(f'UBA_ENVVARS_UNREADABLE {exc}')
+              envvars = {}
+          env_keys = set((envvars or {}).keys())
+          print('UBA_ENV_KEYS ' + ','.join(sorted(env_keys)))
+          missing_cf = {'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID'} - env_keys
+          if missing_cf:
+              print('UBA_CLOUDFLARE_ENV_MISSING ' + ','.join(sorted(missing_cf)))
+
+          _, launched = request(
+              'POST',
+              f'/orgs/{selected_org}/projects/{project_id}/buildtargets/{target_id}/builds',
+              {'clean': False, 'causedBy': 'github-chatops'},
+          )
+          if isinstance(launched, list) and launched:
+              first = launched[0]
+          else:
+              first = launched or {}
+          build_number = first.get('build') or first.get('buildNumber') or first.get('number') or 'unknown'
+          print(f'UBA_BUILD_TRIGGERED target={target_id} build={build_number}')
+          PY
