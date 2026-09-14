@@ -32,8 +32,14 @@ if [[ "${BRANCH}" == "${UBA_MIRROR_BRANCH}" ]]; then
   [[ -f "${PROJECT_ROOT}/.uba-build-request.json" ]] || fail "UBA material trigger file is missing from mirror build."
 
   git -C "${PROJECT_ROOT}" fetch --quiet --no-tags --depth=1 "${CANONICAL_GIT_URL}" "${CANONICAL_REVISION}"
+
+  # The private UBA bridge intentionally omits GitHub Actions workflow files because the
+  # repository-scoped GitHub App token cannot rewrite workflow definitions cross-repository.
+  # Unity does not consume those files. Every other canonical file must match byte-for-byte,
+  # with .uba-build-request.json as the only bridge-owned addition.
   CHANGED_FILES="$(git -C "${PROJECT_ROOT}" diff --name-only FETCH_HEAD HEAD)"
-  [[ "${CHANGED_FILES}" == ".uba-build-request.json" ]] || fail "UBA mirror differs from canonical main outside the approved trigger file: ${CHANGED_FILES}"
+  UNAPPROVED_FILES="$(printf '%s\n' "${CHANGED_FILES}" | sed '/^$/d' | grep -Ev '^(\.uba-build-request\.json|\.github/workflows/)' || true)"
+  [[ -z "${UNAPPROVED_FILES}" ]] || fail "UBA mirror differs from canonical main outside approved bridge-only paths: ${UNAPPROVED_FILES}"
 
   TRIGGER_CANONICAL="$(python3 - "${PROJECT_ROOT}/.uba-build-request.json" <<'PY'
 import json
@@ -46,8 +52,10 @@ PY
 )"
   [[ "${TRIGGER_CANONICAL}" == "${CANONICAL_REVISION}" ]] || fail "UBA trigger file canonical revision mismatch: trigger=${TRIGGER_CANONICAL} main=${CANONICAL_REVISION}."
 
+  BUILD_TREE="$(git -C "${PROJECT_ROOT}" rev-parse HEAD^{tree})"
+  CANONICAL_TREE="$(git -C "${PROJECT_ROOT}" rev-parse FETCH_HEAD^{tree})"
   SOURCE_REVISION="${CANONICAL_REVISION}"
-  log "Verified UBA build-request commit ${REVISION}: canonical source ${SOURCE_REVISION}, only material delta=.uba-build-request.json."
+  log "Verified UBA bridge commit ${REVISION}: canonical source ${SOURCE_REVISION}; approved bridge-only paths are .uba-build-request.json and omitted .github/workflows/*; buildTree=${BUILD_TREE}; canonicalTree=${CANONICAL_TREE}."
 elif [[ "${BRANCH}" != "${CANONICAL_BRANCH}" ]]; then
   fail "Refusing production deployment from unapproved branch '${BRANCH}'."
 fi
