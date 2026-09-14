@@ -67,9 +67,9 @@ jobs:
               'UCB_BUILD_NUMBER',
               'tooling/unity-cloud-devops',
               'git ls-remote',
-              'FETCH_HEAD^{tree}',
-              'BUILD_TREE',
-              'CANONICAL_TREE',
+              '.uba-build-request.json',
+              'git -C "${PROJECT_ROOT}" diff --name-only FETCH_HEAD HEAD',
+              'canonicalMain',
           )
           for token in required_shell:
               if token not in shell:
@@ -95,10 +95,12 @@ jobs:
           required_sync = (
               'branches: [main]',
               'contents: write',
-              'git commit --allow-empty',
+              '.uba-build-request.json',
+              'git add .uba-build-request.json',
               'Canonical-Main:',
               'HEAD:refs/heads/tooling/unity-cloud-devops --force',
               'UBA_BUILD_REQUESTED',
+              'material_change=.uba-build-request.json',
           )
           for token in required_sync:
               if token not in sync:
@@ -109,13 +111,14 @@ jobs:
               'tooling/unity-cloud-devops',
               'c5f8ee3c-ba65-4e4a-8174-2fc09f6e9b52',
               '6872486406979',
-              'build-request commit',
+              '.uba-build-request.json',
+              '9 days',
           )
           for token in required_docs:
               if token not in docs:
                   raise SystemExit(f'Production runbook missing actual UBA configuration token: {token}')
 
-          print('Production Unity->UBA build-request mirror->Cloudflare ownership/revision contract passed.')
+          print('Production Unity->UBA material-change trigger->Cloudflare ownership/revision contract passed.')
           PY
 
       - name: Wrangler dry-run against synthetic Unity staging

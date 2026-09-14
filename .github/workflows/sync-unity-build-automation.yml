@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   sync:
-    name: Publish build-request commit to Unity Build Automation branch
+    name: Publish material build-request change to Unity Build Automation branch
     if: github.repository == 'karlokalinic/my-unity-project'
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -26,28 +26,32 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Publish unique mirror commit with canonical tree
+      - name: Publish real trigger-file change on UBA branch
         shell: bash
         run: |
           set -euo pipefail
 
           canonical_sha="$(git rev-parse HEAD)"
-          canonical_tree="$(git rev-parse HEAD^{tree})"
+          requested_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+          printf '{"canonicalMain":"%s","requestedAtUtc":"%s","githubRunId":"%s"}\n' \
+            "${canonical_sha}" "${requested_at}" "${GITHUB_RUN_ID}" > .uba-build-request.json
 
           git config user.name "UNITYLAPTOP Build Automation"
           git config user.email "actions@users.noreply.github.com"
-          git commit --allow-empty \
-            -m "chore(uba): request WebGL build for ${canonical_sha}" \
+          git add .uba-build-request.json
+          git commit \
+            -m "chore(uba): materially request WebGL build for ${canonical_sha}" \
             -m "Canonical-Main: ${canonical_sha}"
 
           mirror_sha="$(git rev-parse HEAD)"
-          mirror_tree="$(git rev-parse HEAD^{tree})"
-          test "${mirror_tree}" = "${canonical_tree}"
+          changed="$(git diff --name-only "${canonical_sha}" HEAD)"
+          test "${changed}" = ".uba-build-request.json"
 
           git push origin HEAD:refs/heads/tooling/unity-cloud-devops --force
 
-          remote_sha="$(git ls-remote origin refs/heads/tooling/unity-cloud-devops | awk 'NR == 1 { print $1 }')"
+          remote_sha="$(git ls-remote origin refs/heads/tooling/unity-cloud-devops | awk 'NR == 1 { print $1}')"
           test -n "${remote_sha}"
           test "${remote_sha}" = "${mirror_sha}"
 
-          echo "UBA_BUILD_REQUESTED canonical_revision=${canonical_sha} mirror_revision=${mirror_sha} tree=${canonical_tree} branch=tooling/unity-cloud-devops"
+          echo "UBA_BUILD_REQUESTED canonical_revision=${canonical_sha} mirror_revision=${mirror_sha} material_change=.uba-build-request.json branch=tooling/unity-cloud-devops"

@@ -24,19 +24,30 @@ SOURCE_REVISION="${REVISION}"
 [[ -f "${PROJECT_ROOT}/cloudflare/wrangler.uba.toml" ]] || fail "Missing canonical Cloudflare config under ${PROJECT_ROOT}/cloudflare."
 
 if [[ "${BRANCH}" == "${UBA_MIRROR_BRANCH}" ]]; then
-  CANONICAL_REVISION="$(git ls-remote "${CANONICAL_GIT_URL}" "refs/heads/${CANONICAL_BRANCH}" | awk 'NR == 1 { print $1 }')"
+  CANONICAL_REVISION="$(git ls-remote "${CANONICAL_GIT_URL}" "refs/heads/${CANONICAL_BRANCH}" | awk 'NR == 1 { print $1}')"
   [[ -n "${CANONICAL_REVISION}" ]] || fail "Unable to resolve canonical ${CANONICAL_BRANCH} revision before production deploy."
 
   HEAD_REVISION="$(git -C "${PROJECT_ROOT}" rev-parse HEAD)"
   [[ "${HEAD_REVISION}" == "${REVISION}" ]] || fail "UBA revision mismatch: environment=${REVISION} checkout=${HEAD_REVISION}."
+  [[ -f "${PROJECT_ROOT}/.uba-build-request.json" ]] || fail "UBA material trigger file is missing from mirror build."
 
-  BUILD_TREE="$(git -C "${PROJECT_ROOT}" rev-parse HEAD^{tree})"
   git -C "${PROJECT_ROOT}" fetch --quiet --no-tags --depth=1 "${CANONICAL_GIT_URL}" "${CANONICAL_REVISION}"
-  CANONICAL_TREE="$(git -C "${PROJECT_ROOT}" rev-parse FETCH_HEAD^{tree})"
-  [[ "${BUILD_TREE}" == "${CANONICAL_TREE}" ]] || fail "UBA mirror tree does not match canonical main: buildTree=${BUILD_TREE} mainTree=${CANONICAL_TREE}."
+  CHANGED_FILES="$(git -C "${PROJECT_ROOT}" diff --name-only FETCH_HEAD HEAD)"
+  [[ "${CHANGED_FILES}" == ".uba-build-request.json" ]] || fail "UBA mirror differs from canonical main outside the approved trigger file: ${CHANGED_FILES}"
+
+  TRIGGER_CANONICAL="$(python3 - "${PROJECT_ROOT}/.uba-build-request.json" <<'PY'
+import json
+import pathlib
+import sys
+path = pathlib.Path(sys.argv[1])
+data = json.loads(path.read_text(encoding='utf-8'))
+print(data.get('canonicalMain', ''))
+PY
+)"
+  [[ "${TRIGGER_CANONICAL}" == "${CANONICAL_REVISION}" ]] || fail "UBA trigger file canonical revision mismatch: trigger=${TRIGGER_CANONICAL} main=${CANONICAL_REVISION}."
 
   SOURCE_REVISION="${CANONICAL_REVISION}"
-  log "Verified UBA build-request commit ${REVISION} has the exact canonical ${CANONICAL_BRANCH} tree ${CANONICAL_TREE}; source revision=${SOURCE_REVISION}."
+  log "Verified UBA build-request commit ${REVISION}: canonical source ${SOURCE_REVISION}, only material delta=.uba-build-request.json."
 elif [[ "${BRANCH}" != "${CANONICAL_BRANCH}" ]]; then
   fail "Refusing production deployment from unapproved branch '${BRANCH}'."
 fi
