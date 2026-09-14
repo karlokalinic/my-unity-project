@@ -11,6 +11,7 @@ on:
       - 'Assets/Editor/CloudflareWebGLPostBuild.cs'
       - 'package.json'
       - 'ONLINE_CHATOPS.md'
+      - '.github/workflows/sync-unity-build-automation.yml'
       - '.github/workflows/validate-production-deploy.yml'
   pull_request:
     paths:
@@ -19,6 +20,7 @@ on:
       - 'Assets/Editor/CloudflareWebGLPostBuild.cs'
       - 'package.json'
       - 'ONLINE_CHATOPS.md'
+      - '.github/workflows/sync-unity-build-automation.yml'
       - '.github/workflows/validate-production-deploy.yml'
 
 permissions:
@@ -44,6 +46,8 @@ jobs:
           wrangler = (root / 'cloudflare/wrangler.uba.toml').read_text(encoding='utf-8')
           shell = (root / 'scripts/uba-postbuild-cloudflare.sh').read_text(encoding='utf-8')
           hook = (root / 'Assets/Editor/CloudflareWebGLPostBuild.cs').read_text(encoding='utf-8')
+          sync = (root / '.github/workflows/sync-unity-build-automation.yml').read_text(encoding='utf-8')
+          docs = (root / 'ONLINE_CHATOPS.md').read_text(encoding='utf-8')
 
           if not re.search(r'^name\s*=\s*"unitylaptop"\s*$', wrangler, re.MULTILINE):
               raise SystemExit('Production Wrangler config must own Worker unitylaptop.')
@@ -60,6 +64,9 @@ jobs:
               'CLOUDFLARE_DEPLOY_OK',
               'BUILD_REVISION',
               'UCB_BUILD_NUMBER',
+              'tooling/unity-cloud-devops',
+              'git ls-remote',
+              'refs/heads/${CANONICAL_BRANCH}',
           )
           for token in required_shell:
               if token not in shell:
@@ -70,6 +77,7 @@ jobs:
               'BuildTarget.WebGL',
               'IS_BUILDER',
               'SCM_BRANCH',
+              'tooling/unity-cloud-devops',
               'CLOUDFLARE_API_TOKEN',
               'CLOUDFLARE_ACCOUNT_ID',
               'uba-postbuild-cloudflare.sh',
@@ -79,7 +87,27 @@ jobs:
               if token not in hook:
                   raise SystemExit(f'Unity production post-build hook missing contract token: {token}')
 
-          print('Production Unity->Cloudflare ownership/revision contract passed.')
+          required_sync = (
+              'branches: [main]',
+              'contents: write',
+              'git push origin HEAD:refs/heads/tooling/unity-cloud-devops --force',
+              'UBA_MIRROR_SYNCED',
+          )
+          for token in required_sync:
+              if token not in sync:
+                  raise SystemExit(f'UBA mirror workflow missing contract token: {token}')
+
+          required_docs = (
+              'UNITYLAPTOP-WebGL-DEV',
+              'tooling/unity-cloud-devops',
+              'c5f8ee3c-ba65-4e4a-8174-2fc09f6e9b52',
+              '6872486406979',
+          )
+          for token in required_docs:
+              if token not in docs:
+                  raise SystemExit(f'Production runbook missing actual UBA configuration token: {token}')
+
+          print('Production Unity->UBA mirror->Cloudflare ownership/revision contract passed.')
           PY
 
       - name: Wrangler dry-run against synthetic Unity staging

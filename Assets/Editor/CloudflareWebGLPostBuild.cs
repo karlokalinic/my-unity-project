@@ -9,6 +9,8 @@ using UnityEngine;
 public sealed class CloudflareWebGLPostBuild : IPostprocessBuildWithReport
 {
     private const int DeployTimeoutMilliseconds = 10 * 60 * 1000;
+    private const string ProductionBranch = "main";
+    private const string BuildAutomationMirrorBranch = "tooling/unity-cloud-devops";
 
     public int callbackOrder => 10000;
 
@@ -26,9 +28,9 @@ public sealed class CloudflareWebGLPostBuild : IPostprocessBuildWithReport
         }
 
         string branch = Environment.GetEnvironmentVariable("SCM_BRANCH");
-        if (!string.Equals(branch, "main", StringComparison.OrdinalIgnoreCase))
+        if (!IsProductionBuildBranch(branch))
         {
-            Debug.Log($"[CloudflareWebGLPostBuild] UBA branch '{branch ?? "unknown"}' is not production main; deploy skipped.");
+            Debug.Log($"[CloudflareWebGLPostBuild] UBA branch '{branch ?? "unknown"}' is not an approved production source branch; deploy skipped.");
             return;
         }
 
@@ -69,7 +71,7 @@ public sealed class CloudflareWebGLPostBuild : IPostprocessBuildWithReport
         startInfo.EnvironmentVariables["UNITY_PLAYER_PATH"] = playerPath;
         startInfo.EnvironmentVariables["PROJECT_DIRECTORY"] = projectRoot;
 
-        Debug.Log($"[CloudflareWebGLPostBuild] Deploying UBA WebGL output '{playerPath}' to production Worker.");
+        Debug.Log($"[CloudflareWebGLPostBuild] Deploying UBA WebGL output '{playerPath}' from branch '{branch}' to production Worker.");
 
         Process process = Process.Start(startInfo);
         if (process == null)
@@ -114,13 +116,19 @@ public sealed class CloudflareWebGLPostBuild : IPostprocessBuildWithReport
             StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool IsProductionBuildBranch(string branch)
+    {
+        return string.Equals(branch, ProductionBranch, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(branch, BuildAutomationMirrorBranch, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static void RequireSecret(string name)
     {
         if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name)))
         {
             throw new BuildFailedException(
                 $"Unity Build Automation production target is missing required secret/environment variable '{name}'. " +
-                "Refusing to report a successful main WebGL build while the public Worker cannot be updated.");
+                "Refusing to report a successful production WebGL build while the public Worker cannot be updated.");
         }
     }
 

@@ -8,14 +8,28 @@ PROJECT_ROOT="${PROJECT_DIRECTORY:-${PROJECT_PATH:-${WORKSPACE:-$(cd "$(dirname 
 PLAYER_PATH="${UNITY_PLAYER_PATH:-${OUTPUT_DIRECTORY:-}}"
 REVISION="${BUILD_REVISION:-${SCM_REVISION:-${GIT_COMMIT:-unknown}}}"
 BUILD_NO="${UCB_BUILD_NUMBER:-${BUILD_NUMBER:-unknown}}"
+BRANCH="${SCM_BRANCH:-${GIT_BRANCH:-unknown}}"
 PUBLIC_URL="${CF_PUBLIC_URL:-https://unitylaptop.karlolegend.workers.dev}"
+CANONICAL_BRANCH="main"
+UBA_MIRROR_BRANCH="tooling/unity-cloud-devops"
+CANONICAL_GIT_URL="https://github.com/karlokalinic/my-unity-project.git"
 
 [[ -n "${PLAYER_PATH}" ]] || fail "Unity WebGL artifact path is unavailable (UNITY_PLAYER_PATH/OUTPUT_DIRECTORY unset)."
 [[ -d "${PLAYER_PATH}" ]] || fail "Unity WebGL artifact path is not a directory: ${PLAYER_PATH}"
 [[ -f "${PLAYER_PATH}/index.html" ]] || fail "Unity WebGL index.html is missing under ${PLAYER_PATH}."
+[[ "${REVISION}" != "unknown" ]] || fail "Build Automation did not expose BUILD_REVISION/SCM_REVISION/GIT_COMMIT; exact-revision deployment is unsafe."
 [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]] || fail "Missing CLOUDFLARE_API_TOKEN in Build Automation environment."
 [[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]] || fail "Missing CLOUDFLARE_ACCOUNT_ID in Build Automation environment."
 [[ -f "${PROJECT_ROOT}/cloudflare/wrangler.uba.toml" ]] || fail "Missing canonical Cloudflare config under ${PROJECT_ROOT}/cloudflare."
+
+if [[ "${BRANCH}" == "${UBA_MIRROR_BRANCH}" ]]; then
+  CANONICAL_REVISION="$(git ls-remote "${CANONICAL_GIT_URL}" "refs/heads/${CANONICAL_BRANCH}" | awk 'NR == 1 { print $1 }')"
+  [[ -n "${CANONICAL_REVISION}" ]] || fail "Unable to resolve canonical ${CANONICAL_BRANCH} revision before production deploy."
+  [[ "${REVISION}" == "${CANONICAL_REVISION}" ]] || fail "UBA mirror is not canonical main: build=${REVISION} main=${CANONICAL_REVISION}."
+  log "Verified UBA mirror revision ${REVISION} is identical to canonical ${CANONICAL_BRANCH}."
+elif [[ "${BRANCH}" != "${CANONICAL_BRANCH}" ]]; then
+  fail "Refusing production deployment from unapproved branch '${BRANCH}'."
+fi
 
 if grep -Fq 'app.js?v=20260905-physics1' "${PLAYER_PATH}/index.html" || grep -Fq '<div class="brand">UNITYLAPTOP <span>WEBGL</span></div>' "${PLAYER_PATH}/index.html"; then
   fail "Refusing deployment: artifact is the legacy browser smoke fallback, not a Unity-generated WebGL player."
