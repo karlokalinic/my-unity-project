@@ -1,0 +1,55 @@
+name: Probe public Unity WebGL now
+
+on:
+  push:
+    branches: [ops/public-webgl-probe]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      PUBLIC_URL: https://unitylaptop.karlolegend.workers.dev
+    steps:
+      - name: Probe current public production
+        shell: bash
+        run: |
+          set -u
+          expected="$(git ls-remote https://github.com/karlokalinic/my-unity-project.git refs/heads/main | awk '{print $1}')"
+          echo "EXPECTED_MAIN_SHA=${expected}"
+
+          marker_file="$(mktemp)"
+          index_file="$(mktemp)"
+          marker_code="$(curl -L -sS --max-time 20 -o "$marker_file" -w '%{http_code}' "${PUBLIC_URL}/unitylaptop-build.json?probe=${GITHUB_RUN_ID}" || true)"
+          index_code="$(curl -L -sS --max-time 20 -o "$index_file" -w '%{http_code}' "${PUBLIC_URL}/?probe=${GITHUB_RUN_ID}" || true)"
+          marker="$(cat "$marker_file" 2>/dev/null || true)"
+          index="$(cat "$index_file" 2>/dev/null || true)"
+
+          echo "MARKER_HTTP=${marker_code}"
+          echo "INDEX_HTTP=${index_code}"
+          printf 'MARKER_BODY=%s\n' "${marker:0:2000}"
+
+          if [[ "$index" == *'createUnityInstance'* ]] || [[ "$index" == *'.loader.js'* ]]; then
+            echo 'ENTRYPOINT=UNITY_WEBGL'
+          elif [[ "$index" == *'app.js?v=20260905-physics1'* ]]; then
+            echo 'ENTRYPOINT=LEGACY_BROWSER_FALLBACK'
+          elif [[ -z "$index" ]]; then
+            echo 'ENTRYPOINT=EMPTY_OR_UNREACHABLE'
+          else
+            echo 'ENTRYPOINT=UNKNOWN_NON_UNITY'
+          fi
+
+          if [[ "$marker" == *'"sourceRepository":"karlokalinic/my-unity-project"'* ]] && \
+             [[ "$marker" == *"\"sourceRevision\":\"${expected}\""* ]] && \
+             [[ "$index" != *'app.js?v=20260905-physics1'* ]] && \
+             { [[ "$index" == *'createUnityInstance'* ]] || [[ "$index" == *'.loader.js'* ]]; }; then
+            echo "PUBLIC_WEBGL_VERIFIED revision=${expected}"
+            exit 0
+          fi
+
+          echo "::error::PUBLIC_WEBGL_NOT_CURRENT expected=${expected}"
+          exit 1
