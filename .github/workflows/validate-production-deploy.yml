@@ -58,6 +58,7 @@ jobs:
               'karlokalinic/my-unity-project',
               'unitylaptop-build.json',
               'sourceRevision',
+              'buildRevision',
               'createUnityInstance',
               'app.js?v=20260905-physics1',
               '26214400',
@@ -66,7 +67,9 @@ jobs:
               'UCB_BUILD_NUMBER',
               'tooling/unity-cloud-devops',
               'git ls-remote',
-              'refs/heads/${CANONICAL_BRANCH}',
+              'FETCH_HEAD^{tree}',
+              'BUILD_TREE',
+              'CANONICAL_TREE',
           )
           for token in required_shell:
               if token not in shell:
@@ -80,6 +83,8 @@ jobs:
               'tooling/unity-cloud-devops',
               'CLOUDFLARE_API_TOKEN',
               'CLOUDFLARE_ACCOUNT_ID',
+              'Debug.LogWarning',
+              'build-only result',
               'uba-postbuild-cloudflare.sh',
               'BuildFailedException',
           )
@@ -90,8 +95,10 @@ jobs:
           required_sync = (
               'branches: [main]',
               'contents: write',
-              'git push origin HEAD:refs/heads/tooling/unity-cloud-devops --force',
-              'UBA_MIRROR_SYNCED',
+              'git commit --allow-empty',
+              'Canonical-Main:',
+              'HEAD:refs/heads/tooling/unity-cloud-devops --force',
+              'UBA_BUILD_REQUESTED',
           )
           for token in required_sync:
               if token not in sync:
@@ -102,12 +109,13 @@ jobs:
               'tooling/unity-cloud-devops',
               'c5f8ee3c-ba65-4e4a-8174-2fc09f6e9b52',
               '6872486406979',
+              'build-request commit',
           )
           for token in required_docs:
               if token not in docs:
                   raise SystemExit(f'Production runbook missing actual UBA configuration token: {token}')
 
-          print('Production Unity->UBA mirror->Cloudflare ownership/revision contract passed.')
+          print('Production Unity->UBA build-request mirror->Cloudflare ownership/revision contract passed.')
           PY
 
       - name: Wrangler dry-run against synthetic Unity staging
