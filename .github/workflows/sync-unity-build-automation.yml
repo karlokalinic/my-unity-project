@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   sync:
-    name: Mirror canonical main to Unity Build Automation branch
+    name: Publish build-request commit to Unity Build Automation branch
     if: github.repository == 'karlokalinic/my-unity-project'
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -26,14 +26,28 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Force mirror to exact canonical revision
+      - name: Publish unique mirror commit with canonical tree
         shell: bash
         run: |
           set -euo pipefail
-          test "${GITHUB_SHA}" = "$(git rev-parse HEAD)"
+
+          canonical_sha="$(git rev-parse HEAD)"
+          canonical_tree="$(git rev-parse HEAD^{tree})"
+
+          git config user.name "UNITYLAPTOP Build Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git commit --allow-empty \
+            -m "chore(uba): request WebGL build for ${canonical_sha}" \
+            -m "Canonical-Main: ${canonical_sha}"
+
+          mirror_sha="$(git rev-parse HEAD)"
+          mirror_tree="$(git rev-parse HEAD^{tree})"
+          test "${mirror_tree}" = "${canonical_tree}"
+
           git push origin HEAD:refs/heads/tooling/unity-cloud-devops --force
 
           remote_sha="$(git ls-remote origin refs/heads/tooling/unity-cloud-devops | awk 'NR == 1 { print $1 }')"
           test -n "${remote_sha}"
-          test "${remote_sha}" = "${GITHUB_SHA}"
-          echo "UBA_MIRROR_SYNCED revision=${remote_sha} branch=tooling/unity-cloud-devops"
+          test "${remote_sha}" = "${mirror_sha}"
+
+          echo "UBA_BUILD_REQUESTED canonical_revision=${canonical_sha} mirror_revision=${mirror_sha} tree=${canonical_tree} branch=tooling/unity-cloud-devops"
