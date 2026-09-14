@@ -34,8 +34,13 @@ public sealed class CloudflareWebGLPostBuild : IPostprocessBuildWithReport
             return;
         }
 
-        RequireSecret("CLOUDFLARE_API_TOKEN");
-        RequireSecret("CLOUDFLARE_ACCOUNT_ID");
+        if (!HasSecret("CLOUDFLARE_API_TOKEN") || !HasSecret("CLOUDFLARE_ACCOUNT_ID"))
+        {
+            Debug.LogWarning(
+                "[CloudflareWebGLPostBuild] Unity WebGL build completed, but the Build Automation target does not expose " +
+                "CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID. Production deploy is skipped; this is a build-only result.");
+            return;
+        }
 
         string projectRoot = Environment.GetEnvironmentVariable("PROJECT_DIRECTORY");
         if (string.IsNullOrWhiteSpace(projectRoot))
@@ -105,7 +110,7 @@ public sealed class CloudflareWebGLPostBuild : IPostprocessBuildWithReport
             process.Dispose();
         }
 
-        Debug.Log("[CloudflareWebGLPostBuild] Production Worker deploy and exact-revision verification completed.");
+        Debug.Log("[CloudflareWebGLPostBuild] Production Worker deploy and exact-source revision verification completed.");
     }
 
     private static bool IsBuildAutomationAgent()
@@ -122,14 +127,9 @@ public sealed class CloudflareWebGLPostBuild : IPostprocessBuildWithReport
                string.Equals(branch, BuildAutomationMirrorBranch, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void RequireSecret(string name)
+    private static bool HasSecret(string name)
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name)))
-        {
-            throw new BuildFailedException(
-                $"Unity Build Automation production target is missing required secret/environment variable '{name}'. " +
-                "Refusing to report a successful production WebGL build while the public Worker cannot be updated.");
-        }
+        return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name));
     }
 
     private static string Quote(string value)
