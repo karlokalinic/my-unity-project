@@ -4,7 +4,7 @@
 
 The current production path is:
 
-`GitHub main -> exact mirror tooling/unity-cloud-devops -> Unity Build Automation UNITYLAPTOP-WebGL-DEV -> Unity WebGL player -> Cloudflare Worker unitylaptop -> public revision verification`
+`GitHub main -> machine build-request commit on tooling/unity-cloud-devops (same tree as main) -> Unity Build Automation UNITYLAPTOP-WebGL-DEV -> Unity WebGL player -> optional Cloudflare production deploy -> public revision verification`
 
 Public target:
 
@@ -27,54 +27,62 @@ The Unity Dashboard configuration currently used for this repository is:
 - auto-build: enabled
 - auto-cancel: enabled
 
-The Build Automation branch is intentionally a machine-owned mirror. `.github/workflows/sync-unity-build-automation.yml` force-updates `tooling/unity-cloud-devops` to the exact `main` commit on every canonical push. No gameplay changes should be authored directly on the mirror branch.
+The Build Automation branch is intentionally machine-owned. `.github/workflows/sync-unity-build-automation.yml` checks out canonical `main`, creates a unique empty build-request commit whose Git tree is byte-for-byte the canonical `main` tree, and force-publishes that commit to `tooling/unity-cloud-devops`. No gameplay changes are authored directly on the mirror branch.
 
-The mirror ref is workflow-owned during normal operation. Manual ref updates are reserved for bootstrap/recovery; ordinary releases must advance `main` and let the sync workflow publish that exact commit to Unity Build Automation.
+A unique build-request commit is deliberate: Unity Build Automation must see a genuinely new commit on its configured branch for every canonical push or explicit workflow dispatch. Repointing the branch to an already-existing `main` commit is not treated as sufficient evidence that a new UBA build was requested.
 
-This keeps GitHub `main` canonical while matching the already-configured Unity Dashboard target without requiring a second source-of-truth branch or a local Unity installation.
+`main` remains source of truth. The mirror commit is only a trigger envelope; its commit tree must equal canonical `main`. The production deployer independently fetches current `main`, compares Git tree IDs, and records the canonical `main` SHA as `sourceRevision`.
 
 ## Trigger boundary
 
-A canonical `main` push triggers the GitHub mirror workflow. The mirror workflow verifies that `tooling/unity-cloud-devops` resolves to exactly `${GITHUB_SHA}`. Unity Build Automation has auto-build enabled on that branch, so the mirror push is the normal cloud-build trigger.
+A canonical `main` push triggers the GitHub mirror workflow. The workflow publishes a new build-request commit on `tooling/unity-cloud-devops` and logs `UBA_BUILD_REQUESTED` with both the canonical SHA and mirror SHA. Unity Build Automation has auto-build enabled on that branch.
 
-The legacy Unity Build Automation API key is optional for normal operation and must never be committed. The repository does not require it to trigger routine builds because auto-build is driven by the mirrored Git ref. If an explicit API trigger is added later, store the credential only as an encrypted secret.
+Manual build requests can re-run the mirror workflow without changing gameplay source. Each run emits another unique empty build-request commit with the same canonical tree, giving UBA a new commit to build.
 
-A GitHub push, successful source validation, or mirror update is not evidence that Unity compiled successfully. Production truth still requires a successful UBA build followed by exact public revision verification.
+The Unity Build Automation API key is not required for this Git-trigger path and must never be committed. If an API trigger is introduced later, its credential belongs in an encrypted secret store, not repository content.
+
+A GitHub push, successful source validation, or mirror build request is not evidence that Unity compiled successfully. Build truth requires a UBA build attempt/result.
 
 ## Production deployment
 
-`Assets/Editor/CloudflareWebGLPostBuild.cs` runs only on Build Automation WebGL builders and accepts either canonical `main` or the machine-owned `tooling/unity-cloud-devops` mirror. The shell deployer refuses a mirror build unless its `BUILD_REVISION` is identical to the current remote `main` revision.
+`Assets/Editor/CloudflareWebGLPostBuild.cs` runs only on Build Automation WebGL builders and accepts canonical `main` or the machine-owned `tooling/unity-cloud-devops` branch.
 
-The Build Automation environment must provide these production credentials as protected environment variables:
+When UBA builds the mirror, `scripts/uba-postbuild-cloudflare.sh` proves that the build-request commit tree exactly matches current canonical `main`. The public marker records canonical `main` as `sourceRevision` and the UBA trigger commit separately as `buildRevision`.
+
+The Build Automation environment may provide these production credentials as protected environment variables:
 
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-Do not commit either value. If the Unity Dashboard shows no environment variables for `UNITYLAPTOP-WebGL-DEV`, the Unity player can still compile, but the production Cloudflare deploy is intentionally failed rather than falsely reporting success.
+Do not commit either value. If they are absent, the Unity WebGL build is allowed to complete and is explicitly reported as a build-only result; production Cloudflare deployment is skipped. Deployment and public verification remain incomplete until those credentials exist.
 
-The deployer `scripts/uba-postbuild-cloudflare.sh`:
+When credentials are available, the deployer `scripts/uba-postbuild-cloudflare.sh`:
 
 1. accepts only an actual Unity-generated WebGL player (`createUnityInstance` / `.loader.js` fingerprint);
 2. rejects the known legacy browser fallback (`app.js?v=20260905-physics1`);
-3. proves the UBA mirror revision is identical to remote canonical `main` before production deployment;
+3. proves the UBA build-request commit tree is identical to remote canonical `main`;
 4. stages only the current Unity build output under `.uba-cloudflare-webgl`;
 5. blocks deployment if a staged file exceeds Cloudflare Workers Static Assets' 25 MiB single-file limit;
-6. writes `unitylaptop-build.json` containing repository, exact source revision, UBA build number and timestamp;
+6. writes `unitylaptop-build.json` containing repository, canonical source revision, UBA build revision, UBA build number and timestamp;
 7. deploys only that staging directory to Cloudflare Worker `unitylaptop`;
-8. repeatedly fetches the public Worker and succeeds only when both the Unity loader and exact revision marker are live.
+8. repeatedly fetches the public Worker and succeeds only when both the Unity loader and canonical revision marker are live.
 
-`.github/workflows/verify-public-webgl.yml` independently waits for the current canonical `main` SHA. It passes only when the public Worker serves a genuine Unity WebGL entry point and `unitylaptop-build.json` identifies that exact commit.
+`.github/workflows/verify-public-webgl.yml` independently waits for the current canonical `main` SHA. It passes only when the public Worker serves a genuine Unity WebGL entry point and `unitylaptop-build.json` identifies that exact canonical commit.
 
 ## Build safety
 
 `Assets/Editor/CloudBuildGuard.cs` blocks Unity builds with invalid enabled scenes, missing scripts, invalid player Humanoid import/runtime resource binding, or invalid Rake/Snowman imports.
 
-`.github/workflows/validate-player-humanoid.yml`, `.github/workflows/validate-pitch-black-assets.yml`, and `.github/workflows/validate-production-deploy.yml` are source/contract gates. They do not substitute for an actual Unity compile, WebGL build or public deployment verification.
+`.github/workflows/validate-unity-build-prereqs.yml` permanently guards the two conditions that invalidated the stale September 5 build: the project must target Unity `6000.4.0f1`, and `com.unity.modules.physics` must remain enabled.
+
+`.github/workflows/validate-player-humanoid.yml`, `.github/workflows/validate-pitch-black-assets.yml`, `.github/workflows/validate-unity-build-prereqs.yml`, and `.github/workflows/validate-production-deploy.yml` are source/contract gates. They do not substitute for an actual Unity compile, WebGL build or public deployment verification.
 
 ## Deployment truth
 
 A release is complete only at:
 
-`SOURCE UPDATED -> UBA MIRROR MATCHES MAIN -> UNITY BUILD PASSED -> CLOUDFLARE DEPLOY PASSED -> unitylaptop-build.json MATCHES MAIN -> PUBLIC UNITY ENTRY POINT VERIFIED`
+`SOURCE UPDATED -> UBA BUILD-REQUEST COMMIT PUBLISHED -> UNITY BUILD PASSED -> CLOUDFLARE DEPLOY PASSED -> unitylaptop-build.json MATCHES MAIN -> PUBLIC UNITY ENTRY POINT VERIFIED`
+
+If Cloudflare credentials are absent, the highest possible result is `UNITY BUILD PASSED (BUILD-ONLY)`.
 
 If any stage cannot be directly observed, report only the highest verified stage.

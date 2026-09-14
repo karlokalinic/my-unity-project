@@ -1,0 +1,49 @@
+name: Validate Unity build prerequisites
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Packages/manifest.json'
+      - 'ProjectSettings/ProjectVersion.txt'
+      - '.github/workflows/validate-unity-build-prereqs.yml'
+  pull_request:
+    paths:
+      - 'Packages/manifest.json'
+      - 'ProjectSettings/ProjectVersion.txt'
+      - '.github/workflows/validate-unity-build-prereqs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prerequisites:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Unity editor and built-in Physics module
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import pathlib
+
+          manifest = json.loads(pathlib.Path('Packages/manifest.json').read_text(encoding='utf-8'))
+          dependencies = manifest.get('dependencies', {})
+          physics = dependencies.get('com.unity.modules.physics')
+          if physics != '1.0.0':
+              raise SystemExit(
+                  f"Unity built-in Physics module must be enabled as com.unity.modules.physics=1.0.0; found {physics!r}."
+              )
+
+          version_lines = pathlib.Path('ProjectSettings/ProjectVersion.txt').read_text(encoding='utf-8').splitlines()
+          editor_line = next((line for line in version_lines if line.startswith('m_EditorVersion: ')), '')
+          editor_version = editor_line.removeprefix('m_EditorVersion: ').strip()
+          if editor_version != '6000.4.0f1':
+              raise SystemExit(f'UNITYLAPTOP must build with Unity 6000.4.0f1; found {editor_version!r}.')
+
+          print('Unity build prerequisites passed: Physics module enabled; editor=6000.4.0f1.')
+          PY
