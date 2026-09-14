@@ -29,6 +29,8 @@ The Unity Dashboard configuration currently used for this repository is:
 
 The Build Automation branch is intentionally a machine-owned mirror. `.github/workflows/sync-unity-build-automation.yml` force-updates `tooling/unity-cloud-devops` to the exact `main` commit on every canonical push. No gameplay changes should be authored directly on the mirror branch.
 
+The mirror ref is workflow-owned during normal operation. Manual ref updates are reserved for bootstrap/recovery; ordinary releases must advance `main` and let the sync workflow publish that exact commit to Unity Build Automation.
+
 This keeps GitHub `main` canonical while matching the already-configured Unity Dashboard target without requiring a second source-of-truth branch or a local Unity installation.
 
 ## Trigger boundary
