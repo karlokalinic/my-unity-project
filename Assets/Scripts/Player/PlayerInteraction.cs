@@ -16,7 +16,7 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private float interactRadius = 2.3f;
     [SerializeField] private LayerMask interactionMask = ~0;
     [SerializeField] private float minimumFacingDot = -0.2f;
-    [SerializeField] private float interactionReachDuration = 0.26f;
+    [SerializeField] private float interactionReachDuration = 0.18f;
 
     [Header("Fail-Safes")]
     [SerializeField] private bool autoExitInspectOnMovementIntent = true;
@@ -280,14 +280,12 @@ public class PlayerInteraction : MonoBehaviour
 
     private System.Collections.IEnumerator TryInteractRoutine()
     {
-        if (reachController != null &&
-            ReachTargetResolver.TryResolveTarget(this, currentInteractable, currentInspectable, out Vector3 reachPoint))
-        {
-            transientBusy = true;
-            yield return reachController.PerformReach(reachPoint, interactionReachDuration);
-            transientBusy = false;
-        }
+        bool shouldReach = reachController != null &&
+                           currentInteractable != null &&
+                           ReachTargetResolver.TryResolveTarget(this, currentInteractable, null, out Vector3 reachPoint);
 
+        // Gameplay response happens on the input frame. The hand reach is presentation only and
+        // must never sit in front of a local door/pickup interaction as artificial input latency.
         interactionExecutor.TryInteract(
             viewCamera,
             interactDistance,
@@ -297,6 +295,13 @@ public class PlayerInteraction : MonoBehaviour
             currentInteractable,
             currentInspectable,
             inspectViewer);
+
+        if (shouldReach && reachController != null)
+        {
+            transientBusy = true;
+            yield return reachController.PerformReach(reachPoint, interactionReachDuration);
+            transientBusy = false;
+        }
 
         interactionRoutine = null;
     }
