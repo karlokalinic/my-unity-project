@@ -1,0 +1,75 @@
+name: Validate physical world contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Assets/Scripts/Interaction/PhysicalChestInteractable.cs'
+      - 'Assets/Scripts/World/PhysicalWorldRuntimeInstaller.cs'
+      - 'Assets/Scripts/Player/PlayerInteraction.cs'
+      - '.github/workflows/validate-physical-world-contract.yml'
+      - 'PHYSICAL_WORLD_CONTRACT.md'
+  pull_request:
+    paths:
+      - 'Assets/Scripts/Interaction/PhysicalChestInteractable.cs'
+      - 'Assets/Scripts/World/PhysicalWorldRuntimeInstaller.cs'
+      - 'Assets/Scripts/Player/PlayerInteraction.cs'
+      - '.github/workflows/validate-physical-world-contract.yml'
+      - 'PHYSICAL_WORLD_CONTRACT.md'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify physical-world invariants
+        shell: python
+        run: |
+          from pathlib import Path
+
+          installer = Path('Assets/Scripts/World/PhysicalWorldRuntimeInstaller.cs').read_text(encoding='utf-8')
+          chest = Path('Assets/Scripts/Interaction/PhysicalChestInteractable.cs').read_text(encoding='utf-8')
+          interaction = Path('Assets/Scripts/Player/PlayerInteraction.cs').read_text(encoding='utf-8')
+
+          required_installer = [
+              'PlayerHeight = 1.8f',
+              'PlayerRadius = 0.34f',
+              'DoorWidth = 1.1f',
+              'DoorHeight = 2.18f',
+              'DoorMotionType.Swing',
+              'UNITYLAPTOP_PhysicalStorage',
+              'KitchenSupplyChest',
+              'OfficeSupplyChest',
+              'contentsRoot.SetActive(false)',
+              'UNITYLAPTOP_LosslessProceduralAmbient',
+          ]
+          for token in required_installer:
+              if token not in installer:
+                  raise SystemExit(f'physical-world installer missing contract token: {token}')
+
+          required_chest = [
+              'BoxCollider lidCollider',
+              'Physics.SyncTransforms()',
+              'Physics.OverlapBoxNonAlloc',
+              'QueryTriggerInteraction.Ignore',
+              'contentsRoot.SetActive(isOpen)',
+              '~0,',
+          ]
+          for token in required_chest:
+              if token not in chest:
+                  raise SystemExit(f'physical chest missing contract token: {token}')
+
+          execute_index = interaction.find('interactionExecutor.TryInteract(')
+          reach_index = interaction.find('reachController.PerformReach(')
+          if execute_index < 0 or reach_index < 0 or execute_index > reach_index:
+              raise SystemExit('interaction response must execute before reach presentation')
+
+          for path in (
+              'Assets/Scripts/Interaction/PhysicalChestInteractable.cs.meta',
+              'Assets/Scripts/World/PhysicalWorldRuntimeInstaller.cs.meta',
+              'PHYSICAL_WORLD_CONTRACT.md',
+          ):
+              if not Path(path).is_file():
+                  raise SystemExit(f'missing required physical-world file: {path}')
+
+          print('PHYSICAL_WORLD_CONTRACT_OK')
