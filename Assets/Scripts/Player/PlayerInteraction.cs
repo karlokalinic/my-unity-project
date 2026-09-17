@@ -280,9 +280,10 @@ public class PlayerInteraction : MonoBehaviour
 
     private System.Collections.IEnumerator TryInteractRoutine()
     {
+        Vector3 reachPoint = Vector3.zero;
         bool shouldReach = reachController != null &&
                            currentInteractable != null &&
-                           ReachTargetResolver.TryResolveTarget(this, currentInteractable, null, out Vector3 reachPoint);
+                           ReachTargetResolver.TryResolveTarget(this, currentInteractable, null, out reachPoint);
 
         // Gameplay response happens on the input frame. The hand reach is presentation only and
         // must never sit in front of a local door/pickup interaction as artificial input latency.
