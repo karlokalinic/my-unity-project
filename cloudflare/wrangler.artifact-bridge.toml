@@ -1,0 +1,9 @@
+name = "unitylaptop-artifact-bridge"
+main = "unitylaptop-artifact-bridge.js"
+compatibility_date = "2026-09-17"
+workers_dev = true
+
+[[r2_buckets]]
+binding = "BUILDS"
+bucket_name = "karlo-webgl-builds"
+remote = true
