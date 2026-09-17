@@ -62,7 +62,7 @@ public sealed class ProductionCharacterAssetProbe : MonoBehaviour
                 $"playerResource={PlayerHumanoidRuntimeInstaller.PlayerResourcePath} " +
                 $"playerRenderers={playerRenderers} humanoidBound={humanoidBound} " +
                 $"rakeRenderers={rakeRenderers} rakeClips={rakeClips} " +
-                $"snowmanRenderers={snowmanRenderers} snowmanClips={snowmanClips}");
+                $"snowmanRenderers={snowRenderers} snowmanClips={snowClips}");
             return;
         }
 
