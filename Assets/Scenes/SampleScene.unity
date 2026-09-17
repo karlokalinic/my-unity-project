@@ -150,11 +150,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 144057276}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a619636a69b8ec4893ed0215eb06f51, type: 3}
+  m_Script: {fileID: 11500000, guid: 63cbd74e4b930974f9fb4aca7d25c624, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
-  startingItems: []
-  logInventoryEvents: 1
+  m_EditorClassIdentifier: Assembly-CSharp::InventorySystem
+  maxSlots: 30
+  slots: []
+  weaponSlot:
+    slotName: Weapon
+    equippedItem: {fileID: 0}
+  armorSlot:
+    slotName: Armor
+    equippedItem: {fileID: 0}
 --- !u!114 &144057278
 MonoBehaviour:
   m_ObjectHideFlags: 0
