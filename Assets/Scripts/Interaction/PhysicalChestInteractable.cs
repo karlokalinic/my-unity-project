@@ -146,12 +146,14 @@ public sealed class PhysicalChestInteractable : InteractableBase
             new Vector3(Mathf.Abs(lossy.x), Mathf.Abs(lossy.y), Mathf.Abs(lossy.z)));
         Vector3 center = colliderTransform.TransformPoint(lidCollider.center);
 
+        // Use all layers: the canonical player can intentionally live on Ignore Raycast,
+        // but physical obstruction checks must still see the CharacterController.
         int count = Physics.OverlapBoxNonAlloc(
             center,
             halfExtents,
             overlapBuffer,
             colliderTransform.rotation,
-            Physics.DefaultRaycastLayers,
+            ~0,
             QueryTriggerInteraction.Ignore);
 
         for (int i = 0; i < count; i++)
