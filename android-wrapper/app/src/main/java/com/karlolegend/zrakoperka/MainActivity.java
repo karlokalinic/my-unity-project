@@ -11,64 +11,69 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public final class MainActivity extends Activity {
-    private static final String GAME_URL = "https://unitylaptop.karlolegend.workers.dev/";
     private WebView webView;
+    private LocalAssetServer server;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         enterImmersiveMode();
 
-        webView = new WebView(this);
-        webView.setBackgroundColor(Color.BLACK);
-        webView.setWebViewClient(new WebViewClient());
-        webView.setWebChromeClient(new WebChromeClient());
+        try {
+            server = new LocalAssetServer(this);
+            int port = server.start();
 
-        WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(false);
-        settings.setAllowContentAccess(false);
-        settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setLoadWithOverviewMode(true);
-        settings.setUseWideViewPort(true);
-        settings.setSupportZoom(false);
-        settings.setBuiltInZoomControls(false);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setUserAgentString(settings.getUserAgentString() + " ZRAKOPERKA-v16-Android");
+            webView = new WebView(this);
+            webView.setBackgroundColor(Color.BLACK);
+            webView.setWebViewClient(new WebViewClient());
+            webView.setWebChromeClient(new WebChromeClient());
 
-        CookieManager.getInstance().setAcceptCookie(true);
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
+            WebSettings settings = webView.getSettings();
+            settings.setJavaScriptEnabled(true);
+            settings.setDomStorageEnabled(true);
+            settings.setDatabaseEnabled(true);
+            settings.setAllowFileAccess(false);
+            settings.setAllowContentAccess(false);
+            settings.setMediaPlaybackRequiresUserGesture(false);
+            settings.setLoadWithOverviewMode(true);
+            settings.setUseWideViewPort(true);
+            settings.setSupportZoom(false);
+            settings.setBuiltInZoomControls(false);
+            settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+            settings.setUserAgentString(settings.getUserAgentString() + " ZRAKOPERKA-v16-OFFLINE");
 
-        setContentView(webView);
-        webView.loadUrl(GAME_URL);
+            CookieManager.getInstance().setAcceptCookie(true);
+            setContentView(webView);
+            webView.loadUrl("http://127.0.0.1:" + port + "/");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to start embedded ZRAKOPERKA build", e);
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         enterImmersiveMode();
-        if (webView != null) {
-            webView.onResume();
-        }
+        if (webView != null) webView.onResume();
     }
 
     @Override
     protected void onPause() {
-        if (webView != null) {
-            webView.onPause();
-        }
+        if (webView != null) webView.onPause();
         super.onPause();
     }
 
     @Override
+    protected void onDestroy() {
+        if (server != null) server.stop();
+        if (webView != null) webView.destroy();
+        super.onDestroy();
+    }
+
+    @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
+        if (webView != null && webView.canGoBack()) webView.goBack();
+        else super.onBackPressed();
     }
 
     private void enterImmersiveMode() {
