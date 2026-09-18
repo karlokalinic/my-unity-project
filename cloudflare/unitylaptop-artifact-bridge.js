@@ -163,8 +163,8 @@ async function commitRelease(request, env, sha) {
     seen.add(path);
     hasIndex ||= path === 'index.html';
     hasLoader ||= /\.loader\.js$/i.test(path);
-    hasWasm ||= /\.wasm(?:\.br|\.gz)?$/i.test(path);
-    hasData ||= /\.data(?:\.br|\.gz)?$/i.test(path);
+    hasWasm ||= /\.wasm(?:\.br|\.gz|\.unityweb)?$/i.test(path);
+    hasData ||= /\.data(?:\.br|\.gz|\.unityweb)?$/i.test(path);
 
     const object = await env.BUILDS.head(releaseKey(sha, path));
     if (!object) return json({ error: `Uploaded object is missing: ${path}` }, 409);
