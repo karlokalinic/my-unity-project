@@ -63,7 +63,7 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
                 throw new BuildFailedException($"Enabled build scene is missing: '{path}'.");
             }
 
-            ValidateScene(path);
+            ValidateScene(path, enabledCount == 1);
         }
 
         if (enabledCount == 0)
@@ -230,7 +230,7 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
         }
     }
 
-    private static void ValidateScene(string path)
+    private static void ValidateScene(string path, bool requireGameplayAnchors)
     {
         var existing = SceneManager.GetSceneByPath(path);
         var openedForValidation = !existing.IsValid() || !existing.isLoaded;
@@ -251,6 +251,31 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
                 throw new BuildFailedException(
                     $"Scene '{path}' contains {missingScripts} missing MonoBehaviour script reference(s). " +
                     "Cloud deployment is blocked until they are fixed.");
+            }
+
+            if (requireGameplayAnchors)
+            {
+                bool hasPlayerMover = false;
+                bool hasCameraRig = false;
+                bool hasVerticalSliceBootstrap = false;
+
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    hasPlayerMover |= root.GetComponentInChildren<PlayerMover>(true) != null;
+                    hasCameraRig |= root.GetComponentInChildren<HolstinCameraRig>(true) != null;
+                    hasVerticalSliceBootstrap |= root.GetComponentInChildren<VerticalSliceScenaBootstrap>(true) != null;
+                }
+
+                if (!hasPlayerMover || !hasCameraRig || !hasVerticalSliceBootstrap)
+                {
+                    throw new BuildFailedException(
+                        $"Boot scene '{path}' is not the integrated UNITYLAPTOP gameplay scene. " +
+                        $"PlayerMover={hasPlayerMover}, HolstinCameraRig={hasCameraRig}, VerticalSliceScenaBootstrap={hasVerticalSliceBootstrap}. " +
+                        "Production deployment is blocked instead of silently shipping a different scene.");
+                }
+
+                Debug.Log(
+                    $"[CloudBuildGuard] Boot scene '{path}' contains PlayerMover, HolstinCameraRig and VerticalSliceScenaBootstrap.");
             }
         }
         finally
