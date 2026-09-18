@@ -1,9 +1,6 @@
 name: Build ZRAKOPERKA Android v16
 
 on:
-  push:
-    branches:
-      - build/android-v16
   workflow_dispatch:
 
 permissions:
