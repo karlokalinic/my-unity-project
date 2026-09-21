@@ -13,6 +13,7 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
     private const string SnowmanResourcePath = "ThirdParty/AbominableSnowman/AbominableSnowman";
     private const string PlayerModelPath = "Assets/Resources/Player/Ch01_nonPBR@Double Dagger Stab.fbx";
     private const string PlayerResourcePath = "Player/Ch01_nonPBR@Double Dagger Stab";
+    private const string ProductionBootScenePath = "Assets/Scenes/INTERAKCIJA.unity";
 
     private static readonly HumanBodyBones[] RequiredPlayerBones =
     {
@@ -58,6 +59,12 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
             enabledCount++;
             var path = sceneEntry.path;
 
+            if (enabledCount == 1 && !string.Equals(path, ProductionBootScenePath, StringComparison.Ordinal))
+            {
+                throw new BuildFailedException(
+                    $"Production boot scene must be '{ProductionBootScenePath}', but first enabled scene is '{path}'.");
+            }
+
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             {
                 throw new BuildFailedException($"Enabled build scene is missing: '{path}'.");
@@ -69,6 +76,12 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
         if (enabledCount == 0)
         {
             throw new BuildFailedException("No enabled scenes exist in EditorBuildSettings.");
+        }
+
+        if (enabledCount != 1)
+        {
+            throw new BuildFailedException(
+                $"Production WebGL must contain exactly one enabled boot scene ('{ProductionBootScenePath}'); found {enabledCount}.");
         }
     }
 
