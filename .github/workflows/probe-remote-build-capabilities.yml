@@ -1,0 +1,38 @@
+name: Probe remote build capabilities
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe-remote-build-capabilities.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+      UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+      UNITY_BUILD_AUTOMATION_API_KEY: ${{ secrets.UNITY_BUILD_AUTOMATION_API_KEY }}
+      UNITY_CLOUD_BUILD_API_KEY: ${{ secrets.UNITY_CLOUD_BUILD_API_KEY }}
+      UNITY_API_KEY: ${{ secrets.UNITY_API_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Report capability presence without values
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in UNITY_EMAIL UNITY_PASSWORD UNITY_LICENSE UNITY_SERIAL UNITY_BUILD_AUTOMATION_API_KEY UNITY_CLOUD_BUILD_API_KEY UNITY_API_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [[ -n "${!name:-}" ]]; then
+              echo "${name}=present"
+            else
+              echo "${name}=absent"
+            fi
+          done
