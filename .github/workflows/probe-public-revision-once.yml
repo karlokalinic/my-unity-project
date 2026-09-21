@@ -1,0 +1,30 @@
+name: Probe public Unity revision once
+
+on:
+  push:
+    branches: [ops/probe-public-revision]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read public Unity marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://unitylaptop.karlolegend.workers.dev'
+          marker="$(curl --fail --silent --show-error --location --max-time 20 "$url/unitylaptop-build.json?probe=$GITHUB_RUN_ID")"
+          index="$(curl --fail --silent --show-error --location --max-time 20 "$url/?probe=$GITHUB_RUN_ID")"
+          echo "PUBLIC_MARKER=$marker"
+          if [[ "$index" == *'createUnityInstance'* ]] || [[ "$index" == *'.loader.js'* ]]; then
+            echo 'PUBLIC_ENTRY=UNITY_WEBGL'
+          elif [[ "$index" == *'app.js?v=20260905-physics1'* ]]; then
+            echo 'PUBLIC_ENTRY=LEGACY_FALLBACK'
+          else
+            echo 'PUBLIC_ENTRY=UNKNOWN'
+          fi
