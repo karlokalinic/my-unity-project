@@ -53,31 +53,38 @@ public sealed class HorrorCreaturePresenceInstaller : MonoBehaviour
         yield return null;
         yield return null;
 
-        int readyCount = 0;
+        Scene activeScene = SceneManager.GetActiveScene();
+        bool isProductionScene = activeScene.IsValid() &&
+            string.Equals(activeScene.name, "INTERAKCIJA", System.StringComparison.OrdinalIgnoreCase);
+
+        bool productionEnemyReady = !isProductionScene || BindProductionRakeEnemy();
+
+        int foundEncounterRoots = 0;
+        int readyEncounterRoots = 0;
         for (int i = 0; i < MonsterRootNames.Length; i++)
         {
-            if (ExposeRealMonster(MonsterRootNames[i]))
+            if (!TryFindMonsterRoot(MonsterRootNames[i], out Transform monsterRoot))
             {
-                readyCount++;
+                continue;
+            }
+
+            foundEncounterRoots++;
+            if (ExposeRealMonster(monsterRoot))
+            {
+                readyEncounterRoots++;
             }
         }
 
-        bool productionEnemyReady = true;
-        Scene activeScene = SceneManager.GetActiveScene();
-        if (activeScene.IsValid() &&
-            string.Equals(activeScene.name, "INTERAKCIJA", System.StringComparison.OrdinalIgnoreCase))
+        if (productionEnemyReady && readyEncounterRoots == foundEncounterRoots)
         {
-            productionEnemyReady = BindProductionRakeEnemy();
-        }
-
-        if (readyCount == MonsterRootNames.Length && productionEnemyReady)
-        {
-            Debug.Log("[HorrorCreaturePresenceInstaller] REAL_MONSTERS_VISIBLE rake=true snowman=true archiveRake=true");
+            Debug.Log(
+                $"[HorrorCreaturePresenceInstaller] REAL_MONSTERS_READY archiveRake={productionEnemyReady} " +
+                $"encounters={readyEncounterRoots}/{foundEncounterRoots}");
         }
         else
         {
             Debug.LogError(
-                $"[HorrorCreaturePresenceInstaller] REAL_MONSTERS_INCOMPLETE encounters={readyCount}/{MonsterRootNames.Length} " +
+                $"[HorrorCreaturePresenceInstaller] REAL_MONSTERS_INCOMPLETE encounters={readyEncounterRoots}/{foundEncounterRoots} " +
                 $"archiveRake={productionEnemyReady}. No procedural monster visual was accepted as a substitute.");
         }
 
@@ -137,36 +144,36 @@ public sealed class HorrorCreaturePresenceInstaller : MonoBehaviour
         return true;
     }
 
-    private static bool ExposeRealMonster(string rootName)
+    private static bool TryFindMonsterRoot(string rootName, out Transform monsterRoot)
     {
+        monsterRoot = null;
         Transform[] transforms = Object.FindObjectsByType<Transform>(
             FindObjectsInactive.Include,
             FindObjectsSortMode.None);
 
-        Transform monsterRoot = null;
         for (int i = 0; i < transforms.Length; i++)
         {
             Transform candidate = transforms[i];
-            if (candidate == null || candidate.name != rootName)
-            {
-                continue;
-            }
-
-            if (!candidate.gameObject.scene.IsValid())
+            if (candidate == null || candidate.name != rootName || !candidate.gameObject.scene.IsValid())
             {
                 continue;
             }
 
             monsterRoot = candidate;
-            break;
+            return true;
         }
 
+        return false;
+    }
+
+    private static bool ExposeRealMonster(Transform monsterRoot)
+    {
         if (monsterRoot == null)
         {
-            Debug.LogError($"[HorrorCreaturePresenceInstaller] Missing encounter monster root '{rootName}'.");
             return false;
         }
 
+        string rootName = monsterRoot.name;
         SkinnedMeshRenderer[] skins = monsterRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         if (skins == null || skins.Length == 0)
         {
