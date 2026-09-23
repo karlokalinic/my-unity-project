@@ -118,6 +118,7 @@ public sealed class HorrorCreaturePresenceInstaller : MonoBehaviour
 
         HorrorCreatureRuntimeUtility.HideExistingRenderers(enemy, visual.transform);
         HorrorCreatureRuntimeUtility.ConfigureCompoundCollision(enemy, 2.3f, 1f, groundY, true);
+        HorrorCreatureRuntimeUtility.SetCompoundCollisionEnabled(enemy, true);
 
         ProceduralHumanoidRig rig = enemy.GetComponent<ProceduralHumanoidRig>();
         if (rig != null)
