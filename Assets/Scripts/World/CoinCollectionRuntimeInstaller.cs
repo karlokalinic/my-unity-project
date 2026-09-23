@@ -17,19 +17,23 @@ public sealed class CoinCollectionRuntimeInstaller : MonoBehaviour
 
     private static readonly Vector3[] RoutePoints =
     {
-        new Vector3(-3.2f, 0f, -6.0f),
-        new Vector3(0.0f, 0f, -5.2f),
-        new Vector3(3.2f, 0f, -4.4f),
-        new Vector3(6.4f, 0f, -3.6f),
-        new Vector3(9.3f, 0f, -2.7f),
-        new Vector3(11.6f, 0f, -2.0f),
-        new Vector3(13.4f, 0f, -0.8f),
-        new Vector3(15.2f, 0f, 0.5f),
-        new Vector3(17.1f, 0f, 1.8f),
-        new Vector3(19.2f, 0f, 2.1f),
-        new Vector3(22.0f, 0f, 1.0f),
-        new Vector3(25.2f, 0f, 0.0f)
+        // Follow the actual playable center lane. Keep pickups clear of the z = +/-6 perimeter
+        // walls and place partition transitions near their real door openings.
+        new Vector3(-7.2f, 0f, 1.7f),
+        new Vector3(-4.8f, 0f, -1.7f),
+        new Vector3(-2.8f, 0f, 0.0f),
+        new Vector3(0.5f, 0f, 1.6f),
+        new Vector3(4.5f, 0f, -1.7f),
+        new Vector3(7.8f, 0f, 1.7f),
+        new Vector3(11.0f, 0f, -1.7f),
+        new Vector3(13.0f, 0f, 0.0f),
+        new Vector3(16.4f, 0f, -2.0f),
+        new Vector3(19.4f, 0f, 2.0f),
+        new Vector3(21.0f, 0f, 0.0f),
+        new Vector3(25.0f, 0f, -1.5f)
     };
+
+    private static readonly RaycastHit[] GroundHits = new RaycastHit[24];
 
     private TMP_Text counterText;
     private Material coinMaterial;
@@ -125,19 +129,38 @@ public sealed class CoinCollectionRuntimeInstaller : MonoBehaviour
 
     private float ResolveGroundY(Vector3 point)
     {
-        Vector3 origin = new Vector3(point.x, 8f, point.z);
-        if (Physics.Raycast(
-                origin,
-                Vector3.down,
-                out RaycastHit hit,
-                20f,
-                Physics.DefaultRaycastLayers,
-                QueryTriggerInteraction.Ignore))
+        Vector3 origin = new Vector3(point.x, point.y + 8f, point.z);
+        int hitCount = Physics.RaycastNonAlloc(
+            origin,
+            Vector3.down,
+            GroundHits,
+            20f,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore);
+
+        float bestY = point.y;
+        float bestDelta = float.PositiveInfinity;
+        for (int i = 0; i < hitCount; i++)
         {
-            return hit.point.y;
+            RaycastHit hit = GroundHits[i];
+
+            // Coins belong on walkable floor, not on top of perimeter walls, tables or props.
+            if (Vector3.Dot(hit.normal, Vector3.up) < 0.65f)
+            {
+                continue;
+            }
+
+            float delta = Mathf.Abs(hit.point.y - point.y);
+            if (hit.point.y > point.y + 1.25f || hit.point.y < point.y - 2f || delta >= bestDelta)
+            {
+                continue;
+            }
+
+            bestDelta = delta;
+            bestY = hit.point.y;
         }
 
-        return 0.1f;
+        return bestY;
     }
 
     private void HandleCoinCollected(CoinCollectible collectible, int value)

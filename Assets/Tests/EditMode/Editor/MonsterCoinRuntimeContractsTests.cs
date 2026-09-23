@@ -1,3 +1,4 @@
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -31,6 +32,12 @@ public class MonsterCoinRuntimeContractsTests
             Assert.IsNotNull(collisionRoot);
             Assert.That(collisionRoot.position.y, Is.EqualTo(0f).Within(0.001f));
 
+            Rigidbody collisionBody = collisionRoot.GetComponent<Rigidbody>();
+            Assert.IsNotNull(collisionBody, "Moving creature collision needs a kinematic Rigidbody.");
+            Assert.IsTrue(collisionBody.isKinematic);
+            Assert.IsFalse(collisionBody.useGravity);
+            Assert.AreEqual(host.layer, collisionRoot.gameObject.layer);
+
             Collider[] physicalParts = collisionRoot.GetComponentsInChildren<Collider>(true);
             Assert.GreaterOrEqual(physicalParts.Length, 6);
             for (int i = 0; i < physicalParts.Length; i++)
@@ -47,6 +54,26 @@ public class MonsterCoinRuntimeContractsTests
         finally
         {
             Object.DestroyImmediate(host);
+        }
+    }
+
+    [Test]
+    public void CoinRoute_StaysInsidePlayableSandboxWalls()
+    {
+        FieldInfo routeField = typeof(CoinCollectionRuntimeInstaller).GetField(
+            "RoutePoints",
+            BindingFlags.Static | BindingFlags.NonPublic);
+
+        Assert.IsNotNull(routeField);
+        Vector3[] points = routeField.GetValue(null) as Vector3[];
+        Assert.IsNotNull(points);
+        Assert.GreaterOrEqual(points.Length, 12);
+
+        for (int i = 0; i < points.Length; i++)
+        {
+            Assert.Less(Mathf.Abs(points[i].z), 5.7f, $"Coin {i + 1} overlaps the z = +/-6 perimeter wall.");
+            Assert.Greater(points[i].x, -9.5f);
+            Assert.Less(points[i].x, 29.5f);
         }
     }
 
