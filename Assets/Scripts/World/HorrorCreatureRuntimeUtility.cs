@@ -125,6 +125,42 @@ public static class HorrorCreatureRuntimeUtility
         AddLimbCollider(collisionRoot.transform, "Leg_R", new Vector3(0.18f * b, 0.52f * h, 0f), new Vector3(-7f, 0f, 0f), 1.05f * h, 0.12f * b);
     }
 
+    public static void SetCompoundCollisionEnabled(GameObject host, bool enabled)
+    {
+        if (host == null)
+        {
+            return;
+        }
+
+        if (enabled)
+        {
+            Collider[] rootColliders = host.GetComponents<Collider>();
+            for (int i = 0; i < rootColliders.Length; i++)
+            {
+                Collider colliderComponent = rootColliders[i];
+                if (colliderComponent != null && !colliderComponent.isTrigger)
+                {
+                    colliderComponent.enabled = false;
+                }
+            }
+        }
+
+        Transform collisionRoot = host.transform.Find(CollisionRootName);
+        if (collisionRoot == null)
+        {
+            return;
+        }
+
+        Collider[] compound = collisionRoot.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < compound.Length; i++)
+        {
+            if (compound[i] != null)
+            {
+                compound[i].enabled = enabled;
+            }
+        }
+    }
+
     public static bool TryGetBounds(Transform root, out Bounds combined)
     {
         combined = default;
