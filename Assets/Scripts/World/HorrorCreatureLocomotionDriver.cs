@@ -14,6 +14,8 @@ public sealed class HorrorCreatureLocomotionDriver : MonoBehaviour
     [SerializeField] private float minimumAnimatedSpeed = 0.08f;
 
     private NavMeshAgent agent;
+    private Damageable damageable;
+    private CharacterStats stats;
     private GameObject visualRoot;
     private AnimationClip locomotionClip;
     private Vector3 baseLocalPosition;
@@ -37,6 +39,31 @@ public sealed class HorrorCreatureLocomotionDriver : MonoBehaviour
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        damageable = GetComponent<Damageable>();
+        stats = GetComponent<CharacterStats>();
+
+        if (damageable != null)
+        {
+            damageable.Died += HandleDied;
+        }
+
+        if (stats != null)
+        {
+            stats.Revived += HandleRevived;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (damageable != null)
+        {
+            damageable.Died -= HandleDied;
+        }
+
+        if (stats != null)
+        {
+            stats.Revived -= HandleRevived;
+        }
     }
 
     private void Start()
@@ -74,6 +101,26 @@ public sealed class HorrorCreatureLocomotionDriver : MonoBehaviour
         t.localPosition = baseLocalPosition;
         t.localRotation = baseLocalRotation;
         t.localScale = baseLocalScale;
+    }
+
+    private void HandleDied()
+    {
+        if (visualRoot != null)
+        {
+            visualRoot.SetActive(false);
+        }
+
+        HorrorCreatureRuntimeUtility.SetCompoundCollisionEnabled(gameObject, false);
+    }
+
+    private void HandleRevived()
+    {
+        if (visualRoot != null)
+        {
+            visualRoot.SetActive(true);
+        }
+
+        HorrorCreatureRuntimeUtility.SetCompoundCollisionEnabled(gameObject, true);
     }
 
     private void Resolve()
