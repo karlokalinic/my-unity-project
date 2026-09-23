@@ -106,7 +106,15 @@ jobs:
                   raise SystemExit(f'Monster gameplay binding missing: {token}')
 
           utility = (root / 'Assets/Scripts/World/HorrorCreatureRuntimeUtility.cs').read_text(encoding='utf-8')
-          for token in ('__CreatureCollision', 'CapsuleCollider', 'SphereCollider', 'DisableImportedPhysics'):
+          for token in (
+              '__CreatureCollision',
+              'CapsuleCollider',
+              'SphereCollider',
+              'DisableImportedPhysics',
+              'Rigidbody',
+              'collisionBody.isKinematic = true',
+              'collisionRoot.layer = host.layer',
+          ):
               if token not in utility:
                   raise SystemExit(f'Monster physical contract missing: {token}')
 
@@ -119,7 +127,18 @@ jobs:
           route_body = re.search(r'RoutePoints\s*=\s*\{(.*?)\};', coin_installer, re.S)
           if not route_body or route_body.group(1).count('new Vector3(') < 12:
               raise SystemExit('Coin route must contain at least 12 placed collectibles.')
-          for token in ('INTERAKCIJA', 'MeshCollider', 'meshCollider.convex = true', 'meshCollider.isTrigger = true', 'Physics.Raycast', 'COINS'):
+
+          route_points = [
+              tuple(float(v.rstrip('f')) for v in match)
+              for match in re.findall(
+                  r'new Vector3\((-?\d+(?:\.\d+)?f?),\s*(-?\d+(?:\.\d+)?f?),\s*(-?\d+(?:\.\d+)?f?)\)',
+                  route_body.group(1),
+              )
+          ]
+          if any(abs(z) >= 5.7 or x <= -9.5 or x >= 29.5 for x, _, z in route_points):
+              raise SystemExit(f'Coin route overlaps production sandbox bounds: {route_points}')
+
+          for token in ('INTERAKCIJA', 'MeshCollider', 'meshCollider.convex = true', 'meshCollider.isTrigger = true', 'Physics.RaycastNonAlloc', 'GroundHits', 'COINS'):
               if token not in coin_installer:
                   raise SystemExit(f'Coin scene integration missing: {token}')
 
