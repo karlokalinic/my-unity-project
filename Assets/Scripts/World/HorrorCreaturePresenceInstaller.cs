@@ -78,7 +78,7 @@ public sealed class HorrorCreaturePresenceInstaller : MonoBehaviour
         if (productionEnemyReady && readyEncounterRoots == foundEncounterRoots)
         {
             Debug.Log(
-                $"[HorrorCreaturePresenceInstaller] REAL_MONSTERS_READY archiveRake={productionEnemyReady} " +
+                $"[HorrorCreaturePresenceInstaller] REAL_MONSTERS_VISIBLE archiveRake={productionEnemyReady} " +
                 $"encounters={readyEncounterRoots}/{foundEncounterRoots}");
         }
         else
