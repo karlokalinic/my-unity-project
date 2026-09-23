@@ -1,0 +1,137 @@
+name: Validate monster and coin gameplay
+
+on:
+  push:
+    branches:
+      - main
+      - feature/monster-coin-collection
+    paths:
+      - 'Assets/Scripts/World/HorrorCreaturePresenceInstaller.cs'
+      - 'Assets/Scripts/World/HorrorCreatureRuntimeUtility.cs'
+      - 'Assets/Scripts/World/HorrorCreatureLocomotionDriver.cs'
+      - 'Assets/Scripts/World/CoinCollectible.cs'
+      - 'Assets/Scripts/World/CoinCollectionRuntimeInstaller.cs'
+      - 'Assets/Editor/CloudBuildGuard.cs'
+      - 'Assets/Scenes/INTERAKCIJA.unity'
+      - 'Assets/Resources/ThirdParty/TheRake/**'
+      - 'ProjectSettings/EditorBuildSettings.asset'
+      - '.github/workflows/validate-monster-coins.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'Assets/Scripts/World/HorrorCreaturePresenceInstaller.cs'
+      - 'Assets/Scripts/World/HorrorCreatureRuntimeUtility.cs'
+      - 'Assets/Scripts/World/HorrorCreatureLocomotionDriver.cs'
+      - 'Assets/Scripts/World/CoinCollectible.cs'
+      - 'Assets/Scripts/World/CoinCollectionRuntimeInstaller.cs'
+      - 'Assets/Editor/CloudBuildGuard.cs'
+      - 'Assets/Scenes/INTERAKCIJA.unity'
+      - 'Assets/Resources/ThirdParty/TheRake/**'
+      - 'ProjectSettings/EditorBuildSettings.asset'
+      - '.github/workflows/validate-monster-coins.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-monster-coins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Validate production monster and coin contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path('.')
+          required = [
+              root / 'Assets/Scripts/World/HorrorCreaturePresenceInstaller.cs',
+              root / 'Assets/Scripts/World/HorrorCreatureRuntimeUtility.cs',
+              root / 'Assets/Scripts/World/HorrorCreatureLocomotionDriver.cs',
+              root / 'Assets/Scripts/World/CoinCollectible.cs',
+              root / 'Assets/Scripts/World/CoinCollectionRuntimeInstaller.cs',
+              root / 'Assets/Editor/CloudBuildGuard.cs',
+              root / 'Assets/Scenes/INTERAKCIJA.unity',
+              root / 'Assets/Resources/ThirdParty/TheRake/TheRake.fbx',
+              root / 'ProjectSettings/EditorBuildSettings.asset',
+          ]
+          for path in required:
+              if not path.exists():
+                  raise SystemExit(f'Missing production prerequisite: {path}')
+
+          build_settings = (root / 'ProjectSettings/EditorBuildSettings.asset').read_text(encoding='utf-8')
+          enabled = re.findall(r'- enabled: 1\s+path: ([^\n]+)', build_settings)
+          if enabled != ['Assets/Scenes/INTERAKCIJA.unity']:
+              raise SystemExit(f'Production build scene drifted: {enabled}')
+
+          scene = (root / 'Assets/Scenes/INTERAKCIJA.unity').read_text(encoding='utf-8')
+          for token in (
+              'm_Name: Player',
+              'Assembly-CSharp::PlayerMover',
+              'Assembly-CSharp::CurrencyWallet',
+              'm_Name: INT_ArchiveEnforcer',
+              'Assembly-CSharp::EnemyController',
+              'Assembly-CSharp::HolstinCameraRig',
+              'Assembly-CSharp::VerticalSliceScenaBootstrap',
+          ):
+              if token not in scene:
+                  raise SystemExit(f'INTERAKCIJA missing required token: {token}')
+
+          rake = root / 'Assets/Resources/ThirdParty/TheRake/TheRake.fbx'
+          import hashlib
+          rake_bytes = rake.read_bytes()
+          expected_rake_sha256 = '72b266ef613d576d0fa801c7bff200b4ef30055cbfa985b1cb6170e1fa6358ed'
+          if hashlib.sha256(rake_bytes).hexdigest() != expected_rake_sha256:
+              raise SystemExit('Rake FBX content hash does not match the canonical vendored asset.')
+          if not rake_bytes.startswith(b'Kaydara FBX Binary'):
+              raise SystemExit('Rake FBX does not have a valid binary FBX header.')
+
+          presence = (root / 'Assets/Scripts/World/HorrorCreaturePresenceInstaller.cs').read_text(encoding='utf-8')
+          for token in (
+              'INT_ArchiveEnforcer',
+              'ThirdParty/TheRake/TheRake',
+              'TryInstantiateVisual',
+              'ConfigureCompoundCollision',
+              'HorrorCreatureLocomotionDriver',
+              'SetCompoundCollisionEnabled',
+          ):
+              if token not in presence:
+                  raise SystemExit(f'Monster gameplay binding missing: {token}')
+
+          utility = (root / 'Assets/Scripts/World/HorrorCreatureRuntimeUtility.cs').read_text(encoding='utf-8')
+          for token in ('__CreatureCollision', 'CapsuleCollider', 'SphereCollider', 'DisableImportedPhysics'):
+              if token not in utility:
+                  raise SystemExit(f'Monster physical contract missing: {token}')
+
+          locomotion = (root / 'Assets/Scripts/World/HorrorCreatureLocomotionDriver.cs').read_text(encoding='utf-8')
+          for token in ('NavMeshAgent', 'SampleAnimation', 'HandleDied', 'HandleRevived'):
+              if token not in locomotion:
+                  raise SystemExit(f'Monster locomotion/death contract missing: {token}')
+
+          coin_installer = (root / 'Assets/Scripts/World/CoinCollectionRuntimeInstaller.cs').read_text(encoding='utf-8')
+          route_body = re.search(r'RoutePoints\s*=\s*\{(.*?)\};', coin_installer, re.S)
+          if not route_body or route_body.group(1).count('new Vector3(') < 12:
+              raise SystemExit('Coin route must contain at least 12 placed collectibles.')
+          for token in ('INTERAKCIJA', 'MeshCollider', 'meshCollider.convex = true', 'meshCollider.isTrigger = true', 'Physics.Raycast', 'COINS'):
+              if token not in coin_installer:
+                  raise SystemExit(f'Coin scene integration missing: {token}')
+
+          collectible = (root / 'Assets/Scripts/World/CoinCollectible.cs').read_text(encoding='utf-8')
+          for token in ('OnTriggerEnter', 'PlayerMover', 'CurrencyWallet', 'wallet.Add(currencyId, value)'):
+              if token not in collectible:
+                  raise SystemExit(f'Coin pickup contract missing: {token}')
+
+          guard = (root / 'Assets/Editor/CloudBuildGuard.cs').read_text(encoding='utf-8')
+          for token in ('hasPlayerCurrencyWallet', 'hasArchiveEnemy', 'INT_ArchiveEnforcer'):
+              if token not in guard:
+                  raise SystemExit(f'Cloud build guard missing monster/coin prerequisite: {token}')
+
+          print('MONSTER_COIN_CONTRACT_OK scene=INTERAKCIJA rake=real coinTrail>=12')
+          PY

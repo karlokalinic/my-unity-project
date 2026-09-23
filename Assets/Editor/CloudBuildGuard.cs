@@ -271,24 +271,43 @@ public sealed class CloudBuildGuard : IPreprocessBuildWithReport
                 bool hasPlayerMover = false;
                 bool hasCameraRig = false;
                 bool hasVerticalSliceBootstrap = false;
+                bool hasPlayerCurrencyWallet = false;
+                bool hasArchiveEnemy = false;
 
                 foreach (var root in scene.GetRootGameObjects())
                 {
-                    hasPlayerMover |= root.GetComponentInChildren<PlayerMover>(true) != null;
+                    PlayerMover playerMover = root.GetComponentInChildren<PlayerMover>(true);
+                    hasPlayerMover |= playerMover != null;
+                    hasPlayerCurrencyWallet |= playerMover != null && playerMover.GetComponent<CurrencyWallet>() != null;
                     hasCameraRig |= root.GetComponentInChildren<HolstinCameraRig>(true) != null;
                     hasVerticalSliceBootstrap |= root.GetComponentInChildren<VerticalSliceScenaBootstrap>(true) != null;
+
+                    EnemyController[] enemies = root.GetComponentsInChildren<EnemyController>(true);
+                    for (int enemyIndex = 0; enemyIndex < enemies.Length; enemyIndex++)
+                    {
+                        EnemyController enemy = enemies[enemyIndex];
+                        if (enemy != null &&
+                            string.Equals(enemy.gameObject.name, "INT_ArchiveEnforcer", StringComparison.Ordinal))
+                        {
+                            hasArchiveEnemy = true;
+                            break;
+                        }
+                    }
                 }
 
-                if (!hasPlayerMover || !hasCameraRig || !hasVerticalSliceBootstrap)
+                if (!hasPlayerMover || !hasCameraRig || !hasVerticalSliceBootstrap ||
+                    !hasPlayerCurrencyWallet || !hasArchiveEnemy)
                 {
                     throw new BuildFailedException(
                         $"Boot scene '{path}' is not the integrated UNITYLAPTOP gameplay scene. " +
-                        $"PlayerMover={hasPlayerMover}, HolstinCameraRig={hasCameraRig}, VerticalSliceScenaBootstrap={hasVerticalSliceBootstrap}. " +
+                        $"PlayerMover={hasPlayerMover}, HolstinCameraRig={hasCameraRig}, VerticalSliceScenaBootstrap={hasVerticalSliceBootstrap}, " +
+                        $"CurrencyWallet={hasPlayerCurrencyWallet}, ArchiveEnemy={hasArchiveEnemy}. " +
                         "Production deployment is blocked instead of silently shipping a different scene.");
                 }
 
                 Debug.Log(
-                    $"[CloudBuildGuard] Boot scene '{path}' contains PlayerMover, HolstinCameraRig and VerticalSliceScenaBootstrap.");
+                    $"[CloudBuildGuard] Boot scene '{path}' contains the player/camera/bootstrap plus " +
+                    "CurrencyWallet and INT_ArchiveEnforcer prerequisites for monster + coin gameplay.");
             }
         }
         finally
