@@ -73,6 +73,7 @@ public static class HorrorCreatureRuntimeUtility
         GameObject host,
         float targetHeight,
         float bulkScale,
+        float groundY,
         bool disableExistingRootSolidColliders)
     {
         if (host == null || host.transform.Find(CollisionRootName) != null)
@@ -103,6 +104,10 @@ public static class HorrorCreatureRuntimeUtility
 
         GameObject collisionRoot = new GameObject(CollisionRootName);
         collisionRoot.transform.SetParent(host.transform, false);
+        collisionRoot.transform.position = new Vector3(
+            host.transform.position.x,
+            groundY,
+            host.transform.position.z);
 
         CapsuleCollider torso = collisionRoot.AddComponent<CapsuleCollider>();
         torso.center = new Vector3(0f, 1.25f * h, 0f);
