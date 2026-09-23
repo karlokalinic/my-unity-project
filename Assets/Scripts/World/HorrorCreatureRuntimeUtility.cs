@@ -103,11 +103,20 @@ public static class HorrorCreatureRuntimeUtility
         float b = Mathf.Max(0.6f, bulkScale / lossyXZ);
 
         GameObject collisionRoot = new GameObject(CollisionRootName);
+        collisionRoot.layer = host.layer;
         collisionRoot.transform.SetParent(host.transform, false);
         collisionRoot.transform.position = new Vector3(
             host.transform.position.x,
             groundY,
             host.transform.position.z);
+
+        // The compound belongs to a moving NavMesh actor. A kinematic body prevents Unity
+        // from treating these colliders as repeatedly moved static geometry.
+        Rigidbody collisionBody = collisionRoot.AddComponent<Rigidbody>();
+        collisionBody.isKinematic = true;
+        collisionBody.useGravity = false;
+        collisionBody.interpolation = RigidbodyInterpolation.Interpolate;
+        collisionBody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
 
         CapsuleCollider torso = collisionRoot.AddComponent<CapsuleCollider>();
         torso.center = new Vector3(0f, 1.25f * h, 0f);
@@ -268,6 +277,7 @@ public static class HorrorCreatureRuntimeUtility
         float radius)
     {
         GameObject limb = new GameObject(name);
+        limb.layer = parent.gameObject.layer;
         limb.transform.SetParent(parent, false);
         limb.transform.localPosition = localPosition;
         limb.transform.localRotation = Quaternion.Euler(localEuler);
