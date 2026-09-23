@@ -85,9 +85,12 @@ jobs:
                   raise SystemExit(f'INTERAKCIJA missing required token: {token}')
 
           rake = root / 'Assets/Resources/ThirdParty/TheRake/TheRake.fbx'
-          if rake.stat().st_size < 10_000_000:
-              raise SystemExit('Rake FBX is unexpectedly small/truncated.')
-          if rake.read_bytes()[:21] != b'Kaydara FBX Binary  \x00':
+          import hashlib
+          rake_bytes = rake.read_bytes()
+          expected_rake_sha256 = '72b266ef613d576d0fa801c7bff200b4ef30055cbfa985b1cb6170e1fa6358ed'
+          if hashlib.sha256(rake_bytes).hexdigest() != expected_rake_sha256:
+              raise SystemExit('Rake FBX content hash does not match the canonical vendored asset.')
+          if not rake_bytes.startswith(b'Kaydara FBX Binary'):
               raise SystemExit('Rake FBX does not have a valid binary FBX header.')
 
           presence = (root / 'Assets/Scripts/World/HorrorCreaturePresenceInstaller.cs').read_text(encoding='utf-8')
